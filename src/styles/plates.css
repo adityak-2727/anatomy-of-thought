@@ -14,7 +14,8 @@
   column-gap: var(--gutter);
 }
 
-/* The frontispiece: the only centred page. */
+/* ─── The frontispiece: the only centred page ─────────────────────────────── */
+
 .frontispiece {
   display: grid;
   grid-template-rows: auto auto;
@@ -38,6 +39,7 @@
   font-size: var(--type-title);
   line-height: var(--lh-title);
   letter-spacing: var(--tracking-title);
+  text-wrap: balance;
 }
 
 .frontispiece__subtitle {
@@ -46,6 +48,38 @@
   line-height: var(--lh-subtitle);
   font-style: italic;
   text-wrap: balance;
+}
+
+/* A line of type laid over its sensitiser-coloured twin (the load sequence). */
+.silhouette {
+  display: grid;
+}
+
+.silhouette > * {
+  grid-area: 1 / 1;
+}
+
+.silhouette__sensitised {
+  color: var(--sensitiser);
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* The emblem: a single blank slip, pinned, waiting for the specimen. */
+.emblem {
+  position: relative;
+  display: block;
+  margin-block-start: var(--s-2);
+}
+
+.emblem__slip {
+  display: block;
+  inline-size: var(--emblem-w);
+  block-size: var(--emblem-h);
+  padding: 0;
+  rotate: var(--emblem-turn);
+  clip-path: polygon(1px 1px, 100% 0, calc(100% - 1px) 100%, 0 calc(100% - 2px));
 }
 
 .frontispiece__imprint {
@@ -64,7 +98,39 @@
   line-height: var(--lh-small);
 }
 
-/* The list of plates. */
+/* The imprint and hint wait to be printed. If the script never arrives, a safety net
+   shows them after five seconds; once the sequence is ready it stands down. */
+.js .frontispiece__imprint,
+.js .frontispiece__hint {
+  opacity: 0;
+  animation: atlas-safety-reveal 0s 5s forwards;
+}
+
+.front-ready .frontispiece__imprint,
+.front-ready .frontispiece__hint {
+  animation: none;
+}
+
+.rm .frontispiece__imprint,
+.rm .frontispiece__hint {
+  opacity: 1;
+}
+
+@keyframes atlas-safety-reveal {
+  to { opacity: 1; }
+}
+
+/* Likewise, text on a field is paper-white only once the chemistry is running. */
+.js:not(.bg-ready) .field {
+  animation: atlas-safety-ink 0s 5s forwards;
+}
+
+@keyframes atlas-safety-ink {
+  to { color: var(--ink); }
+}
+
+/* ─── The list of plates ──────────────────────────────────────────────────── */
+
 .contents {
   padding-block: var(--plate-gap);
 }
@@ -88,9 +154,10 @@
   margin-block-start: var(--s-3);
 }
 
+/* A contents page, not a menu: entries carry no underline. The leaders are the affordance. */
 .contents__entry {
   display: grid;
-  grid-template-columns: auto 1fr 3.2em;
+  grid-template-columns: auto 1fr 1.9em;
   align-items: baseline;
   column-gap: var(--s-3);
   text-decoration: none;
@@ -98,8 +165,24 @@
 
 .contents__leader {
   align-self: end;
-  margin-block-end: 0.38em;
+  block-size: 6px;
+  margin-block-end: 0.3em;
+}
+
+html:not(.js) .contents__leader {
   border-block-end: 2px dotted var(--prussian-wash);
+}
+
+.leader-dots {
+  display: block;
+}
+
+.leader-dots__wash circle {
+  fill: var(--prussian-wash);
+}
+
+.leader-dots__ink circle {
+  fill: var(--ink);
 }
 
 .contents__numeral {
@@ -110,7 +193,8 @@
   margin-block-start: var(--s-6);
 }
 
-/* A plate. Odd plates: text left, field right. Even plates mirror this. */
+/* ─── A plate. Odd plates: text left, field right. Even plates mirror this ── */
+
 .plate {
   padding-block: var(--plate-gap);
 }
@@ -179,7 +263,22 @@
   max-inline-size: 36em;
 }
 
-/* The colophon and the index. */
+/* Plate I: the specimen slip, set large and pinned at both ends. */
+.specimen-field {
+  display: grid;
+  place-items: center;
+  min-block-size: clamp(340px, 56svh, 540px);
+  padding: var(--s-8) var(--s-7);
+}
+
+.specimen-slip {
+  position: relative;
+  max-inline-size: 34em;
+  rotate: var(--specimen-turn);
+}
+
+/* ─── The colophon and the index ──────────────────────────────────────────── */
+
 .endmatter {
   padding-block: var(--plate-gap) var(--s-10);
 }
@@ -219,6 +318,15 @@
   break-inside: avoid;
 }
 
+/* ─── Wide screens: a pinned plate fills the screen, its content centred ──── */
+
+@media (min-width: 1100px) and (min-height: 700px) {
+  .plate__frame {
+    min-block-size: 100svh;
+    align-content: center;
+  }
+}
+
 /* 1100–1279px: the text takes five columns and the air column goes. */
 @media (min-width: 1100px) and (max-width: 1279px) {
   .plate__text { grid-column: 1 / span 5; }
@@ -227,18 +335,35 @@
   .plate--even .plate__figure { grid-column: 1 / span 7; }
 }
 
-/* Folio (768–1099px, or short screens) and phone: a single column. */
+/* ─── One column (folio, phone, short screens) ────────────────────────────────
+   In the brief's order: number and title, intro, the figure, caption, then notes. */
 @media (max-width: 1099px), (max-height: 699px) {
-  .plate__text,
-  .plate__figure,
-  .plate--even .plate__text,
-  .plate--even .plate__figure {
+  .plate__text {
+    display: contents;
+  }
+
+  .plate__frame > *,
+  .plate__text > * {
     grid-column: 1 / -1;
     grid-row: auto;
   }
 
-  .plate--even .plate__text {
-    padding-inline-start: min(8vw, 96px);
+  .plate__title,
+  .plate__intro {
+    order: 1;
+  }
+
+  .plate__figure {
+    order: 2;
+    margin-block-start: var(--s-5);
+  }
+
+  .plate__note {
+    order: 3;
+  }
+
+  .plate__frame {
+    row-gap: 0;
   }
 
   .contents__inner,
@@ -248,14 +373,21 @@
   }
 }
 
+/* Folio only: even plates indent their words, so the book's alternation survives. */
+@media (min-width: 768px) and (max-width: 1099px) {
+  .plate--even .plate__text > * {
+    padding-inline-start: min(8vw, 96px);
+  }
+}
+
 @media (max-width: 767px) {
   .frontispiece__field {
     grid-column: 1 / -1;
     padding-inline: var(--s-4);
   }
 
-  .plate--even .plate__text {
-    padding-inline-start: 0;
+  .specimen-field {
+    padding: var(--s-7) var(--s-5);
   }
 
   .index__list {

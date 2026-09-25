@@ -1,5 +1,81 @@
 # Progress
 
+## Phase 2: frontispiece, list of plates, Plate I (25 September 2026)
+
+### Done
+- **Frontispiece: the one untriggered moment** (`src/plates/frontispiece.ts`), about 2.9s from fonts ready (or a 1.5s timeout):
+  - Four broad strokes are brushed on, each with its own start and length. The shader now takes a per-stroke progress (`uStrokeT`) for hand-timed brushing.
+  - The field develops, the centre a little ahead.
+  - The title and subtitle, lying under the sensitiser, hold its yellow-green (a sensitiser-coloured copy, `aria-hidden`, split identically underneath), then wash white letter by letter, centre out.
+  - The emblem, a single blank slip, has its pin pressed in (`press`, with the 1px recoil). The imprint and hint print in ink below.
+  - Any wheel, touch, click, key or real scroll skips to the end state at once.
+  - Reduced motion shows the page developed.
+  - “Expose the atlas again” glides to the top and prints it anew with the next seed, so the brushing is never the same twice. Under reduced motion it just returns to the top.
+- **List of plates** (`list-of-plates.ts`):
+  - Hand-set SVG leader dots, a hair off the grid, ending flush with the numeral column. On hover or focus the ink dots darken left to right in a quick jittered stagger (8ms steps, 120ms each).
+  - Each entry glides to its plate (Lenis, 1.2–1.6s by distance, `develop`), leaves the URL hash alone (it will hold `#small`), and hands the heading focus.
+- **Plate I** (`plate1-specimen.ts`, loaded as its own 1.3 KB chunk):
+  - The riddle is set large on a slip, pinned at both ends. The pins sit in the slip’s top margin, ink on the slip, with white shafts on the blue.
+  - Wide screens pin the whole plate for 150vh. On approach the field is brushed, the intro develops, the slip is laid (a small fall and turn, `settle`) and the two pins are pressed in. Pinned, the field exposes over 60vh, the note and caption develop, then about 85vh of rest.
+  - One-column layouts pin the figure alone (90vh on phones) and print the text as it stands, in the brief’s order (title, intro, figure, caption, notes).
+  - Brush and exposure latch: they never run backwards.
+  - Reduced motion: developed, no pin.
+- **Infrastructure:**
+  - `registry.ts` loads plate modules in page order once the frontispiece has printed (idle time), or as soon as the reader heads down the page.
+  - `media.ts` holds the layout conditions. `scroll.ts` adds `scrubFor()` (instant under `?shots`), `scrollToY()` and `jumpToY()`, and the paper grain now holds still under a pinned plate.
+  - Every timing for the three pages is in `eases.ts` (`FRONT`, `LIST`, `PLATE1`), and `eases.test.ts` holds them to the brief:
+    - about 3s for the frontispiece, 3–4 unequal strokes;
+    - an exposure of 1.2–2.6s, or 40–60vh when scrubbed;
+    - hover responses within 120–220ms;
+    - travel of 1.2–1.6s;
+    - every beat inside its range, with a rest at the end of the pin.
+  - `__atlas.goTo(target, progress)` now steps the frontispiece sequence and a plate’s approach (negative values) or pin.
+- **Shots gained behaviour checks.** In the software renderer a screenshot takes several seconds, longer than the frontispiece sequence, so time-based behaviour is asserted directly rather than pictured:
+  - the sequence plays by itself, and a key press finishes it at once;
+  - a list entry carries the reader to Plate I with its heading in view and focused;
+  - “Expose the atlas again” returns to the top and reprints (and only jumps to the top under reduced motion).
+
+  The sequence’s frames are pictured by seeking it to exact points (0, 18%, 52%, 68%, 100%).
+
+### Verification (run at the end of this phase)
+- `npm run build`: zero TypeScript errors. The initial JS is 67.9 KB gzipped (SplitText joined the first screen), against 180 KB.
+- `npm test`: 24 of 24 pass.
+- `npm run shots`: 119 screenshots, 0 axe violations, 0 console errors or warnings, and 14 of 14 behaviour checks passed:
+  - skip, on desktop and phone;
+  - list travel and focus, in every pass;
+  - replay, in every pass.
+
+### Decisions and why
+- **Each plate owns its pin** (a change from the plan’s central pin skeleton). A pin and the timelines built on it must be created and reverted together when the layout changes; with separate owners the order can go wrong. All plate code loads right after the frontispiece, so every pin exists before a reader can reach it, and the list waits for them before measuring.
+- **Development is a gradual change of the whole sheet** (yellow-green through grey-green to blue, the centre a little ahead, fine grain). Anything narrower read as a stain spreading from one point, first lacy like mould, then as camouflage blotches on the phone.
+- **Intro, note and caption develop as whole paragraphs,** not line by line. Scrubbed line splits would have to be rebuilt on every resize. This is the restrained choice.
+- **Accessible text for the split title:** the split letters are `aria-hidden`, and a visually hidden copy of each line is read instead. SplitText’s own `aria-label` isn’t allowed on the subtitle’s `<p>`, and axe caught it. The title’s “of a Thought” is held together by a `nowrap` span; the no-break spaces stopped working once the words became inline blocks.
+- **The sensitised title copy is sensitiser-coloured for about a second of the load sequence.** That is the physical process (letters under the coat keep its colour until washed), and it is gone at rest, so the rule that only changeable things are sensitiser-coloured holds for everything a reader can see and use.
+- **List entries have no underline.** This is a contents page, and the leaders are the affordance. It is a deliberate exception to “links are ink with a fine underline”; the colophon and index links keep theirs.
+- **A CSS safety net:** if the script never runs, the imprint and hint appear, and field text turns to ink, after five seconds. The sequence stands the net down as soon as it starts.
+
+### Screenshot critique
+
+**What works**
+1. **The frontispiece as a printed title page.** Stepped through at 18% (two broad strokes on bare paper), 52% (the sheet greying, the letters held in sensitiser) and 68% (the field blue, the letters about to wash white), it reads as a print being made, and the finished page has the emblem pinned and the imprint set.
+2. **Plate I at rest is a finished atlas plate:** the specimen as a white silhouette, pin shafts leaving white shadows on the blue, the caption beneath. As the plate rises, the field is brushed and the slip laid. On the phone the brief’s one-column order holds, and the pins sit clear of the words.
+3. **The behaviour is verified, not assumed:** skipping, gliding to a plate and handing focus, and reprinting, at both sizes, with and without reduced motion, and without WebGL.
+
+**What looked generic or off (all fixed, then re-shot)**
+1. **Development as a stain.** The blue spread from the centre as a lacy mould-like blot, then (softened) as a blurred smudge, and on the phone as camouflage. *Fixed:* a wide, gradual change across the sheet with a gentle centre lead and fine grain.
+2. **The title broke as “Anatomy of / a Thought” after splitting, and the subtitle carried a prohibited `aria-label`** (an axe violation on every state). *Fixed:* a `nowrap` span, the copy cloned with its markup, and a hidden spoken line.
+3. **Unfinished details:**
+   - On the phone the right-hand pin sat on the word “in”. *Fixed:* pins moved into the slip’s margin, and the slip gets more top padding.
+   - Pale sensitiser letters showed on bare paper before the brush reached them. *Fixed:* the copy appears only once the strokes have crossed it.
+   - Short numerals left a 50px gap after their leaders. *Fixed:* a narrower numeral column.
+   - The paper’s cloudiness was a shade strong on plain pages. *Fixed:* softened.
+
+### Known issues and watch list
+- **Real GPU cost is still unmeasured.** In the software renderer one screenshot takes about seven seconds, so frame rate can’t be judged there. On your machine, use `?debug` and watch how the frontispiece and Plate I scroll.
+- **The frontispiece field redraws every frame for about 2s** during the load sequence, and Plate I’s field redraws while it is scrubbed. That is by design, but it is the heaviest moment for a weak GPU.
+- **Dev only:** before the scripts run, the imprint and hint flash visible for a moment, because Vite injects CSS from JavaScript in development. The production build links the CSS in the head, so the flash doesn’t happen there.
+- **Plates II–VI are still text only.** The list glides to their headings.
+
 ## Phase 1: foundation and style tile (25 September 2026)
 
 ### Done

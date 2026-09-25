@@ -4,7 +4,7 @@
 
 import { gsap } from 'gsap';
 import { createField, type FieldHandle } from '../gl/background';
-import { pinMark } from '../components/marks';
+import { pinSlipEnds } from '../components/piece';
 import { DUR, SEEDS } from '../motion/eases';
 import { prefersReduced } from '../motion/reduced-motion';
 
@@ -24,19 +24,7 @@ export function initSamplePlate(section: HTMLElement): SamplePlate {
   const field = createField(fieldEl, { seed, angle: -3, strokes: 3, overshoot: 14, bias: 0.6 });
 
   // Pinned at both ends. The pins go in once the slip has its final size.
-  const pins = () => {
-    slipWrap.querySelectorAll('.pin').forEach((p) => p.remove());
-    const w = slip.offsetWidth;
-    const h = slip.offsetHeight;
-    const inset = { x: 18, y: 16 };
-    const left = pinMark(seed + 1, { x: -inset.x, y: -inset.y, w, h }, -150);
-    const right = pinMark(seed + 2, { x: -(w - inset.x), y: -inset.y, w, h }, -30);
-    left.style.left = `${inset.x}px`;
-    left.style.top = `${inset.y}px`;
-    right.style.left = `${w - inset.x}px`;
-    right.style.top = `${inset.y}px`;
-    slipWrap.append(left, right);
-  };
+  const pins = () => pinSlipEnds(slipWrap, slip, seed);
   pins();
   new ResizeObserver(pins).observe(slip);
 

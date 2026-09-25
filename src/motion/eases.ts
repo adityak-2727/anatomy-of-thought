@@ -65,7 +65,8 @@ export const DUR = {
   tone: 3.2,
   ticker: 0.38,             // 300–450ms with variation
   move: 0.6,
-  scrollTo: 1.4,            // list of plates to a plate: 1.2–1.6s
+  travel: [1.2, 1.6],       // list of plates to a plate: 1.2s near, up to 1.6s far
+  travelPerScreen: 0.04,    // seconds added per screen of distance
 } as const;
 
 /** Values that ?debug may change at runtime. */
@@ -108,6 +109,69 @@ export const PINS = {
   5: [150, 90],
   6: [250, 150],
 } as const;
+
+// ─── Storyboards ────────────────────────────────────────────────────────────
+// Every sequence's timing lives here, so no module holds a timing of its own.
+// Time-based values are seconds; scrubbed values are fractions or vh, as noted.
+
+/** The frontispiece: the site's one untriggered moment, about three seconds. Seconds. */
+export const FRONT = {
+  // Four broad strokes, each with its own start and length: a hand, not a machine.
+  strokes: [
+    { at: 0, dur: 0.42 },
+    { at: 0.22, dur: 0.38 },
+    { at: 0.47, dur: 0.46 },
+    { at: 0.7, dur: 0.35 },
+  ],
+  developAt: 0.85,
+  develop: 1.7,
+  // The letters lie under the sensitiser, so they hold its yellow-green once brushed over
+  // (only once the strokes have crossed them, so no pale letters show on bare paper)…
+  sensitisedFrom: 0.8,
+  sensitisedFor: 0.3,
+  // …and wash to white as the blue develops around them, from the centre out.
+  washAt: 1.55,
+  wash: 0.55,
+  washSpread: 0.5,
+  washJitter: 0.08,
+  subtitleLag: 0.25,
+  pinAt: 2.1,
+  imprintAt: 2.3,
+  hintAt: 2.62,
+  print: 0.24,
+} as const;
+
+/** The list of plates: leader dots darken left to right on hover. Seconds. */
+export const LIST = {
+  dot: 0.12,
+  dotStagger: 0.008,
+  undo: 0.12,
+} as const;
+
+/**
+ * Plate I. Approach values are fractions of the approach (the plate rising from the
+ * bottom of the screen to the top); pin values are vh of scroll within the pin.
+ */
+export const PLATE1 = {
+  approach: {
+    brush: [0, 0.55],
+    intro: [0.1, 0.6],
+    lay: [0.4, 1],
+    pins: [0.7, 1],
+  },
+  pin: {
+    exposure: [0, 60],
+    note: [30, 55],
+    caption: [45, 65],
+  },
+  slipLift: 14,        // px the slip falls as it is laid
+  slipTurnExtra: -0.8, // degrees beyond its resting turn (in tokens.css) as it falls
+  pinPress: 0.12,      // share of the approach one pin takes to press in
+  pinGap: 0.08,        // share of the approach between the two pins
+} as const;
+
+/** The scale a pin starts from as it is pressed into the paper. */
+export const PIN_DROP = 1.6;
 
 /** Every plate brushes differently. Seeds count up from 1843. */
 export const SEEDS = {

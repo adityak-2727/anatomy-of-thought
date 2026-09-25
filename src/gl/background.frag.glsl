@@ -19,6 +19,8 @@ uniform vec4 uRect;         // field rectangle in CSS px within its canvas (x, y
 uniform vec4 uState;        // brush, exposure, tone, seed
 uniform vec4 uStyle;        // brush angle (rad), strokes, overshoot (px), centre bias
 uniform vec4 uTune;         // edge roughness (px), streaks, unevenness, deep pockets
+uniform vec4 uStrokeT;      // per-stroke progress, when a sequence times its strokes by hand
+uniform float uExplicit;    // 1 when uStrokeT is in use (at most four strokes)
 
 out vec4 outColor;
 
@@ -140,7 +142,7 @@ vec4 field(vec2 p) {
     float fk = float(k);
     if (fk >= n) break;
     float start = n > 1.0 ? fk * (1.0 - share) / (n - 1.0) : 0.0;
-    float t = clamp((uState.x - start) / share, 0.0, 1.0);
+    float t = uExplicit > 0.5 && k < 4 ? uStrokeT[k] : clamp((uState.x - start) / share, 0.0, 1.0);
     if (t <= 0.0) continue;
     t = 1.0 - pow(1.0 - t, 1.6);
 
@@ -177,12 +179,15 @@ vec4 field(vec2 p) {
   float r = length(nq) * 0.8;
   float bias = uStyle.w;
   float uneven = uTune.z;
-  // The whole sheet shifts from yellow-green through grey-green to blue, the centre
-  // ahead, mottled rather than smooth: chemistry, not an airbrush, and not speckle either.
-  float en = fbm3(b * 0.0055, seed + 21.0);
-  float mottle = noise2(b * 0.035, seed + 71.0) * 0.6 + noise2(b * 0.11, seed + 73.0) * 0.4;
-  float x = uState.y * (1.35 + bias * 1.2 + uneven) - r * bias - en * uneven - mottle * 0.3;
-  float dev = smoothstep(0.0, 0.32, x);
+  // The whole sheet shifts together, from yellow-green through grey-green to blue, the
+  // centre a little ahead and the tone broadly uneven. A wide transition keeps it a
+  // change of colour across the sheet, not a stain spreading from a point; a fine mottle
+  // gives the changing band some grain, and is held at nothing before exposure begins.
+  float en = fbm3(b * 0.004, seed + 21.0);
+  float mottle = (noise2(b * 0.2, seed + 71.0) - 0.5) * 0.06 * min(1.0, uState.y * 4.0);
+  float lead = bias * 0.4;   // the centre is ahead, not alone
+  float x = uState.y * (1.0 + lead + uneven) - r * lead - en * uneven + mottle;
+  float dev = smoothstep(0.0, 0.6, x);
 
   // Sensitiser pools along the strokes, so the deepest blues are long and streaky.
   float pocket = smoothstep(0.55, 0.86, fbm3(vec2(b.x * 0.0025, b.y * 0.014) + 11.0, seed + 31.0));

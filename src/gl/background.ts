@@ -16,6 +16,8 @@ export interface FieldState {
   brush: number;
   exposure: number;
   tone: number;
+  /** Per-stroke progress for a hand-timed brushing (up to four strokes); null to derive it from `brush`. */
+  strokeT: [number, number, number, number] | null;
 }
 
 export interface FieldStyle {
@@ -42,11 +44,11 @@ export const PALETTE_TOKENS = [
 /** Tunable in ?debug. Values are proportions or CSS px. */
 export const tuning = {
   paperFibres: 0.32,
-  paperBlotches: 0.8,
+  paperBlotches: 0.55,
   paperGrain: 0.012,
   edgeRoughness: 7,
   streaks: 0.26,
-  unevenness: 0.45,
+  unevenness: 0.26,
   pockets: 0.3,
 };
 
@@ -129,7 +131,7 @@ function setupGL(canvas: HTMLCanvasElement): boolean {
   }
   gl.useProgram(program);
   gl.bindVertexArray(gl.createVertexArray());
-  for (const name of ['uMode', 'uResolution', 'uScale', 'uPalette', 'uPaperOffset', 'uPaperTune', 'uRect', 'uState', 'uStyle', 'uTune']) {
+  for (const name of ['uMode', 'uResolution', 'uScale', 'uPalette', 'uPaperOffset', 'uPaperTune', 'uRect', 'uState', 'uStyle', 'uTune', 'uStrokeT', 'uExplicit']) {
     uniforms.set(name, gl.getUniformLocation(program, name));
   }
   return true;
@@ -165,7 +167,8 @@ function drawPaper(): void {
 function drawField(f: FieldRecord): void {
   if (!gl || !paperCanvas || !f.canvas || !f.ctx) return;
   const { state, style } = f;
-  const empty = state.brush <= 0;
+  const strokes = state.strokeT;
+  const empty = strokes ? Math.max(...strokes) <= 0 : state.brush <= 0;
   f.ctx.clearRect(0, 0, f.canvas.width, f.canvas.height);
   if (empty) return;
 
@@ -182,6 +185,8 @@ function drawField(f: FieldRecord): void {
   gl.uniform4f(u('uRect'), bleed, bleed, f.cssW - bleed * 2, f.cssH - bleed * 2);
   gl.uniform4f(u('uState'), state.brush, state.exposure, state.tone, style.seed);
   gl.uniform4f(u('uStyle'), (style.angle * Math.PI) / 180, style.strokes, style.overshoot, style.bias);
+  gl.uniform4f(u('uStrokeT'), ...(strokes ?? [0, 0, 0, 0]));
+  gl.uniform1f(u('uExplicit'), strokes ? 1 : 0);
   gl.drawArrays(gl.TRIANGLES, 0, 3);
   // The drawing buffer is still valid within this task, so the copy is synchronous.
   f.ctx.drawImage(paperCanvas, 0, paperCanvas.height - h, w, h, 0, 0, f.canvas.width, f.canvas.height);
@@ -229,7 +234,7 @@ function writeCssState(f: FieldRecord): void {
 export function createField(el: HTMLElement, style: Partial<FieldStyle> & { seed: number }, state?: Partial<FieldState>): FieldHandle {
   const record: FieldRecord = {
     el,
-    state: { brush: 0, exposure: 0, tone: 0, ...state },
+    state: { brush: 0, exposure: 0, tone: 0, strokeT: null, ...state },
     style: { ...FIELD_DEFAULTS, ...style },
     canvas: null,
     ctx: null,
@@ -270,6 +275,8 @@ export function initBackground(options: { forceCss?: boolean } = {}): Mode {
   readPalette();
 
   paperCanvas = document.querySelector<HTMLCanvasElement>('canvas.paper');
+  // From here the chemistry decides how fields look (the CSS safety net stands down).
+  document.documentElement.classList.add('bg-ready');
   if (!options.forceCss && paperCanvas && setupGL(paperCanvas)) {
     mode = 'gl';
   } else {

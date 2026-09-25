@@ -18,8 +18,9 @@
 
   <header class="page frontispiece grid">
     <div class="field frontispiece__field" data-field-name="Frontispiece">
-      <h1 class="frontispiece__title">Anatomy of&nbsp;a&nbsp;Thought</h1>
+      <h1 class="frontispiece__title" tabindex="-1">Anatomy <span class="nowrap">of a Thought</span></h1>
       <p class="frontispiece__subtitle">What happens to one sentence between the asking and the answer, in six plates.</p>
+      <span class="emblem" aria-hidden="true"><span class="slip emblem__slip"></span></span>
     </div>
     <p class="frontispiece__imprint">Printed in cyanotype and code, 2026</p>
     <p class="frontispiece__hint">Scroll to begin</p>
@@ -45,21 +46,31 @@
     </div>
   </nav>
 
-  <main id="plates">
-    <section class="page plate plate--odd" id="plate-1" aria-labelledby="plate-1-title">
+  <main id="plates" tabindex="-1">
+    <section class="page plate plate--odd plate--one" id="plate-1" aria-labelledby="plate-1-title">
       <div class="grid plate__frame">
         <div class="plate__text">
-          <h2 id="plate-1-title" class="plate__title"><span class="plate__number">Plate I</span> The specimen</h2>
+          <h2 id="plate-1-title" class="plate__title" tabindex="-1"><span class="plate__number">Plate I</span> The specimen</h2>
           <p class="plate__intro">Here is our specimen, a small riddle. You probably solved it without noticing. The plates that follow show how a machine arrives at the same answer.</p>
           <p class="plate__note">It could mean the trophy or the suitcase. One word near the end decides which.</p>
         </div>
+        <figure class="plate__figure">
+          <div class="plate__pinned">
+            <div class="field plate__field specimen-field" data-field-name="Plate I">
+              <div class="specimen-slip">
+                <p class="slip slip--specimen">The trophy doesn’t fit in the suitcase because it’s too big. What’s too big?</p>
+              </div>
+            </div>
+            <figcaption class="plate__caption">Fig. 1. The specimen, a riddle of the kind called a Winograd schema.</figcaption>
+          </div>
+        </figure>
       </div>
     </section>
 
     <section class="page plate plate--even" id="plate-2" aria-labelledby="plate-2-title">
       <div class="grid plate__frame">
         <div class="plate__text">
-          <h2 id="plate-2-title" class="plate__title"><span class="plate__number">Plate II</span> Dissection</h2>
+          <h2 id="plate-2-title" class="plate__title" tabindex="-1"><span class="plate__number">Plate II</span> Dissection</h2>
           <p class="plate__intro">A machine can’t read letters or words. It reads pieces, called tokens. First the sentence is cut into pieces, and each piece is swapped for a number.</p>
           <p class="plate__note">Doesn’t becomes two pieces, and so does suitcase. Common words stay whole; rarer ones are built from parts the machine already knows.</p>
           <p class="plate__note">Most pieces carry the space in front of them.</p>
@@ -70,7 +81,7 @@
     <section class="page plate plate--odd" id="plate-3" aria-labelledby="plate-3-title">
       <div class="grid plate__frame">
         <div class="plate__text">
-          <h2 id="plate-3-title" class="plate__title"><span class="plate__number">Plate III</span> A chart of meaning</h2>
+          <h2 id="plate-3-title" class="plate__title" tabindex="-1"><span class="plate__number">Plate III</span> A chart of meaning</h2>
           <p class="plate__intro">Each piece is given a place on a vast chart. Pieces that are used in similar ways end up close together.</p>
         </div>
       </div>
@@ -79,7 +90,7 @@
     <section class="page plate plate--even" id="plate-4" aria-labelledby="plate-4-title">
       <div class="grid plate__frame">
         <div class="plate__text">
-          <h2 id="plate-4-title" class="plate__title"><span class="plate__number">Plate IV</span> The threads of attention</h2>
+          <h2 id="plate-4-title" class="plate__title" tabindex="-1"><span class="plate__number">Plate IV</span> The threads of attention</h2>
           <p class="plate__intro">To understand a piece, the machine lets it look back at every piece before it and weigh which ones matter. Never ahead: a piece can only see what has already been read.</p>
           <p class="plate__note">When it first appears, it can’t know what it means. The clue hasn’t arrived yet.</p>
           <p class="plate__note">When big arrives, it looks back and ties it to trophy.</p>
@@ -91,7 +102,7 @@
     <section class="page plate plate--odd" id="plate-5" aria-labelledby="plate-5-title">
       <div class="grid plate__frame">
         <div class="plate__text">
-          <h2 id="plate-5-title" class="plate__title"><span class="plate__number">Plate V</span> The weighing</h2>
+          <h2 id="plate-5-title" class="plate__title" tabindex="-1"><span class="plate__number">Plate V</span> The weighing</h2>
           <p class="plate__intro">Now the machine must answer, one piece at a time. It gives every piece it knows a score, turns the scores into likelihoods, and chooses.</p>
           <p class="plate__note">Turn it down and the machine always takes the favourite. Turn it up and it grows adventurous, and sometimes wrong.</p>
         </div>
@@ -101,7 +112,7 @@
     <section class="page plate plate--even" id="plate-6" aria-labelledby="plate-6-title">
       <div class="grid plate__frame">
         <div class="plate__text">
-          <h2 id="plate-6-title" class="plate__title"><span class="plate__number">Plate VI</span> The composing stick</h2>
+          <h2 id="plate-6-title" class="plate__title" tabindex="-1"><span class="plate__number">Plate VI</span> The composing stick</h2>
           <p class="plate__intro">Each chosen piece is added to the end, and the whole reading runs again to choose the next. It stops when the likeliest next piece is the end.</p>
           <p class="plate__note">Four pieces, four full readings. Five for suitcase.</p>
         </div>
@@ -112,13 +123,13 @@
   <footer class="page endmatter">
     <div class="grid">
       <section class="colophon" id="colophon" aria-labelledby="colophon-title">
-        <h2 id="colophon-title" class="colophon__title">Colophon</h2>
+        <h2 id="colophon-title" class="colophon__title" tabindex="-1">Colophon</h2>
         <p>This atlas was designed, written and built by Aditya. Every mark on these plates, each star, thread and letter, is drawn by code; there are no photographs. The text is set in Old Standard, a revival of the type style common in late nineteenth-century books, and the machine’s numbers in League Gothic. The plates imitate cyanotype, the blue sun print Anna Atkins used in 1843 for what is widely considered the first book illustrated with photographs. Figures marked illustrative are drawings, not measurements. Whether any of this amounts to a thought is a question for another atlas.</p>
-        <a class="colophon__again" href="#top">Expose the atlas again</a>
+        <a class="colophon__again" href="#top" data-replay>Expose the atlas again</a>
       </section>
 
       <section class="index" id="index" aria-labelledby="index-title">
-        <h2 id="index-title" class="index__title">Index</h2>
+        <h2 id="index-title" class="index__title" tabindex="-1">Index</h2>
         <ul class="index__list">
           <li><a href="#plate-4">attention</a>, IV</li>
           <li>attention head, <i>see</i> <a href="#plate-4">reader</a></li>

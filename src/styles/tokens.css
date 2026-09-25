@@ -83,6 +83,12 @@
   --lens-size: 168px;
   --lens-rim: 1.5px;
   --field-pad: clamp(20px, 3vw, 48px);
+  --leader-gap: 9px;         /* between the dots of a leader */
+  --leader-dot: 1.1px;       /* a leader dot's radius */
+  --emblem-w: 88px;          /* the frontispiece's pinned slip */
+  --emblem-h: 20px;
+  --emblem-turn: -3deg;
+  --specimen-turn: -0.6deg;  /* the specimen slip at rest */
   --field-bleed: 56px;       /* room around a field for its brushed overshoot */
 
   /* CSS timings for small responses. Story motion lives in eases.ts. */

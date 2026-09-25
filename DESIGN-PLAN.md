@@ -668,7 +668,7 @@ Every plate runs the same outline (brush and expose on approach, then the signat
 | 0 | Fonts ready, or 1.5s timeout | — | — | Blank paper only. The canvas draws paper; the field’s brush is 0. |
 | 0.00–1.10 | Four strokes | brush | `brush` | Stroke durations are about 0.42, 0.38, 0.46 and 0.35s, starting at 0, 0.22, 0.47 and 0.70 (seeded jitter). They are broad and near-horizontal, and they overshoot the rectangle. Nothing is legible. |
 | 0.85–2.55 | The field develops | expose | `develop` | Exposure 0 → 1, centre first and uneven (noise threshold). |
-| 1.00–2.20 | The title holds yellow-green | expose | — | A sensitiser-coloured copy of the title (aria-hidden) is revealed with the brush, so the letters stay yellow-green while the field darkens around them. |
+| 0.80–2.20 | The title holds yellow-green | expose | — | A sensitiser-coloured copy of the title (aria-hidden) appears once the strokes have crossed it, so the letters stay yellow-green while the field darkens around them. Both copies are split identically, and a `nowrap` span keeps “of a Thought” together in each. The strokes are timed one by one: the shader takes a per-stroke progress (`uStrokeT`) for this sequence. |
 | 1.60–2.60 | The title washes white | expose | `develop` | The paper-coloured title (SplitText characters) fades in, centre out, each character’s delay set by its distance from the field centre. The subtitle follows 0.25s later. |
 | 2.10 | The emblem’s pin | pin | `press` | The pin presses into the emblem slip; the slip itself appeared by exposure. |
 | 2.30 / 2.62 | Imprint, then hint | set | `press` | Ink prints on paper: opacity with a fast-in, dead-stop curve. |
@@ -687,7 +687,7 @@ Static. Printed ink on paper does not animate on arrival. Only the reader’s re
 | Range | Beat | Verb | Ease |
 |---|---|---|---|
 | Approach 100%→45% | Three horizontal strokes of sensitiser (seed 1844) | brush | `brush` |
-| Approach 90%→40% | The intro develops, line by line, unevenly | expose | `develop` |
+| Approach 90%→40% | The intro develops (as one paragraph: splitting scrubbed text into lines would have to be rebuilt on every resize; the restrained choice) | expose | `develop` |
 | Approach 60%→0% | The slip is laid: y −14px → 0, rotation −1.4° → −0.6° | pin | `settle` |
 | Approach 30%→0% | Left pin, then right pin, pressed in (+jitter) | pin | `press` |
 | Pin 0–60vh | The field exposes centre first. The slip and the pin shadows stay white. | expose | `develop` |
@@ -831,9 +831,9 @@ All time-based, with durations varied per element (±12%). Under reduced motion,
 2. **`state.init()`:** read `#small` and listen for `hashchange`.
 3. **`background.init()`:** try WebGL2. On failure, or with `?nogl`, add `.no-gl` and use the CSS fallback.
 4. **Fonts:** `Promise.race([document.fonts.ready, 1500ms])`.
-5. **`scroll.init()`:** start Lenis (unless reduced motion), then build the **pin skeleton**: one ScrollTrigger per plate from `data-pin`, created at once. The document height is then final before any heavy plate code loads, which keeps CLS near 0 and makes `goTo` reliable.
+5. **`scroll.init()`:** start Lenis (unless reduced motion). *Revised in Phase 2:* there is no central pin skeleton. Each plate module creates its own pin inside its own `gsap.matchMedia()` context, so the pin and the timelines built on it are always made and torn down together when the layout changes. Pins sit below the first screen, so creating them later moves nothing the reader can see.
 6. **Initial chunk:** `frontispiece.init()`, `listOfPlates.init()` and `plateIndicator.init()`.
-7. **Lazy plates:** an IntersectionObserver (`rootMargin: 100% 0px`) dynamically imports each plate one screen before it arrives. Each plate’s `init(ctx)` attaches its timeline to its existing pin trigger.
+7. **Lazy plates** (`src/plates/registry.ts`): plate modules are split from the first screen’s code. All of them load, in page order, once the frontispiece has printed and the browser is idle, or sooner if the reader heads down the page (an IntersectionObserver on the plates). Every pin therefore exists long before a reader can reach it, and the list of plates waits for them before it measures where to go. Plate III’s three.js still loads separately, one screen before that plate.
 8. **Dev and shots:** `window.__atlas = { goTo, setVariant, ready, idle }` in dev and under `?shots`.
 9. **Debug:** under `?debug`, `import('./debug/gui')`.
 
@@ -964,7 +964,8 @@ Measured cost is not yet known on real hardware. The software renderer used for 
 
 **What pins**
 - **Desktop:** the plate frame (text and figure) pins. The frame is designed to fit 700px of height; below 700px the layout falls back to Folio (§3), so text is never cut off.
-- **Phone and Folio:** the `figure` pins, and the text scrolls normally above and below. On Plate IV the note slot is part of the pinned area.
+- **Phone and Folio:** the figure pins, through an inner `.plate__pinned` wrapper. The pin spacer would not inherit the figure’s grid placement, so the wrapper is pinned and the figure keeps its place. The text is simply printed, and it follows the brief’s one-column order: title, intro, figure, caption, notes. Here the text column uses `display: contents`, so the notes can follow the figure. On Plate IV the note slot is part of the pinned area.
+- **Arriving from the list of plates:** on wide screens the reader lands at the start of the pin, where the plate stands composed. In one column the pin starts with the figure centred, below the heading, so the reader lands with the heading in view instead. The heading then takes focus.
 
 **Scrub and snapping**
 - Scrub values follow the SCRUB token (0.6–1.0), kept low because Lenis already smooths.

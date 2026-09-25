@@ -24,7 +24,8 @@
 /* The specimen slip on Plate I: set large, several lines. */
 .slip--specimen {
   display: block;
-  padding: 0.5em 0.8em 0.6em;
+  /* The top margin leaves room for the pins, clear of the words. */
+  padding: max(0.62em, 20px) 0.8em 0.6em;
   font-size: clamp(1.5rem, 1.2rem + 1.1vw, 2.125rem);
   line-height: 1.3;
   white-space: normal;

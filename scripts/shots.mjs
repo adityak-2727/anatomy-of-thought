@@ -54,7 +54,7 @@ const PAGES = [
       { name: 'plate-brushing', motion: 'normal', run: (p) => p.evaluate(() => window.__tile.printTo(0.28)) },
       { name: 'plate-developing', motion: 'normal', run: (p) => p.evaluate(() => window.__tile.printTo(0.55)) },
       { name: 'plate-exposed', run: async (p) => { await scrollToSelector(p, '[aria-labelledby="proof-plate"]', 40); await p.evaluate(() => window.__tile.printTo(1)); } },
-      { name: 'materials-mid', motion: 'normal', run: (p) => p.evaluate(() => window.__tile.materialsTo(0.55)) },
+      { name: 'materials-mid', motion: 'normal', gl: true, run: (p) => p.evaluate(() => window.__tile.materialsTo(0.55)) },
       { name: 'materials', run: async (p) => { await p.evaluate(() => window.__tile.materialsTo(1)); await scrollToSelector(p, '.materials-field', -80); } },
       { name: 'loupe', run: loupeOver('.materials__pieces .slip') },
       {
@@ -73,13 +73,107 @@ const PAGES = [
     url: '/',
     ready: () => window.__atlas.ready,
     checkpoints: [
-      { name: 'frontispiece', run: (p) => p.evaluate(() => window.scrollTo(0, 0)) },
-      { name: 'list', run: (p) => p.evaluate(() => window.__atlas.goTo('list')) },
-      { name: 'plate-1', run: (p) => p.evaluate(() => window.__atlas.goTo(1)) },
-      { name: 'endmatter', run: (p) => p.evaluate(() => window.__atlas.goTo('colophon')) },
+      { name: 'front-blank', motion: 'normal', gl: true, run: goTo('frontispiece', 0) },
+      { name: 'front-brushing', motion: 'normal', gl: true, run: goTo('frontispiece', 0.18) },
+      { name: 'front-sensitised', motion: 'normal', gl: true, run: goTo('frontispiece', 0.52) },
+      { name: 'front-washing', motion: 'normal', gl: true, run: goTo('frontispiece', 0.68) },
+      { name: 'frontispiece', run: goTo('frontispiece', 1) },
+      { name: 'list', run: goTo('list') },
+      {
+        name: 'list-hover',
+        only: 'desktop',
+        run: async (p) => {
+          await p.evaluate(() => window.__atlas.goTo('list'));
+          await p.hover('.contents__list li:nth-child(4) .contents__entry');
+          await p.waitForTimeout(400);
+        },
+        after: (p) => p.mouse.move(5, 5),
+      },
+      { name: 'plate-1-approach', motion: 'normal', gl: true, run: goTo(1, -0.45) },
+      { name: 'plate-1-laid', motion: 'normal', run: goTo(1, 0) },
+      { name: 'plate-1-exposing', motion: 'normal', gl: true, run: goTo(1, 0.18) },
+      { name: 'plate-1', run: goTo(1, 0.75) },
+      { name: 'endmatter', run: goTo('colophon') },
+      {
+        // A list entry carries the reader to the plate and hands its heading focus.
+        name: 'list-travel',
+        run: async (p, ctx) => {
+          await goTo('list')(p);
+          await p.click('.contents__list li:first-child .contents__entry');
+          await p.waitForFunction(() => document.activeElement?.id === 'plate-1-title', null, { timeout: 6000 }).catch(() => {});
+          const result = await p.evaluate(() => {
+            const heading = document.getElementById('plate-1-title').getBoundingClientRect();
+            return { focused: document.activeElement?.id === 'plate-1-title', inView: heading.top >= 0 && heading.bottom <= innerHeight };
+          });
+          ctx.check('the list of plates carries the reader to Plate I and focuses it', result.focused && result.inView, result);
+        },
+      },
+      {
+        // "Expose the atlas again" returns to the top and prints the frontispiece anew.
+        name: 'replay',
+        run: async (p, ctx) => {
+          await goTo('colophon')(p);
+          await p.click('[data-replay]');
+          await p.waitForFunction(() => window.scrollY < 4, null, { timeout: 6000 }).catch(() => {});
+          // Smooth scrolling passes the top a few frames before it completes and the replay
+          // begins (frames are slow in the software renderer). Wait for the reprint to start;
+          // if it never does, the check fails below.
+          if (ctx.motion !== 'reduce') {
+            await p
+              .waitForFunction(() => Number(getComputedStyle(document.querySelector('.frontispiece__imprint')).opacity) < 0.5, null, { timeout: 3000 })
+              .catch(() => {});
+          }
+          const result = await p.evaluate(() => ({
+            top: window.scrollY < 4,
+            imprint: Number(getComputedStyle(document.querySelector('.frontispiece__imprint')).opacity),
+          }));
+          const ok = ctx.motion === 'reduce' ? result.top && result.imprint > 0.99 : result.top && result.imprint < 0.5;
+          ctx.check('Expose the atlas again returns to the top and prints the frontispiece again', ok, result);
+        },
+      },
+    ],
+  },
+  {
+    // The real thing, without ?shots: the sequence plays on arrival, and a key press skips it.
+    name: 'live',
+    url: '/',
+    shots: false,
+    waitUntil: 'commit',
+    // Start the clock when the sequence starts (its silhouettes exist), not at page load.
+    // Under reduced motion there is no sequence, so don't wait for one.
+    ready: () =>
+      new Promise((resolve) => {
+        const started = Date.now();
+        const check = () =>
+          document.querySelector('.silhouette') || document.documentElement.classList.contains('rm') || Date.now() - started > 5000
+            ? resolve()
+            : requestAnimationFrame(check);
+        check();
+      }),
+    checkpoints: [
+      // Screenshots in the software renderer take seconds, longer than the sequence, so its
+      // frames are pictured by the seeked checkpoints above. Here the behaviour is tested:
+      // the sequence must be playing on its own, and a key press must finish it at once.
+      {
+        name: 'skipped',
+        motion: 'normal',
+        gl: true,
+        run: async (p, ctx) => {
+          await p.waitForTimeout(400);
+          const imprint = () => p.evaluate(() => Number(getComputedStyle(document.querySelector('.frontispiece__imprint')).opacity));
+          const playing = (await imprint()) < 0.5;
+          await p.keyboard.press('Shift');
+          const finished = (await imprint()) > 0.99;
+          ctx.check('frontispiece plays by itself, and a key press skips to the end', playing && finished, { playing, finished });
+        },
+      },
     ],
   },
 ];
+
+function goTo(target, progress = 0) {
+  return (page) => page.evaluate(([t, pr]) => window.__atlas.goTo(t, pr), [target, progress]);
+}
 
 function loupeOver(selector) {
   return async (page, ctx) => {
@@ -105,8 +199,11 @@ function loupeOver(selector) {
 }
 
 async function run() {
-  await fs.rm(OUT, { recursive: true, force: true });
+  // A filtered run replaces only its own pictures; a full run starts clean.
   await fs.mkdir(OUT, { recursive: true });
+  for (const file of await fs.readdir(OUT)) {
+    if (!filter || file.startsWith(filter)) await fs.rm(path.join(OUT, file), { force: true });
+  }
 
   const server = await createServer({ logLevel: 'error', server: { port: 5199, strictPort: false } });
   await server.listen();
@@ -116,7 +213,7 @@ async function run() {
     args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'],
   });
 
-  const report = { base, runs: [], violations: [], consoleProblems: [], environment: [] };
+  const report = { base, runs: [], violations: [], consoleProblems: [], environment: [], checks: [] };
   const passes = [];
   for (const [vpName, vp] of Object.entries(VIEWPORTS)) {
     for (const motion of ['normal', 'reduce']) passes.push({ vpName, vp, motion, gl: true });
@@ -142,20 +239,32 @@ async function run() {
       });
       page.on('pageerror', (err) => report.consoleProblems.push({ tag, type: 'pageerror', text: String(err) }));
 
-      await page.goto(`${base}${def.url}?shots${pass.gl ? '' : '&nogl'}`, { waitUntil: 'load' });
+      const query = [def.shots === false ? '' : 'shots', pass.gl ? '' : 'nogl'].filter(Boolean).join('&');
+      await page.goto(`${base}${def.url}${query ? `?${query}` : ''}`, { waitUntil: def.waitUntil ?? 'load' });
       await page.evaluate(def.ready);
       const mode = await page.evaluate(() => (document.documentElement.classList.contains('no-gl') ? 'css' : 'gl'));
       report.runs.push({ tag, mode });
 
       for (const cp of def.checkpoints) {
         if (cp.motion && cp.motion !== pass.motion) continue;
-        if (!pass.gl && ['plate-brushing', 'plate-developing', 'materials-mid', 'loupe'].includes(cp.name)) continue;
-        const ctx = { touch: pass.vpName === 'phone' };
+        if (cp.only && cp.only !== pass.vpName) continue;
+        if (!pass.gl && (cp.gl || ['plate-brushing', 'plate-developing', 'loupe'].includes(cp.name))) continue;
+        const ctx = {
+          touch: pass.vpName === 'phone',
+          motion: pass.motion,
+          check: (what, ok, detail) => report.checks.push({ tag, what, ok, detail }),
+        };
         await cp.run(page, ctx);
-        await settle(page, 350);
+        await settle(page, cp.settle ?? 350);
         const file = `${tag}-${cp.name}.png`;
         await page.screenshot({ path: path.join(OUT, file) });
 
+        // Frames caught mid-sequence skip axe (it takes a second, and the page is moving);
+        // the same page is checked once it has settled.
+        if (cp.noAxe) {
+          if (cp.after) await cp.after(page);
+          continue;
+        }
         const axe = new AxeBuilder({ page }).withTags(AXE_TAGS);
         if (pass.gl) axe.disableRules(['color-contrast']);
         const result = await axe.analyze();
@@ -181,7 +290,10 @@ async function run() {
   console.log(`console errors and warnings: ${report.consoleProblems.length}`);
   for (const c of report.consoleProblems) console.log(`  ${c.tag}: [${c.type}] ${c.text} ${c.where ?? ''}`);
   if (report.environment.length) console.log(`(software-GPU messages ignored: ${report.environment.length})`);
-  process.exitCode = report.violations.length || report.consoleProblems.length ? 1 : 0;
+  const failed = report.checks.filter((c) => !c.ok);
+  console.log(`behaviour checks: ${report.checks.length - failed.length} of ${report.checks.length} passed`);
+  for (const c of report.checks) console.log(`  ${c.ok ? 'ok  ' : 'FAIL'} ${c.tag}: ${c.what} ${JSON.stringify(c.detail)}`);
+  process.exitCode = report.violations.length || report.consoleProblems.length || failed.length ? 1 : 0;
 }
 
 run().catch((error) => {

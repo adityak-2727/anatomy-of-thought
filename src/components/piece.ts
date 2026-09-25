@@ -69,6 +69,43 @@ export function createPiece(options: PieceOptions): Piece {
 }
 
 /**
+ * Pin a large slip at both ends, as the specimen is pinned: the pins sit inside its
+ * top corners and their shafts point up and out, leaving white shadows on the blue.
+ */
+// Inside the slip's top corners, in its margin, clear of the first and last letters.
+const END_INSET = { x: 12, y: 11 };
+
+export function pinSlipEnds(wrap: HTMLElement, slip: HTMLElement, seed: number): [SVGSVGElement, SVGSVGElement] {
+  wrap.querySelectorAll(':scope > .pin').forEach((p) => p.remove());
+  const w = slip.offsetWidth;
+  const h = slip.offsetHeight;
+  const left = pinMark(seed + 1, { x: 0, y: 0, w, h }, -150);
+  const right = pinMark(seed + 2, { x: 0, y: 0, w, h }, -30);
+  wrap.append(left, right);
+  refitSlipEnds(slip, [left, right]);
+  return [left, right];
+}
+
+/**
+ * Keep the same two pins in step with the slip after it resizes: move the right one,
+ * and move the clip that decides where each pin is ink (on the slip) or white (on the blue).
+ */
+export function refitSlipEnds(slip: HTMLElement, pins: [SVGSVGElement, SVGSVGElement]): void {
+  const w = slip.offsetWidth;
+  const h = slip.offsetHeight;
+  const heads = [END_INSET.x, w - END_INSET.x];
+  pins.forEach((pin, i) => {
+    pin.style.left = `${heads[i]}px`;
+    pin.style.top = `${END_INSET.y}px`;
+    const rect = pin.querySelector('clipPath rect');
+    rect?.setAttribute('x', String(-heads[i]));
+    rect?.setAttribute('y', String(-END_INSET.y));
+    rect?.setAttribute('width', String(w));
+    rect?.setAttribute('height', String(h));
+  });
+}
+
+/**
  * Pin a set of pieces. Reads every slip's size first, then writes every pin,
  * so the layout is read once rather than once per piece.
  */
