@@ -74,6 +74,11 @@ export function seek(progress: number): void {
   (tl ?? build()).progress(progress).pause();
 }
 
+/** How far the sequence has run, 0 to 1 (1 once finished, or when there is none). */
+export function progress(): number {
+  return tl?.progress() ?? 1;
+}
+
 export function destroy(): void {
   listen(false);
   tl?.kill();

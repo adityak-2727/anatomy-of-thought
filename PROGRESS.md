@@ -1,5 +1,85 @@
 # Progress
 
+## Phase 3: Plate II, Dissection (26 September 2026)
+
+### Done
+- **The illustrative tokeniser** (`src/lib/tokeniser.ts`): deterministic, dependency-free, following the brief’s rules in order.
+  - Punctuation becomes its own piece, and a leading space belongs to the next piece.
+  - Contractions split (`'t 's 're 've 'll 'd 'm`); any other apostrophe is punctuation.
+  - Words on the chart or among about three hundred common words stay whole.
+  - Otherwise a word splits at known prefixes and suffixes, then into two known parts (suit + case, rain + coat), then into chunks of 3–5 letters if it is still longer than seven.
+  - At most forty pieces, with the true total reported.
+  - Curly apostrophes read as straight ones.
+- **Tokeniser tests (24):** both specimens cut exactly as BRIEF §3 says, both replies too, every rule, the cap, and determinism.
+- **Data:**
+  - `vocab.ts`: the chart’s 15 constellations of words (Phase 4 adds positions and lines). It holds every piece of both specimens and both replies, has no “suitcase”, and each word appears once.
+  - `common-words.ts`: about 300 common words.
+  - `specimen.ts`: the sentences, pieces, letters and replies.
+- **Data tests:**
+  - 20 pieces, differing only at 14 and 19;
+  - unique IDs in range;
+  - constellation sizes and totals;
+  - required words in their constellations;
+  - no banned words on the chart;
+  - the IDs written into `index.html` for readers without JavaScript equal the hash.
+- **`src/state.ts`:** the variant (read from `#small`), the reader’s sentence and its pieces, with subscribe and notify.
+- **Plate II** (`plate2-dissection.ts`, `dissect.ts`), its own 9 KB chunk:
+  - The specimen lies on two strips. Dashed cut lines draw at pen speed, before each space and at each strip’s end.
+  - The slip is cut: the pieces part, and the offcuts fall away.
+  - The pieces separate into hand-laid loose rows, each turned up to ±0.8°.
+  - Each piece is pinned, lettered a to t with a drawn leader, and its ID feeds out beneath it on ticker tape.
+  - Notes and caption arrive with the beats. Wide screens pin the plate for 250vh; phones pin the figure for 150vh. Reduced motion shows it laid out. The layout rebuilds when the width changes.
+- **The loupe on Plate II** shows each piece with its ␣ drawn in, and its number. The loupe hint sits in the margin and fades once the loupe has been used. “Show the machine’s view” works here, and a real table of letters, pieces and IDs follows the figure.
+- **“Lay down a sentence of your own”** (`reader-sentence.ts`): a slip of sensitised paper on its own field below the plate.
+  - “Expose” checks the sentence, giving the brief’s two errors plus “Keep it under forty pieces.”.
+  - The slip washes from sensitiser to paper and is cut, parted, laid, pinned and numbered by the same code as the specimen, in time.
+  - Then it says “Exposed. Your pieces will appear on the next plate.” and stores the pieces for Plate III.
+  - “Clear” resets it and says “Cleared.”. Errors set `aria-invalid`; the status is a live region; focus moves sensibly.
+  - The reader’s words only ever enter the page as text.
+- **Shots:**
+  - Plate II checkpoints: approach, cutting, parted, separating, fixing, rest, loupe, machine view.
+  - Behaviour checks: one word is refused with the brief’s message; a sentence is exposed, cut and handed on; Clear resets everything.
+  - Each checkpoint is now timed, and a pass can be run on its own (`npm run shots -- index phone-normal`).
+
+### Verification (run at the end of this phase)
+- `npm run build`: zero TypeScript errors. The first-screen JS is 69.3 KB gzipped; Plate II is a separate 9.2 KB chunk, with the tokeniser and word lists.
+- `npm test`: 59 of 59 pass.
+- `npm run shots`: 164 screenshots, 0 axe violations, 0 console errors or warnings, and 32 of 32 behaviour checks passed:
+  - the frontispiece skip, on desktop and phone;
+  - list travel and replay, in every pass;
+  - the reader’s error, expose and clear, in every pass.
+- **The frontispiece skip check was rewritten to be deterministic.** In the software renderer the first frames take seconds, and the timeline (lag smoothing off, as Lenis needs) catches up in one jump, so timing the sequence from outside was unreliable. A mutation observer now catches the sequence the instant it starts, before any frame: it reads the progress (0), dispatches a key press, and reads it again (1).
+
+### Decisions and why
+- **Separation computes the FLIP by hand instead of using the Flip plugin.** Both layouts are known in advance, and Flip measures live DOM states, which fits badly with a scrubbed timeline that is rebuilt on every width change. The motion is the same: each piece sits at its final place and is carried there from its place on the strip by transforms.
+- **The pieces are cut tight around their words.** A piece that carries a leading space shows it as paper to its left, so once separated, the spaces are visible exactly where the note says they are.
+- **Strips only break between words** (suit and case stay together), and the strips and rows are centred on the field. The rows stray from a grid by hand: row indents, uneven gaps, small rises.
+- **The reader’s bench is its own small field below the pinned plate.** Its pieces make it grow, and a pinned frame must not change height mid-pin.
+- **A third error message,** “Keep it under forty pieces.”, because 120 characters can make more than the tokeniser’s cap of forty.
+- **“The” and “the” are separate words on the chart,** since they are separate pieces with separate IDs.
+
+### Screenshot critique
+
+**What works**
+1. **At rest, Plate II is an anatomical plate:** twenty lettered specimens with pins and ticker tape, and the spaces visible as paper on the pieces that carry them.
+2. **The cutting reads as a real blade:** dashed lines just before each space and at the strips’ trimmed ends, and repeated pieces share numbers (both “’s”, both “too”, both “big”), as they do in a real tokeniser.
+3. **The reader’s own sentence goes through the same machine:** “The unbreakable raincoat doesn’t fit in my rucksack.” comes out as The / un / break / able / rain / coat / doesn / ’t / fit / in / my / ruck / sack / . with the same numbers the specimen uses where they coincide.
+
+**What looked off (fixed, then re-shot)**
+1. **The strips sat in the field’s top-left corner** during cutting, over an empty expanse. *Fixed:* strips and rows are centred on the field.
+2. **The rows sat on too even a grid,** like a tag list. *Fixed:* hand-laid irregularity.
+3. **On phones:**
+   - Even-numbered plates kept their desktop seven-column figure. That was a specificity bug in the Phase 2 one-column CSS, invisible until now because Plate I is odd.
+   - The pinned field was taller than the screen, which hid the toggle, and a ticker lay over it.
+   - A strip broke inside “suitcase”.
+
+   *Fixed:* the CSS rule; tighter phone spacing tokens; and word-aware strip breaks.
+
+### Known issues and watch list
+- **Letters on the reader’s pieces:** there are none. Only the specimen is lettered a to t; the brief asks the reader’s pieces for the same cut, pin and ticker.
+- **The replay checkpoint pictures the frontispiece only after it has finished.** In the software renderer a moving frame of that large field takes a minute to capture.
+- **Real GPU cost is still unmeasured on real hardware** (see Phase 2).
+
 ## Phase 2 review fixes (25 September 2026)
 
 You reported two problems: the page showed bare HTML for a few seconds on opening, and the scrolling could be smoother.

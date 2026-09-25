@@ -92,6 +92,15 @@
   --field-bleed: 56px;       /* room around a field for its brushed overshoot */
   --paper-tile-size: 1024px; /* the baked paper repeats at this size */
 
+  /* Plate II: how cut pieces are laid out. */
+  --cut-label-room: 34px;    /* above a piece, for its letter and leader */
+  --cut-ticker-room: 38px;   /* below a piece, for its ticker strip */
+  --cut-col-gap: 22px;
+  --cut-row-gap: 14px;
+  --cut-strip-gap: 20px;     /* between the strips before cutting */
+  --cut-space: 0.34em;       /* the leading space a piece carries */
+  --toggle-room: 44px;       /* the height of a sensitiser control, for the space it needs */
+
   /* CSS timings for small responses. Story motion lives in eases.ts. */
   --dur-respond-fast: 120ms;
   --dur-respond: 160ms;
@@ -112,4 +121,15 @@
   --z-lens: 30;
 
   color-scheme: light;
+}
+
+/* On a phone, cut pieces are laid closer, so a pinned plate fits the screen. */
+@media (max-width: 767px) {
+  :root {
+    --cut-label-room: 30px;
+    --cut-ticker-room: 34px;
+    --cut-col-gap: 12px;
+    --cut-row-gap: 6px;
+    --cut-strip-gap: 14px;
+  }
 }

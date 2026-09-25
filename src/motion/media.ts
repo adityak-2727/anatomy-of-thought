@@ -8,6 +8,9 @@ export const WIDE = `(min-width: 1100px) and (min-height: 700px) and ${MOTION}`;
 /** One column (folio and phone): only the figure pins. */
 export const COMPACT = `(max-width: 1099px) and ${MOTION}, (max-height: 699px) and ${MOTION}`;
 
+/** Any layout, so long as motion is welcome. */
+export const MOTION_ONLY = MOTION;
+
 /** Everything shown developed; no pins, no scrubbing. */
 export const REDUCED = '(prefers-reduced-motion: reduce)';
 

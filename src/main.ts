@@ -10,6 +10,7 @@ import { loadAllPlates, plate } from './plates/registry';
 import { FRONT } from './motion/eases';
 import { prefersReduced } from './motion/reduced-motion';
 import { jumpToY } from './motion/scroll';
+import { getState } from './state';
 
 const f = boot();
 
@@ -58,6 +59,8 @@ if (import.meta.env.DEV || f.shots) {
   Object.assign(window, {
     __atlas: {
       ready,
+      state: getState,
+      frontispiece: () => frontispiece.progress(),
       /**
        * Jump to a checkpoint. For a plate, progress runs 0–1 over its pinned stretch;
        * negative values reach back into its approach, in screen heights.

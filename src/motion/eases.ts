@@ -173,6 +173,49 @@ export const PLATE1 = {
   pinGap: 0.08,        // share of the approach between the two pins
 } as const;
 
+/**
+ * Plate II. Approach values are fractions of the approach; pin values are vh within
+ * the 250vh pin. Per-piece steps are in the same units as their range.
+ */
+export const PLATE2 = {
+  approach: {
+    brush: [0, 0.5],
+    exposure: [0.3, 1],
+    intro: [0.1, 0.6],
+  },
+  pin: {
+    cuts: [10, 70],
+    part: [70, 85],
+    note1: [75, 100],
+    separate: [85, 150],
+    fix: [150, 215],
+    note2: [160, 185],
+    caption: [200, 215],
+  },
+  cutDraw: 2.4,       // vh one cut line takes: they are short, so the pen is quick
+  partGap: 3,         // px each piece moves from its neighbour as the slip is cut
+  partJitter: 1.2,    // px
+  partTurn: 0.3,      // degrees of jolt
+  maxTurn: 0.8,       // degrees a laid piece may turn (BRIEF §4)
+  pinPress: 2.2,      // vh
+  letterSet: 2,       // vh
+  tickerFeed: 3.2,    // vh
+} as const;
+
+/** The reader's own sentence, cut the same way but in time. Seconds. */
+export const READER = {
+  // The bench is brushed and exposed as it comes into view (fractions of that approach).
+  approach: { brush: [0, 0.6], exposure: [0.4, 1] },
+  wash: 0.9,          // the sensitised slip clears to paper
+  cutsAt: 0.55,
+  cutStagger: 0.07,
+  part: 0.2,
+  separate: 0.6,
+  fixStagger: 0.06,
+  clear: 0.22,
+  brushBack: 0.4,
+} as const;
+
 /** The scale a pin starts from as it is pressed into the paper. */
 export const PIN_DROP = 1.6;
 

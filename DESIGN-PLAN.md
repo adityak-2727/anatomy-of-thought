@@ -704,17 +704,19 @@ The long rest is deliberate: this is where the reader solves the riddle. It will
 | Approach 100%→40% | Diagonal strokes (seed 1845); the intro develops | brush | `brush` |
 | Approach 70%→0% | A quick exposure. The two strips turn to silhouettes. | expose | `develop` |
 | Pin 0–10vh | Breath | — | — |
-| Pin 10–70vh | 19 dashed cut lines, left to right. Each draws at pen speed; the jittered gaps between them are the hand moving to the next cut. | cut | `hand` |
-| Pin 70–85vh | The slip is cut: the dashes go, and the pieces part by 3–6px with a tiny jolt | cut | `press` |
+| Pin 10–70vh | Dashed cut lines, left to right: one between every two pieces, and one at each end of each strip, where the offcuts are trimmed. Each draws at pen speed; the jittered gaps between them are the hand moving to the next cut. | cut | `hand` |
+| Pin 70–85vh | The slip is cut: the dashes go, the offcuts fall away, and the pieces part by about 3px each with a tiny jolt | cut | `press` |
 | Pin 75–100vh | Note 1 develops (“Doesn’t becomes two pieces…”) | expose | `develop` |
-| Pin 85–150vh | Flip: the pieces separate into three loose rows, turned ±0.8° | pin | `settle` |
-| Pin 150–215vh | Per piece, jittered: pin pressed; letter set with a drawn leader; ticker feeds out from beneath | pin, set | `press`, `hand` |
+| Pin 85–150vh | The pieces separate into loose rows, turned up to ±0.8° | pin | `hand` (across), `settle` (down and turning) |
+| Pin 150–215vh | Per piece, jittered: pin pressed; letter set with a drawn leader; ticker feeds out from beneath | pin, set | `press` |
 | Pin 160–185vh | Note 2 develops (“Most pieces carry the space…”), once the gaps show the spaces | expose | `develop` |
 | Pin 200–215vh | The caption develops | expose | `develop` |
-| Pin 215–230vh | The reader’s slip is brushed onto the foot of the field | brush | `brush` |
-| Pin 230–250vh | Rest; the input is live | — | — |
+| Pin 215–250vh | Rest | — | — |
 
-The reader’s sentence response is time-based; see §7.
+*As built (Phase 3):*
+- **The pieces are cut tight around their words.** A piece that carries a leading space shows it as paper to its left, so after the cut the spaces are visible where the note says they are.
+- **Both layouts, the strips (A) and the rows (B), are worked out in `dissect.ts` before anything moves.** Each piece sits at B and is carried from A by transforms: the FLIP technique, computed directly rather than with the Flip plugin, because Flip measures live DOM states and the scrubbed timeline is rebuilt on every change of width.
+- **The reader’s bench is a second, smaller field below the pinned plate, not inside it.** The reader’s pieces make the bench grow, and a pinned frame must not change height mid-pin. The bench is brushed and exposed as it scrolls into view. Its response is time-based (§7), cut by the same code as the specimen.
 
 ### Plate III. A chart of meaning (pin 350vh)
 

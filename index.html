@@ -68,13 +68,96 @@
       </div>
     </section>
 
-    <section class="page plate plate--even" id="plate-2" aria-labelledby="plate-2-title">
+    <section class="page plate plate--even plate--two" id="plate-2" aria-labelledby="plate-2-title">
       <div class="grid plate__frame">
         <div class="plate__text">
           <h2 id="plate-2-title" class="plate__title" tabindex="-1"><span class="plate__number">Plate II</span> Dissection</h2>
           <p class="plate__intro">A machine can’t read letters or words. It reads pieces, called tokens. First the sentence is cut into pieces, and each piece is swapped for a number.</p>
           <p class="plate__note">Doesn’t becomes two pieces, and so does suitcase. Common words stay whole; rarer ones are built from parts the machine already knows.</p>
           <p class="plate__note">Most pieces carry the space in front of them.</p>
+          <p class="plate__note loupe-hint" data-loupe-hint data-touch="Press and hold a figure to see what the machine sees.">
+            <svg viewBox="0 0 22 22" width="22" height="22" aria-hidden="true" focusable="false"><circle cx="9" cy="9" r="7"/><path d="M14.2 14.3 L20.4 20.6"/></svg>
+            <span data-hint-text>Hold the loupe over a figure to see what the machine sees.</span>
+          </p>
+        </div>
+        <figure class="plate__figure">
+          <div class="plate__pinned">
+            <div class="field plate__field dissection-field" data-loupe data-field-name="Plate II">
+              <div class="dissection__stage">
+                <ol class="dissection__pieces" aria-label="The specimen, in twenty pieces">
+                  <li class="cut-piece" data-piece="The"><span class="slip">The</span></li>
+                  <li class="cut-piece" data-piece=" trophy"><span class="slip">trophy</span></li>
+                  <li class="cut-piece" data-piece=" doesn"><span class="slip">doesn</span></li>
+                  <li class="cut-piece" data-piece="'t"><span class="slip">’t</span></li>
+                  <li class="cut-piece" data-piece=" fit"><span class="slip">fit</span></li>
+                  <li class="cut-piece" data-piece=" in"><span class="slip">in</span></li>
+                  <li class="cut-piece" data-piece=" the"><span class="slip">the</span></li>
+                  <li class="cut-piece" data-piece=" suit"><span class="slip">suit</span></li>
+                  <li class="cut-piece" data-piece="case"><span class="slip">case</span></li>
+                  <li class="cut-piece" data-piece=" because"><span class="slip">because</span></li>
+                  <li class="cut-piece" data-piece=" it"><span class="slip">it</span></li>
+                  <li class="cut-piece" data-piece="'s"><span class="slip">’s</span></li>
+                  <li class="cut-piece" data-piece=" too"><span class="slip">too</span></li>
+                  <li class="cut-piece" data-piece=" big"><span class="slip">big</span></li>
+                  <li class="cut-piece" data-piece="."><span class="slip">.</span></li>
+                  <li class="cut-piece" data-piece=" What"><span class="slip">What</span></li>
+                  <li class="cut-piece" data-piece="'s"><span class="slip">’s</span></li>
+                  <li class="cut-piece" data-piece=" too"><span class="slip">too</span></li>
+                  <li class="cut-piece" data-piece=" big"><span class="slip">big</span></li>
+                  <li class="cut-piece" data-piece="?"><span class="slip">?</span></li>
+                </ol>
+              </div>
+              <button type="button" class="sens loupe-toggle" data-show="Show the machine’s view" data-hide="Hide the machine’s view"><span class="sens__label">Show the machine’s view</span></button>
+              <div class="machine" aria-hidden="true"></div>
+            </div>
+            <figcaption class="plate__caption">Fig. 2. The specimen divided into twenty pieces. Illustrative: every model cuts a little differently.</figcaption>
+          </div>
+          <table class="machine-text visually-hidden">
+            <caption>The machine’s view of Fig. 2: each piece and its number</caption>
+            <thead><tr><th scope="col">Letter</th><th scope="col">Piece</th><th scope="col">ID</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">a</th><td>The</td><td data-id>24236</td></tr>
+              <tr><th scope="row">b</th><td>space, trophy</td><td data-id>11909</td></tr>
+              <tr><th scope="row">c</th><td>space, doesn</td><td data-id>38700</td></tr>
+              <tr><th scope="row">d</th><td>’t</td><td data-id>37210</td></tr>
+              <tr><th scope="row">e</th><td>space, fit</td><td data-id>16598</td></tr>
+              <tr><th scope="row">f</th><td>space, in</td><td data-id>7988</td></tr>
+              <tr><th scope="row">g</th><td>space, the</td><td data-id>67726</td></tr>
+              <tr><th scope="row">h</th><td>space, suit</td><td data-id>19110</td></tr>
+              <tr><th scope="row">i</th><td>case</td><td data-id>13425</td></tr>
+              <tr><th scope="row">j</th><td>space, because</td><td data-id>82569</td></tr>
+              <tr><th scope="row">k</th><td>space, it</td><td data-id>52078</td></tr>
+              <tr><th scope="row">l</th><td>’s</td><td data-id>20467</td></tr>
+              <tr><th scope="row">m</th><td>space, too</td><td data-id>63079</td></tr>
+              <tr><th scope="row">n</th><td>space, big</td><td data-id>94711</td></tr>
+              <tr><th scope="row">o</th><td>.</td><td data-id>68873</td></tr>
+              <tr><th scope="row">p</th><td>space, What</td><td data-id>58565</td></tr>
+              <tr><th scope="row">q</th><td>’s</td><td data-id>20467</td></tr>
+              <tr><th scope="row">r</th><td>space, too</td><td data-id>63079</td></tr>
+              <tr><th scope="row">s</th><td>space, big</td><td data-id>94711</td></tr>
+              <tr><th scope="row">t</th><td>?</td><td data-id>85058</td></tr>
+            </tbody>
+          </table>
+        </figure>
+      </div>
+
+      <div class="grid reader-bench">
+        <div class="reader-bench__col">
+          <div class="field reader-field" data-loupe data-field-name="Plate II, your sentence">
+            <form class="reader-form" novalidate>
+              <label class="reader-form__label" for="reader-sentence">Lay down a sentence of your own</label>
+              <div class="reader-form__row">
+                <span class="reader-form__slip"><input class="reader-slip" id="reader-sentence" name="sentence" type="text" autocomplete="off" spellcheck="false" aria-describedby="reader-status"></span>
+                <button class="sens" type="submit"><span class="sens__label">Expose</span></button>
+              </div>
+            </form>
+            <div class="reader-stage">
+              <ol class="reader-pieces" aria-label="Your sentence, in pieces"></ol>
+            </div>
+            <p class="reader-status" id="reader-status" role="status" aria-live="polite"></p>
+            <button class="reader-clear" type="button" hidden>Clear</button>
+            <div class="machine" aria-hidden="true"></div>
+          </div>
         </div>
       </div>
     </section>

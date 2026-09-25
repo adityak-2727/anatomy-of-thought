@@ -16,6 +16,10 @@ import path from 'node:path';
 
 const OUT = path.resolve('shots');
 const filter = process.argv[2] ?? '';
+// Optional second filter on the pass, e.g. "desktop-normal", "phone-reduce", "desktop-normal-nogl".
+const passFilter = process.argv[3] ?? '';
+// The software renderer can take many seconds over one frame of a busy page.
+const SCREENSHOT_TIMEOUT = 120000;
 
 const VIEWPORTS = {
   desktop: { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 },
@@ -93,6 +97,76 @@ const PAGES = [
       { name: 'plate-1-laid', motion: 'normal', run: goTo(1, 0) },
       { name: 'plate-1-exposing', motion: 'normal', gl: true, run: goTo(1, 0.18) },
       { name: 'plate-1', run: goTo(1, 0.75) },
+      { name: 'plate-2-approach', motion: 'normal', gl: true, run: goTo(2, -0.4) },
+      { name: 'plate-2-cutting', motion: 'normal', gl: true, run: goTo(2, 0.2) },
+      { name: 'plate-2-parted', motion: 'normal', gl: true, run: goTo(2, 0.33) },
+      { name: 'plate-2-separating', motion: 'normal', run: goTo(2, 0.46) },
+      { name: 'plate-2-fixing', motion: 'normal', gl: true, run: goTo(2, 0.72) },
+      { name: 'plate-2', run: goTo(2, 0.95) },
+      {
+        name: 'plate-2-loupe',
+        only: 'desktop',
+        run: async (p) => {
+          await goTo(2, 0.95)(p);
+          const box = await p.locator('.dissection__pieces .cut-piece:nth-child(2) .slip').boundingBox();
+          if (!box) return;
+          await p.mouse.move(box.x + box.width / 2 - 30, box.y + box.height / 2 + 20);
+          await p.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 8 });
+          await p.waitForTimeout(450);
+        },
+        after: (p) => p.mouse.move(5, 5),
+      },
+      {
+        name: 'plate-2-machine-view',
+        run: async (p) => {
+          await goTo(2, 0.95)(p);
+          await p.locator('.dissection-field .loupe-toggle').click();
+        },
+        after: (p) => p.locator('.dissection-field .loupe-toggle').click(),
+      },
+      {
+        // One word is not a sentence: the atlas says so, and how to fix it.
+        name: 'reader-error',
+        run: async (p, ctx) => {
+          await scrollToSelector(p, '.reader-bench', -120);
+          await p.fill('#reader-sentence', 'Hello');
+          await p.click('.reader-form .sens');
+          const said = await p.textContent('.reader-status');
+          const invalid = await p.getAttribute('#reader-sentence', 'aria-invalid');
+          ctx.check('one word is refused with the brief’s message', said === 'Write at least two words.' && invalid === 'true', { said, invalid });
+        },
+      },
+      {
+        // A sentence of one's own is exposed and cut, and handed on to the next plate.
+        name: 'reader-exposed',
+        run: async (p, ctx) => {
+          await scrollToSelector(p, '.reader-bench', -120);
+          await p.fill('#reader-sentence', 'The unbreakable raincoat doesn’t fit in my rucksack.');
+          await p.click('.reader-form .sens');
+          await p.waitForFunction(() => document.querySelector('.reader-status')?.textContent?.startsWith('Exposed.'), null, { timeout: 12000 }).catch(() => {});
+          const result = await p.evaluate(() => ({
+            said: document.querySelector('.reader-status')?.textContent,
+            pieces: [...document.querySelectorAll('.reader-pieces .slip')].map((s) => s.textContent),
+            handedOn: window.__atlas.state().readerPieces.length,
+          }));
+          const ok = result.said === 'Exposed. Your pieces will appear on the next plate.' && result.pieces.length > 8 && result.handedOn === result.pieces.length;
+          ctx.check('a sentence of one’s own is exposed, cut and handed on', ok, result);
+        },
+      },
+      {
+        name: 'reader-cleared',
+        run: async (p, ctx) => {
+          await p.click('.reader-clear');
+          await p.waitForFunction(() => document.querySelector('.reader-status')?.textContent === 'Cleared.', null, { timeout: 4000 }).catch(() => {});
+          const result = await p.evaluate(() => ({
+            said: document.querySelector('.reader-status')?.textContent,
+            pieces: document.querySelectorAll('.reader-pieces li').length,
+            focused: document.activeElement?.id,
+            handedOn: window.__atlas.state().readerPieces.length,
+          }));
+          ctx.check('Clear resets the bench', result.said === 'Cleared.' && result.pieces === 0 && result.focused === 'reader-sentence' && result.handedOn === 0, result);
+        },
+      },
       { name: 'endmatter', run: goTo('colophon') },
       {
         // A list entry carries the reader to the plate and hands its heading focus.
@@ -129,6 +203,8 @@ const PAGES = [
           }));
           const ok = ctx.motion === 'reduce' ? result.top && result.imprint > 0.99 : result.top && result.imprint < 0.5;
           ctx.check('Expose the atlas again returns to the top and prints the frontispiece again', ok, result);
+          // Picture the reprint once finished: a moving frame is very slow in the software renderer.
+          if (ctx.motion !== 'reduce') await p.waitForFunction(() => Number(getComputedStyle(document.querySelector('.frontispiece__hint')).opacity) > 0.99, null, { timeout: 20000 }).catch(() => {});
         },
       },
     ],
@@ -139,17 +215,30 @@ const PAGES = [
     url: '/',
     shots: false,
     waitUntil: 'commit',
-    // Start the clock when the sequence starts (its silhouettes exist), not at page load.
-    // Under reduced motion there is no sequence, so don't wait for one.
+    // The instant the sequence starts (its silhouettes are built, then it plays, all in one
+    // task), a mutation observer's callback runs, before any frame is drawn: it reads how
+    // far the sequence has run, presses a key, and reads again. Deterministic however slow
+    // the renderer is.
+    init: () => {
+      window.__skipTest = new Promise((resolve) => {
+        const watch = new MutationObserver(() => {
+          if (!document.querySelector('.silhouette') || !window.__atlas) return;
+          watch.disconnect();
+          const before = window.__atlas.frontispiece();
+          window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift' }));
+          const after = window.__atlas.frontispiece();
+          const imprint = Number(getComputedStyle(document.querySelector('.frontispiece__imprint')).opacity);
+          resolve({ before: +before.toFixed(3), after, imprint });
+        });
+        watch.observe(document, { subtree: true, childList: true });
+      });
+    },
+    // Under reduced motion there is no sequence to catch. The `rm` class is set by an
+    // inline script in the head, so let the document parse before looking for it.
     ready: () =>
-      new Promise((resolve) => {
-        const started = Date.now();
-        const check = () =>
-          document.querySelector('.silhouette') || document.documentElement.classList.contains('rm') || Date.now() - started > 5000
-            ? resolve()
-            : requestAnimationFrame(check);
-        check();
-      }),
+      new Promise((parsed) => (document.readyState === 'loading' ? addEventListener('DOMContentLoaded', parsed, { once: true }) : parsed())).then(() =>
+        document.documentElement.classList.contains('rm') ? true : window.__skipTest,
+      ),
     checkpoints: [
       // Screenshots in the software renderer take seconds, longer than the sequence, so its
       // frames are pictured by the seeked checkpoints above. Here the behaviour is tested:
@@ -159,12 +248,10 @@ const PAGES = [
         motion: 'normal',
         gl: true,
         run: async (p, ctx) => {
-          await p.waitForTimeout(400);
-          const imprint = () => p.evaluate(() => Number(getComputedStyle(document.querySelector('.frontispiece__imprint')).opacity));
-          const playing = (await imprint()) < 0.5;
-          await p.keyboard.press('Shift');
-          const finished = (await imprint()) > 0.99;
-          ctx.check('frontispiece plays by itself, and a key press skips to the end', playing && finished, { playing, finished });
+          // Read the result the init script recorded at the sequence's first instant.
+          const result = await p.evaluate(() => window.__skipTest);
+          const ok = result.before < 1 && result.after === 1 && result.imprint > 0.99;
+          ctx.check('frontispiece plays by itself, and a key press skips to the end', ok, result);
         },
       },
     ],
@@ -223,7 +310,10 @@ async function run() {
   for (const pass of passes) {
     for (const def of PAGES) {
       if (filter && !def.name.includes(filter)) continue;
+      const passTag = `${pass.vpName}-${pass.motion}${pass.gl ? '' : '-nogl'}`;
+      if (passFilter && passTag !== passFilter) continue;
       const context = await browser.newContext({ ...pass.vp });
+      if (def.init) await context.addInitScript(def.init);
       const page = await context.newPage();
       await page.emulateMedia({ reducedMotion: pass.motion === 'reduce' ? 'reduce' : 'no-preference' });
       const tag = `${def.name}-${pass.vpName}-${pass.motion}${pass.gl ? '' : '-nogl'}`;
@@ -254,10 +344,13 @@ async function run() {
           motion: pass.motion,
           check: (what, ok, detail) => report.checks.push({ tag, what, ok, detail }),
         };
+        const started = Date.now();
+        process.stdout.write(`  ${tag} ${cp.name} `);
         await cp.run(page, ctx);
         await settle(page, cp.settle ?? 350);
         const file = `${tag}-${cp.name}.png`;
-        await page.screenshot({ path: path.join(OUT, file) });
+        await page.screenshot({ path: path.join(OUT, file), timeout: SCREENSHOT_TIMEOUT });
+        process.stdout.write(`${((Date.now() - started) / 1000).toFixed(1)}s\n`);
 
         // Frames caught mid-sequence skip axe (it takes a second, and the page is moving);
         // the same page is checked once it has settled.

@@ -277,6 +277,175 @@ html:not(.js) .contents__leader {
   rotate: var(--specimen-turn);
 }
 
+/* Plate II: the dissection. Without JavaScript the pieces sit in a readable row;
+   with it they are laid out by hand (dissect.ts) and carried by transforms. */
+/* Room at the foot for the machine's-view toggle, and no more. */
+.dissection-field {
+  padding: var(--s-6) var(--s-6) calc(var(--toggle-room) + var(--s-6));
+}
+
+.dissection__stage,
+.reader-stage {
+  position: relative;
+}
+
+.dissection__pieces,
+.reader-pieces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-5) var(--s-3);
+}
+
+.dissection__pieces.is-laid,
+.reader-pieces.is-laid {
+  display: block;
+}
+
+.cut-piece {
+  position: relative;
+  display: inline-block;
+}
+
+.is-laid > .cut-piece {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+}
+
+/* Cut tight around the words: the pieces are exactly what the blade left. */
+.cut-piece .slip {
+  padding: 0.16em 0.14em 0.22em;
+}
+
+/* The space belongs to the piece after it, and shows as paper to its left. */
+.cut-piece[data-piece^=' '] .slip {
+  padding-inline-start: var(--cut-space);
+}
+
+.cuts {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.cuts line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: var(--hairline);
+  stroke-dasharray: 3 2.5;
+}
+
+.offcut {
+  position: absolute;
+  background: var(--paper);
+}
+
+.dissection-field .loupe-toggle {
+  position: absolute;
+  inset-inline-end: var(--s-5);
+  inset-block-end: var(--s-5);
+}
+
+/* The reader's bench: a slip of sensitised paper to write on. */
+.reader-bench {
+  margin-block-start: var(--s-9);
+}
+
+.reader-bench__col {
+  grid-column: 1 / span 7;
+}
+
+.reader-field {
+  padding: var(--s-6);
+}
+
+.reader-form__label {
+  display: block;
+  margin-block-end: var(--s-3);
+  font-size: var(--type-field-label);
+  line-height: var(--lh-label);
+  font-style: italic;
+}
+
+.reader-form__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+  align-items: center;
+}
+
+.reader-form__slip {
+  position: relative;
+  display: block;
+  flex: 1 1 16em;
+}
+
+.reader-form__slip::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--sensitiser);
+  clip-path: polygon(2px 1px, 50% 0, calc(100% - 3px) 2px, 100% calc(100% - 2px), 60% 100%, 1px calc(100% - 1px), 0 50%);
+}
+
+.reader-slip {
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  padding: 0.42em 0.6em 0.46em;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--type-slip);
+  line-height: 1.3;
+}
+
+.reader-stage {
+  display: none;
+}
+
+.reader-bench.is-exposed .reader-form__row {
+  display: none;
+}
+
+.reader-bench.is-exposed .reader-stage {
+  display: block;
+}
+
+.reader-wash {
+  position: absolute;
+  z-index: 3;
+  background: var(--sensitiser);
+  pointer-events: none;
+}
+
+.reader-status {
+  min-block-size: 1.3em;
+  margin-block-start: var(--s-4);
+  font-size: var(--type-field-label);
+  line-height: var(--lh-label);
+  font-style: italic;
+}
+
+/* Clear is not a thing to change but an instruction: words on the blue, underlined. */
+.reader-clear {
+  margin-block-start: var(--s-2);
+  color: var(--silhouette);
+  font-size: var(--type-field-label);
+  font-style: italic;
+  text-decoration-line: underline;
+  text-decoration-thickness: var(--hairline);
+  text-underline-offset: 0.2em;
+}
+
+html:not(.js) .reader-bench {
+  display: none;
+}
+
 /* ─── The colophon and the index ──────────────────────────────────────────── */
 
 .endmatter {
@@ -343,7 +512,9 @@ html:not(.js) .contents__leader {
   }
 
   .plate__frame > *,
-  .plate__text > * {
+  .plate__text > *,
+  .plate--even .plate__figure,
+  .plate--even .plate__text {
     grid-column: 1 / -1;
     grid-row: auto;
   }
@@ -368,7 +539,8 @@ html:not(.js) .contents__leader {
 
   .contents__inner,
   .colophon,
-  .index {
+  .index,
+  .reader-bench__col {
     grid-column: 1 / -1;
   }
 }
@@ -388,6 +560,19 @@ html:not(.js) .contents__leader {
 
   .specimen-field {
     padding: var(--s-7) var(--s-5);
+  }
+
+  .dissection-field {
+    padding: var(--s-5) var(--s-4) calc(var(--toggle-room) + var(--s-5));
+  }
+
+  .dissection-field .loupe-toggle {
+    inset-inline-end: var(--s-4);
+    inset-block-end: var(--s-4);
+  }
+
+  .reader-field {
+    padding: var(--s-5) var(--s-4);
   }
 
   .index__list {
