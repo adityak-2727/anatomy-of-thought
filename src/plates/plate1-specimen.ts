@@ -4,7 +4,7 @@
 
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { createField, type FieldHandle } from '../gl/background';
+import { advanceField, createField, type FieldHandle } from '../gl/background';
 import { pinSlipEnds, refitSlipEnds } from '../components/piece';
 import { PINS, PIN_DROP, PLATE1, SEEDS } from '../motion/eases';
 import { COMPACT, REDUCED, WIDE, isPhone } from '../motion/media';
@@ -38,11 +38,7 @@ export function init(root: HTMLElement): void {
   // The field is brushed and exposed once and stays so: what the machine has
   // processed stays processed, even if the reader scrolls back.
   const proxy = { brush: 0, exposure: 0 };
-  const latch = () => {
-    f.state.brush = Math.max(f.state.brush, proxy.brush);
-    f.state.exposure = Math.max(f.state.exposure, proxy.exposure);
-    f.invalidate();
-  };
+  const latch = () => advanceField(f, proxy);
 
   mm = gsap.matchMedia();
   mm.add({ wide: WIDE, compact: COMPACT, reduced: REDUCED }, (context) => {

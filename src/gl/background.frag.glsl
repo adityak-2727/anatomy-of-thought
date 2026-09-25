@@ -1,7 +1,7 @@
 #version 300 es
 // Paper and chemistry. One shader, two passes:
-//   uMode 0 draws the paper across the fixed viewport canvas;
-//   uMode 1 draws one brushed cyanotype field into that field's own canvas.
+//   uMode 0 bakes a seamless tile of paper, once, which becomes the page's background;
+//   uMode 1 draws one brushed cyanotype field, to be copied into that field's own canvas.
 // All colours arrive from the CSS tokens through uPalette.
 
 precision highp float;
@@ -12,10 +12,9 @@ uniform vec2 uResolution;   // device px of the region being drawn
 uniform float uScale;       // device px per CSS px
 uniform vec3 uPalette[9];   // paper, paper-shade, prussian-deep, prussian, wash, sensitiser, sensitiser-deep, umber, cream
 
-uniform vec2 uPaperOffset;  // CSS px: how far the paper has travelled with the page
 uniform vec3 uPaperTune;    // fibres, blotches, grain
 
-uniform vec4 uRect;         // field rectangle in CSS px within its canvas (x, y, w, h)
+uniform vec4 uRect;         // field rectangle in CSS px within its canvas (x, y, w, h); for the paper, z is the tile size
 uniform vec4 uState;        // brush, exposure, tone, seed
 uniform vec4 uStyle;        // brush angle (rad), strokes, overshoot (px), centre bias
 uniform vec4 uTune;         // edge roughness (px), streaks, unevenness, deep pockets
@@ -46,10 +45,15 @@ float rnd(ivec2 c, float seed) {
 }
 
 // Gradient noise, remapped to about [0, 1]. Value noise shows its square lattice
-// wherever it is thresholded; gradient noise has no such grid.
+// wherever it is thresholded; gradient noise has no such grid. Gradients come from a
+// fixed set of eight directions: as good to the eye, and no trigonometry per corner.
+const vec2 DIRECTIONS[8] = vec2[8](
+  vec2(1.0, 0.0), vec2(-1.0, 0.0), vec2(0.0, 1.0), vec2(0.0, -1.0),
+  vec2(0.7071, 0.7071), vec2(-0.7071, 0.7071), vec2(0.7071, -0.7071), vec2(-0.7071, -0.7071)
+);
+
 vec2 gradient(ivec2 c, float seed) {
-  float a = rnd(c, seed) * 6.2831853;
-  return vec2(cos(a), sin(a));
+  return DIRECTIONS[int(hash3(uvec3(uvec2(c), uint(seed))) & 7u)];
 }
 
 float noise2(vec2 p, float seed) {
@@ -97,9 +101,19 @@ vec3 paper(vec2 p) {
     + fibreSet(p, 1.9, 23.0) * smoothstep(0.65, 0.4, region)
     + fibreSet(p, -0.9, 29.0) * smoothstep(0.3, 0.7, noise2(p * 0.0021, 13.0)) * 0.7;
   vec3 c = mix(PAPER, SHADE, clamp((cloud - 0.42) * uPaperTune.y, 0.0, 1.0));
-  c = mix(c, SHADE, clamp(fibres, 0.0, 1.0) * uPaperTune.x);
-  c += (rnd(ivec2(gl_FragCoord.xy), 5.0) - 0.5) * uPaperTune.z;
-  return c;
+  return mix(c, SHADE, clamp(fibres, 0.0, 1.0) * uPaperTune.x);
+}
+
+// A seamless square of paper, uRect.z CSS px across, baked once and laid as the page's
+// background. Four offset samples are blended so that opposite edges agree exactly.
+vec3 paperTile(vec2 p) {
+  float t = uRect.z;
+  vec2 w = clamp(p / t, 0.0, 1.0);
+  vec3 a = paper(p);
+  vec3 b = paper(p - vec2(t, 0.0));
+  vec3 c = paper(p - vec2(0.0, t));
+  vec3 d = paper(p - vec2(t, t));
+  return mix(mix(a, b, w.x), mix(c, d, w.x), w.y);
 }
 
 vec4 field(vec2 p) {
@@ -224,7 +238,9 @@ vec4 field(vec2 p) {
 void main() {
   vec2 p = vec2(gl_FragCoord.x, uResolution.y - gl_FragCoord.y) / uScale;
   if (uMode == 0) {
-    outColor = vec4(paper(p + uPaperOffset), 1.0);
+    // Grain is per pixel, so it tiles as it is.
+    vec3 c = paperTile(p) + (rnd(ivec2(gl_FragCoord.xy), 5.0) - 0.5) * uPaperTune.z;
+    outColor = vec4(c, 1.0);
   } else {
     outColor = field(p);
   }

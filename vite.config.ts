@@ -42,6 +42,29 @@ export default defineConfig({
   // and under a project path (GitHub Pages).
   base: './',
   plugins: [preloadFonts()],
+  // Pre-bundle every dependency up front, and transform the entry files as the server
+  // starts, so a first visit in development doesn't wait on discovery (or reload for it).
+  optimizeDeps: {
+    include: [
+      'gsap',
+      'gsap/ScrollTrigger',
+      'gsap/CustomEase',
+      'gsap/SplitText',
+      'gsap/DrawSVGPlugin',
+      'gsap/Flip',
+      'gsap/Draggable',
+      'gsap/InertiaPlugin',
+      'lenis',
+      'simplex-noise',
+      'three',
+      'lil-gui',
+    ],
+  },
+  server: {
+    warmup: {
+      clientFiles: ['./src/main.ts', './src/plates/*.ts', './src/styleguide/main.ts', './src/styles/index.css'],
+    },
+  },
   build: {
     target: 'es2022',
     // Fonts must stay separate files so they can be preloaded and cached.

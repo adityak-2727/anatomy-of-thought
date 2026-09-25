@@ -1,10 +1,5 @@
-// Shared start-up for every page: CSS, fonts, smooth scroll, the paper, and ?debug.
-
-import './styles/tokens.css';
-import './styles/type.css';
-import './styles/base.css';
-import './styles/components.css';
-import './styles/plates.css';
+// Shared start-up for every page: fonts, smooth scroll, the paper, and ?debug.
+// (The styles are linked from each page's head: src/styles/index.css.)
 
 import { flags, type Flags } from './flags';
 import { FONT_WAIT_MS } from './motion/eases';

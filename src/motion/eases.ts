@@ -65,6 +65,7 @@ export const DUR = {
   tone: 3.2,
   ticker: 0.38,             // 300–450ms with variation
   move: 0.6,
+  refine: 0.15,             // a field still this long is redrawn at full resolution
   travel: [1.2, 1.6],       // list of plates to a plate: 1.2s near, up to 1.6s far
   travelPerScreen: 0.04,    // seconds added per screen of distance
 } as const;
@@ -72,7 +73,9 @@ export const DUR = {
 /** Values that ?debug may change at runtime. */
 export const live = {
   penSpeed: 900,              // px per second: lines draw at a constant pen speed
-  lenisLerp: 0.1,
+  // Softened from the brief's 0.09–0.1 after the Phase 2 review asked for smoother
+  // scrolling; still quick to answer the wheel.
+  lenisLerp: 0.08,
   loupeLerp: 0.2,
 };
 

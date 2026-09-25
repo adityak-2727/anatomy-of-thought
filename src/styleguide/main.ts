@@ -1,7 +1,6 @@
 // The proof sheet (dev only, not part of the build).
 
 import { boot, fontsReady, startDebug } from '../boot';
-import './styleguide.css';
 import { initSamplePlate } from './sample-plate';
 import { initMaterials } from './materials';
 import { initEases } from './eases-proof';

@@ -90,6 +90,7 @@
   --emblem-turn: -3deg;
   --specimen-turn: -0.6deg;  /* the specimen slip at rest */
   --field-bleed: 56px;       /* room around a field for its brushed overshoot */
+  --paper-tile-size: 1024px; /* the baked paper repeats at this size */
 
   /* CSS timings for small responses. Story motion lives in eases.ts. */
   --dur-respond-fast: 120ms;

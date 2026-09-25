@@ -1,16 +1,19 @@
 // The paper and its chemistry.
 //
-// One WebGL2 context and one fragment shader. The fixed, full-viewport canvas shows
-// the paper. Each brushed field is drawn by the same shader, then copied into a canvas
-// that lives inside the field element, so it scrolls with its own content natively
-// (no lag behind the text on touch or native scrolling), and costs nothing while
-// the page scrolls unless its state is changing. Renders happen only when something
-// changed. Without WebGL2, fields fall back to plain CSS driven by the same variables.
+// One WebGL2 context and one fragment shader, drawing into a hidden scratch canvas:
+// - The paper is baked once into a seamless tile and laid as the page's own background,
+//   so it scrolls with the text natively and costs nothing per frame.
+// - Each brushed field is drawn by the same shader and copied into a canvas inside the
+//   field element, so it moves with its content exactly (no lag on touch or native
+//   scrolling). A field is redrawn only when its state changes: a quick draft while it
+//   animates, then one sharp pass once it has been still for a moment.
+// Without WebGL2, fields fall back to plain CSS driven by the same variables.
 
 import { gsap } from 'gsap';
 import vertSource from './background.vert.glsl?raw';
 import fragSource from './background.frag.glsl?raw';
 import { raggedClip } from '../components/marks';
+import { DUR } from '../motion/eases';
 
 export interface FieldState {
   brush: number;
@@ -60,27 +63,38 @@ interface FieldRecord extends FieldHandle {
   cssW: number;
   cssH: number;
   near: boolean;
+  /** Needs drawing. */
   dirty: boolean;
+  /** The pending draw answers an animation, so a draft will do. */
+  moving: boolean;
+  /** The last draw was at full resolution. */
+  sharp: boolean;
+  lastChange: number;
 }
 
 type Mode = 'gl' | 'css';
 
 let mode: Mode = 'css';
 let gl: WebGL2RenderingContext | null = null;
-let paperCanvas: HTMLCanvasElement | null = null;
+let scratch: HTMLCanvasElement | null = null;
 let program: WebGLProgram | null = null;
 const uniforms = new Map<string, WebGLUniformLocation | null>();
 const fields = new Set<FieldRecord>();
-let paperDirty = true;
 const palette = new Float32Array(27);
 let bleed = 56;
-let paperOffset = (): number => window.scrollY;
+let tileSize = 1024;
+let tileUrl = '';
 let observer: IntersectionObserver | null = null;
 let resizer: ResizeObserver | null = null;
 
 function dpr(): number {
   const coarse = window.matchMedia('(pointer: coarse)').matches;
   return Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2);
+}
+
+/** While a field animates it is drawn at one device pixel per CSS pixel at most. */
+function draftScale(): number {
+  return Math.min(dpr(), 1);
 }
 
 function readPalette(): void {
@@ -131,7 +145,7 @@ function setupGL(canvas: HTMLCanvasElement): boolean {
   }
   gl.useProgram(program);
   gl.bindVertexArray(gl.createVertexArray());
-  for (const name of ['uMode', 'uResolution', 'uScale', 'uPalette', 'uPaperOffset', 'uPaperTune', 'uRect', 'uState', 'uStyle', 'uTune', 'uStrokeT', 'uExplicit']) {
+  for (const name of ['uMode', 'uResolution', 'uScale', 'uPalette', 'uPaperTune', 'uRect', 'uState', 'uStyle', 'uTune', 'uStrokeT', 'uExplicit']) {
     uniforms.set(name, gl.getUniformLocation(program, name));
   }
   return true;
@@ -141,47 +155,56 @@ function u(name: string): WebGLUniformLocation | null {
   return uniforms.get(name) ?? null;
 }
 
-function sizePaper(): void {
-  if (!paperCanvas) return;
+/** The scratch canvas only ever grows, to the largest thing drawn so far. */
+function ensureScratch(w: number, h: number): void {
+  if (!scratch) return;
+  if (scratch.width < w) scratch.width = w;
+  if (scratch.height < h) scratch.height = h;
+}
+
+/** Bake the paper into a seamless tile and lay it as the page's background. */
+function bakePaper(): void {
+  if (!gl || !scratch) return;
   const scale = dpr();
-  const w = Math.max(1, Math.round(paperCanvas.clientWidth * scale));
-  const h = Math.max(1, Math.round(paperCanvas.clientHeight * scale));
-  if (paperCanvas.width !== w || paperCanvas.height !== h) {
-    paperCanvas.width = w;
-    paperCanvas.height = h;
-  }
-  paperDirty = true;
-  for (const f of fields) f.dirty = true;
-}
-
-function drawPaper(): void {
-  if (!gl || !paperCanvas) return;
-  gl.viewport(0, 0, paperCanvas.width, paperCanvas.height);
+  const size = Math.round(tileSize * scale);
+  ensureScratch(size, size);
+  gl.viewport(0, 0, size, size);
   gl.uniform1i(u('uMode'), 0);
-  gl.uniform2f(u('uResolution'), paperCanvas.width, paperCanvas.height);
-  gl.uniform1f(u('uScale'), dpr());
-  gl.uniform2f(u('uPaperOffset'), 0, paperOffset());
+  gl.uniform2f(u('uResolution'), size, size);
+  gl.uniform1f(u('uScale'), scale);
+  gl.uniform4f(u('uRect'), 0, 0, tileSize, tileSize);
   gl.drawArrays(gl.TRIANGLES, 0, 3);
+  // Copy within this task, while the drawing buffer is still valid.
+  const tile = document.createElement('canvas');
+  tile.width = size;
+  tile.height = size;
+  tile.getContext('2d')!.drawImage(scratch, 0, scratch.height - size, size, size, 0, 0, size, size);
+  tile.toBlob((blob) => {
+    if (!blob) return;
+    const previous = tileUrl;
+    tileUrl = URL.createObjectURL(blob);
+    document.documentElement.style.setProperty('--paper-tile-image', `url("${tileUrl}")`);
+    if (previous) URL.revokeObjectURL(previous);
+  });
 }
 
-function drawField(f: FieldRecord): void {
-  if (!gl || !paperCanvas || !f.canvas || !f.ctx) return;
+function drawField(f: FieldRecord, scaleWanted: number): void {
+  if (!gl || !scratch || !f.canvas || !f.ctx) return;
   const { state, style } = f;
   const strokes = state.strokeT;
   const empty = strokes ? Math.max(...strokes) <= 0 : state.brush <= 0;
   f.ctx.clearRect(0, 0, f.canvas.width, f.canvas.height);
   if (empty) return;
 
-  // A field larger than the drawing buffer is rendered at a reduced scale.
-  const scale = Math.min(dpr(), paperCanvas.width / f.cssW, paperCanvas.height / f.cssH);
-  const w = Math.max(1, Math.floor(f.cssW * scale));
-  const h = Math.max(1, Math.floor(f.cssH * scale));
+  const w = Math.max(1, Math.floor(f.cssW * scaleWanted));
+  const h = Math.max(1, Math.floor(f.cssH * scaleWanted));
+  ensureScratch(w, h);
   gl.viewport(0, 0, w, h);
   gl.clearColor(0, 0, 0, 0);
   gl.clear(gl.COLOR_BUFFER_BIT);
   gl.uniform1i(u('uMode'), 1);
   gl.uniform2f(u('uResolution'), w, h);
-  gl.uniform1f(u('uScale'), scale);
+  gl.uniform1f(u('uScale'), scaleWanted);
   gl.uniform4f(u('uRect'), bleed, bleed, f.cssW - bleed * 2, f.cssH - bleed * 2);
   gl.uniform4f(u('uState'), state.brush, state.exposure, state.tone, style.seed);
   gl.uniform4f(u('uStyle'), (style.angle * Math.PI) / 180, style.strokes, style.overshoot, style.bias);
@@ -189,23 +212,25 @@ function drawField(f: FieldRecord): void {
   gl.uniform1f(u('uExplicit'), strokes ? 1 : 0);
   gl.drawArrays(gl.TRIANGLES, 0, 3);
   // The drawing buffer is still valid within this task, so the copy is synchronous.
-  f.ctx.drawImage(paperCanvas, 0, paperCanvas.height - h, w, h, 0, 0, f.canvas.width, f.canvas.height);
+  f.ctx.drawImage(scratch, 0, scratch.height - h, w, h, 0, 0, f.canvas.width, f.canvas.height);
 }
 
-function frame(): void {
+function frame(time: number): void {
   if (mode !== 'gl' || !gl) return;
-  let drewField = false;
   for (const f of fields) {
-    if (f.dirty && f.near) {
+    if (!f.near) continue;
+    if (f.dirty) {
+      const scale = f.moving ? draftScale() : dpr();
+      drawField(f, scale);
+      f.sharp = scale >= dpr();
       f.dirty = false;
-      drawField(f);
-      drewField = true;
+      f.moving = false;
+      f.lastChange = time;
+    } else if (!f.sharp && time - f.lastChange > DUR.refine) {
+      // Still for a moment: now draw it properly.
+      drawField(f, dpr());
+      f.sharp = true;
     }
-  }
-  // A field pass borrows the paper canvas, so the paper is always redrawn after one.
-  if (paperDirty || drewField) {
-    paperDirty = false;
-    drawPaper();
   }
 }
 
@@ -221,6 +246,7 @@ function sizeFieldCanvas(f: FieldRecord): void {
     f.canvas.height = h;
   }
   f.dirty = true;
+  f.moving = false;
 }
 
 function writeCssState(f: FieldRecord): void {
@@ -228,6 +254,20 @@ function writeCssState(f: FieldRecord): void {
   s.setProperty('--brush', f.state.brush.toFixed(3));
   s.setProperty('--exposure', f.state.exposure.toFixed(3));
   s.setProperty('--tone', f.state.tone.toFixed(3));
+}
+
+/**
+ * Move a field's brushing and exposure forward, never back: what the machine has
+ * processed stays processed. Redraws only when something actually changed, so
+ * scrolling to and fro over a finished field costs nothing.
+ */
+export function advanceField(field: FieldHandle, to: { brush?: number; exposure?: number }): void {
+  const brush = Math.max(field.state.brush, to.brush ?? 0);
+  const exposure = Math.max(field.state.exposure, to.exposure ?? 0);
+  if (brush === field.state.brush && exposure === field.state.exposure) return;
+  field.state.brush = brush;
+  field.state.exposure = exposure;
+  field.invalidate();
 }
 
 /** Register an element as a brushed field. Safe to call before or after initBackground. */
@@ -242,9 +282,13 @@ export function createField(el: HTMLElement, style: Partial<FieldStyle> & { seed
     cssH: 0,
     near: false,
     dirty: true,
+    moving: false,
+    sharp: false,
+    lastChange: 0,
     invalidate() {
       if (mode === 'css') writeCssState(record);
       record.dirty = true;
+      record.moving = true;
     },
   };
   fields.add(record);
@@ -271,13 +315,15 @@ function attach(f: FieldRecord): void {
 
 /** Start the background. Returns the mode in use. */
 export function initBackground(options: { forceCss?: boolean } = {}): Mode {
-  bleed = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--field-bleed')) || bleed;
+  const css = getComputedStyle(document.documentElement);
+  bleed = parseFloat(css.getPropertyValue('--field-bleed')) || bleed;
+  tileSize = parseFloat(css.getPropertyValue('--paper-tile-size')) || tileSize;
   readPalette();
 
-  paperCanvas = document.querySelector<HTMLCanvasElement>('canvas.paper');
+  scratch = document.querySelector<HTMLCanvasElement>('canvas.paper');
   // From here the chemistry decides how fields look (the CSS safety net stands down).
   document.documentElement.classList.add('bg-ready');
-  if (!options.forceCss && paperCanvas && setupGL(paperCanvas)) {
+  if (!options.forceCss && scratch && setupGL(scratch)) {
     mode = 'gl';
   } else {
     mode = 'css';
@@ -300,24 +346,19 @@ export function initBackground(options: { forceCss?: boolean } = {}): Mode {
   );
   resizer = new ResizeObserver((entries) => {
     for (const entry of entries) {
-      if (entry.target === paperCanvas) {
-        sizePaper();
-        continue;
-      }
       const f = [...fields].find((x) => x.el === entry.target);
       if (f) sizeFieldCanvas(f);
     }
   });
-  resizer.observe(paperCanvas!);
   for (const f of fields) attach(f);
 
-  paperCanvas!.addEventListener('webglcontextlost', (event) => {
+  scratch!.addEventListener('webglcontextlost', (event) => {
     event.preventDefault();
     fallBackToCss();
   });
-  window.addEventListener('scroll', () => (paperDirty = true), { passive: true });
-  sizePaper();
-  // Added after Lenis, so the paper is drawn with this frame's scroll position.
+  bakePaper();
+  // A move between screens of different density needs a sharper (or lighter) tile.
+  window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`).addEventListener('change', bakePaper, { once: true });
   gsap.ticker.add(frame);
   return mode;
 }
@@ -345,14 +386,11 @@ function applyTuning(): void {
 export function refreshBackground(): void {
   readPalette();
   applyTuning();
-  paperDirty = true;
-  for (const f of fields) f.invalidate();
-}
-
-/** Let the scroll module hold the paper still while a plate is pinned. */
-export function setPaperOffset(fn: () => number): void {
-  paperOffset = fn;
-  paperDirty = true;
+  bakePaper();
+  for (const f of fields) {
+    f.dirty = true;
+    f.moving = false;
+  }
 }
 
 export function backgroundMode(): Mode {

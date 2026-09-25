@@ -1,0 +1,8 @@
+/* The atlas's styles, linked from the page head so they arrive before the first paint
+   (in development too, where CSS imported from JavaScript would come seconds late). */
+
+@import './tokens.css';
+@import './type.css';
+@import './base.css';
+@import './components.css';
+@import './plates.css';

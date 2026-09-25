@@ -6,17 +6,38 @@
   box-sizing: border-box;
 }
 
+/* The page is paper: its colour at once, and its grain once the shader has baked a
+   seamless tile of it. The tile scrolls with the page natively, at no cost per frame. */
 html {
-  background: var(--paper);
+  background-color: var(--paper);
+  background-image: var(--paper-tile-image, none);
+  background-size: var(--paper-tile-size) var(--paper-tile-size);
+  background-repeat: repeat;
 }
 
-/* Only the root carries the paper colour. A body background would paint above
-   the paper canvas (which sits at z-index -1) and hide its grain. */
 body {
   margin: 0;
   min-block-size: 100vh;
   background: transparent;
   overflow-x: clip;
+}
+
+/* Lenis, as its authors recommend: native scroll behaviour stays out of its way. */
+html.lenis,
+html.lenis body {
+  block-size: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
 }
 
 h1, h2, h3, h4, p, figure, ol, ul, dl, dd, blockquote {
@@ -107,14 +128,15 @@ a:hover {
   transform: none;
 }
 
-/* The fixed paper canvas sits behind all content. A negative z-index keeps it
-   above the root background but below every block on the page. */
+/* The shader's scratch canvas. It is never shown: fields are copied out of it into
+   their own canvases, and the paper into a tile. Kept tiny in layout, and unseen. */
 .paper {
   position: fixed;
-  inset: 0;
-  inline-size: 100vw;
-  block-size: 100lvh;
-  z-index: -1;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: 1px;
+  block-size: 1px;
+  visibility: hidden;
   pointer-events: none;
 }
 

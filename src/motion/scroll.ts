@@ -7,7 +7,6 @@ import Lenis from 'lenis';
 import { DUR, SCRUB, live } from './eases';
 import { onReducedChange, prefersReduced } from './reduced-motion';
 import { flags } from '../flags';
-import { setPaperOffset } from '../gl/background';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -28,26 +27,11 @@ function stop(): void {
   lenis = null;
 }
 
-/**
- * The paper travels with the page, except while a plate is pinned: then the page
- * appears to hold still, so the grain holds still with it.
- */
-function paperOffset(): number {
-  const y = window.scrollY;
-  let held = 0;
-  for (const st of ScrollTrigger.getAll()) {
-    if (!st.pin) continue;
-    held += gsap.utils.clamp(0, st.end - st.start, y - st.start);
-  }
-  return y - held;
-}
-
 export function initScroll(): void {
   ScrollTrigger.config({ ignoreMobileResize: true });
   gsap.ticker.lagSmoothing(0);
   if (!prefersReduced()) start();
   onReducedChange((reduced) => (reduced ? stop() : start()));
-  setPaperOffset(paperOffset);
 }
 
 export function getLenis(): Lenis | null {

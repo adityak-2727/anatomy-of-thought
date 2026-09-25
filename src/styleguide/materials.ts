@@ -5,7 +5,7 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
-import { createField, type FieldHandle } from '../gl/background';
+import { advanceField, createField, type FieldHandle } from '../gl/background';
 import { createPiece, displayText, pinPieces, type Piece } from '../components/piece';
 import { raggedClip, spaceMark, svgEl, threadCurve, threadFibres, threadPaths } from '../components/marks';
 import { tuckTicker, feedOut } from '../components/ticker';
@@ -77,11 +77,7 @@ export function initMaterials(section: HTMLElement, options: { shots: boolean })
       const reduced = prefersReduced();
       const proxy = { brush: 0, exposure: 0 };
       // A field that has been exposed stays exposed: the machine has processed it.
-      const latch = () => {
-        field.state.brush = Math.max(field.state.brush, proxy.brush);
-        field.state.exposure = Math.max(field.state.exposure, proxy.exposure);
-        field.invalidate();
-      };
+      const latch = () => advanceField(field, proxy);
       const pins = lettered.map((p) => p.pin!);
       const letters = lettered.flatMap((p) => [p.letter!, p.leader!]);
       const paths = threadSvg.querySelectorAll<SVGPathElement>('path');

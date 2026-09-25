@@ -184,7 +184,7 @@ DUR = {
 vary(base, key, amount = 0.12)       // deterministic ±12% from plate seed + key
 jitterStagger(step, key)             // ±25% of the step, seeded
 SCRUB = { story: 0.7, camera: 1.0, needle: 0.6 };  // Lenis already smooths; keep these low
-LENIS_LERP = 0.1;  LOUPE_LERP = 0.2;
+LENIS_LERP = 0.08; LOUPE_LERP = 0.2;   // lerp softened from 0.1 after the Phase 2 review
 SEEDS = { frontispiece: 1843, plates: [1844, 1845, 1846, 1847, 1848, 1849] };
 ```
 
@@ -911,6 +911,8 @@ As in BRIEF §10, plus three small additions (marked *):
 - **HTML:** the static likelihoods written into `index.html` (for readers without JavaScript) match `softmax(T = 1)`, so the two can’t drift apart.
 
 ### 8.4 The background: how fields reach the shader
+
+*Revised again after the Phase 2 review, for smoother scrolling.* The paper is no longer redrawn per frame. The shader bakes it once into a seamless 1024px tile (four offset samples blended so opposite edges agree), and the tile becomes the page’s CSS background, so it scrolls natively and costs nothing. The scratch canvas is hidden. Fields draw a draft (one device pixel per CSS pixel) while they animate and a sharp pass once still for 150ms. They redraw only when brushing or exposure actually moves forward (`advanceField`). Gradient noise takes its gradients from eight fixed directions (no trigonometry). Measured in the software renderer, scrolling the first half of the page went from about 1,040ms to 62ms per frame on average. The one loss: the grain no longer holds still under a pinned plate. It slides beneath it, which is too faint to notice.
 
 *Revised in Phase 1.* The plan at first had one fixed canvas draw the paper and up to two fields, positioned each frame from the scroll. That breaks wherever scrolling is native (every phone, and reduced motion on desktop): the compositor moves the text a frame or more before the main thread can redraw the canvas, so a field would visibly trail its own content. The as-built design keeps the brief’s one WebGL2 context and one fragment shader, but gives each field its own canvas.
 

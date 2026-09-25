@@ -1,5 +1,21 @@
 # Progress
 
+## Phase 2 review fixes (25 September 2026)
+
+You reported two problems: the page showed bare HTML for a few seconds on opening, and the scrolling could be smoother.
+
+- **Bare HTML for a few seconds.** In development, Vite injects CSS from JavaScript, so nothing was styled until every module had loaded. On a first visit Vite also discovers and pre-bundles dependencies, and may reload the page.
+  - *Fixed:* the styles are one stylesheet (`src/styles/index.css`) linked in each page’s head, so they block the first paint in development as they always did in the build.
+  - Vite now pre-bundles every dependency up front (`optimizeDeps.include`) and transforms the entry files when the server starts (`server.warmup`).
+  - *Checked:* with every script blocked, the dev page still renders fully styled (Old Standard, paper colour, grid).
+- **Smoother scrolling:**
+  - Lenis lerp softened from 0.1 to 0.08 (just below the brief’s 0.09–0.1, at your request), and Lenis’s recommended CSS added.
+  - The paper is baked once into a seamless tile and laid as the page background, instead of being redrawn every scroll frame.
+  - Fields redraw only when their state actually advances (`advanceField`), as a draft while moving and a sharp pass once still.
+  - Gradient noise no longer uses trigonometry.
+  - *Measured* (software renderer, twice the pixel density, scrolling the first half of the page one step per frame): average frame 1,042ms before, 62ms after; 95th percentile 1,803ms before, 364ms after. The remaining heavy frames are Plate I’s field while it is actually being scrubbed.
+- Verification after the fixes: build clean, 24 of 24 tests pass, and `npm run shots` ran with 0 axe violations, 0 console errors or warnings and every behaviour check passing. I looked at fresh screenshots of the baked paper: no seams and no visible repeat.
+
 ## Phase 2: frontispiece, list of plates, Plate I (25 September 2026)
 
 ### Done
