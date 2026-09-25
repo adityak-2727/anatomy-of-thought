@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Proof sheet</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <script>
+    document.documentElement.classList.add('js');
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('rm');
+  </script>
+  <script type="module" src="/src/styleguide/main.ts"></script>
+</head>
+<body>
+  <a class="skip" href="#proofs">Skip to the proofs</a>
+  <canvas class="paper" aria-hidden="true"></canvas>
+
+  <header class="page proof-head">
+    <div class="grid">
+      <p class="proof-head__project">Anatomy of a Thought</p>
+      <h1 class="proof-head__title">Proof sheet</h1>
+      <p class="proof-head__intro">The materials, type and motion of the atlas, pulled before the run. Every value on this sheet comes from the atlas’s own tokens. Add <a class="nowrap" href="?debug">?debug</a> to the address to tune them, and the sheet follows.</p>
+    </div>
+  </header>
+
+  <main id="proofs">
+
+    <section class="page proof" aria-labelledby="proof-palette">
+      <div class="grid">
+        <h2 id="proof-palette" class="proof__title"><span class="plate__number">Proof I</span> The palette</h2>
+        <p class="proof__intro">Nine colours and no black. Colour carries meaning: sensitiser can still be changed, blue and white are settled, umber and cream are finished.</p>
+
+        <div class="ledger">
+          <h3 class="ledger__group">Paper</h3>
+          <dl class="ledger__rows">
+            <div class="ledger__row"><dt><span class="chip" style="--chip: var(--paper)"></span><span class="ledger__token">paper</span><span class="ledger__hex">#EDEFE8</span></dt><dd>The page, and every white silhouette on a field.</dd></div>
+            <div class="ledger__row"><dt><span class="chip" style="--chip: var(--paper-shade)"></span><span class="ledger__token">paper-shade</span><span class="ledger__hex">#DADFD6</span></dt><dd>Paper in shadow, rules, disabled states.</dd></div>
+          </dl>
+          <h3 class="ledger__group">Exposure</h3>
+          <dl class="ledger__rows">
+            <div class="ledger__row"><dt><span class="chip" style="--chip: var(--prussian-deep)"></span><span class="ledger__token">prussian-deep</span><span class="ledger__hex">#0F2C54</span></dt><dd>Text and line work on paper; the deepest exposure.</dd></div>
+            <div class="ledger__row"><dt><span class="chip" style="--chip: var(--prussian)"></span><span class="ledger__token">prussian</span><span class="ledger__hex">#1C4A82</span></dt><dd>The exposed field.</dd></div>
+            <div class="ledger__row"><dt><span class="chip" style="--chip: var(--prussian-wash)"></span><span class="ledger__token">prussian-wash</span><span class="ledger__hex">#6E8FB8</span></dt><dd>Partial exposure, faint lines, texture. Never text.</dd></div>
+          </dl>
+          <h3 class="ledger__group">Sensitiser</h3>
+          <dl class="ledger__rows">
+            <div class="ledger__row"><dt><span class="chip" style="--chip: var(--sensitiser)"></span><span class="ledger__token">sensitiser</span><span class="ledger__hex">#D8D08A</span></dt><dd>Unexposed paper: only for things the reader can change.</dd></div>
+            <div class="ledger__row"><dt><span class="chip" style="--chip: var(--sensitiser-deep)"></span><span class="ledger__token">sensitiser-deep</span><span class="ledger__hex">#B9AE5E</span></dt><dd>Pressed and active states of those things.</dd></div>
+          </dl>
+          <h3 class="ledger__group">Toning</h3>
+          <dl class="ledger__rows">
+            <div class="ledger__row"><dt><span class="chip" style="--chip: var(--tone-umber)"></span><span class="ledger__token">tone-umber</span><span class="ledger__hex">#4A3228</span></dt><dd>Plate VI after toning, in place of blue.</dd></div>
+            <div class="ledger__row"><dt><span class="chip" style="--chip: var(--tone-cream)"></span><span class="ledger__token">tone-cream</span><span class="ledger__hex">#E6D6BA</span></dt><dd>Plate VI after toning, in place of paper.</dd></div>
+          </dl>
+        </div>
+
+        <div class="contrast">
+          <h3 class="ledger__group">Pairs, measured</h3>
+          <ul class="contrast__list">
+            <li><span class="pair" style="--bg: var(--paper); --fg: var(--prussian-deep)">Trophy</span><span>Ink on paper, 12.01 to 1</span></li>
+            <li><span class="pair" style="--bg: var(--prussian); --fg: var(--paper)">Trophy</span><span>Paper on the field, 7.70 to 1</span></li>
+            <li><span class="pair" style="--bg: var(--prussian); --fg: var(--sensitiser)">Trophy</span><span>Sensitiser on the field, 5.66 to 1</span></li>
+            <li><span class="pair" style="--bg: var(--sensitiser); --fg: var(--prussian-deep)">Trophy</span><span>Ink on sensitiser, 8.82 to 1</span></li>
+            <li><span class="pair" style="--bg: var(--tone-umber); --fg: var(--tone-cream)">Trophy</span><span>Cream on umber, 8.26 to 1</span></li>
+          </ul>
+          <p class="contrast__note">Prussian-wash measures 2.67 to 1 on the field and 2.88 on paper, so it never carries words. Ink on the field measures 1.56, so ink never goes on blue.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page proof" aria-labelledby="proof-type">
+      <div class="grid">
+        <h2 id="proof-type" class="proof__title"><span class="plate__number">Proof II</span> Two voices</h2>
+        <p class="proof__intro">The naturalist speaks in Old Standard. The machine speaks only in numbers, in League Gothic.</p>
+
+        <div class="specimens">
+          <div class="specimen">
+            <p class="specimen__meta">Title page<br>104–128px, line 1.0, tracking −0.01em</p>
+            <p class="specimen__sample frontispiece__title">Anatomy of&nbsp;a&nbsp;Thought</p>
+          </div>
+          <div class="specimen">
+            <p class="specimen__meta">Plate title<br>44–52px, line 1.08</p>
+            <p class="specimen__sample plate__title">The threads of attention</p>
+          </div>
+          <div class="specimen">
+            <p class="specimen__meta">Intro<br>22px, line 1.5</p>
+            <p class="specimen__sample plate__intro">To understand a piece, the machine lets it look back at every piece before it and weigh which ones matter. Never ahead: a piece can only see what has already been read.</p>
+          </div>
+          <div class="specimen">
+            <p class="specimen__meta">Body and notes<br>19–20px, line 1.55, notes in italic</p>
+            <div class="specimen__sample">
+              <p class="t-body">Now the machine must answer, one piece at a time. It gives every piece it knows a score, turns the scores into likelihoods, and chooses.</p>
+              <p class="plate__note">When it first appears, it can’t know what it means. The clue hasn’t arrived yet.</p>
+            </div>
+          </div>
+          <div class="specimen">
+            <p class="specimen__meta">Caption<br>16px, line 1.45, italic</p>
+            <p class="specimen__sample plate__caption">Fig. 4. Where each piece looks while reading. Weights illustrative.</p>
+          </div>
+          <div class="specimen">
+            <p class="specimen__meta">Machine numbers<br>20–22px, line 1.0, League Gothic</p>
+            <div class="specimen__sample machine-sample">
+              <table class="scores">
+                <caption class="visually-hidden">Illustrative scores and likelihoods for the piece after The</caption>
+                <thead><tr><th scope="col">Piece</th><th scope="col">Score</th><th scope="col">Likelihood</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">trophy</th><td class="t-machine">6.1</td><td class="t-machine">92.5%</td></tr>
+                  <tr><th scope="row">suit</th><td class="t-machine">3.2</td><td class="t-machine">5.1%</td></tr>
+                  <tr><th scope="row">cup</th><td class="t-machine">1.4</td><td class="t-machine">0.8%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="specimen">
+            <p class="specimen__meta">Small italic<br>16px, line 1.4</p>
+            <p class="specimen__sample t-small">Printed in cyanotype and code, 2026</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page proof plate plate--odd" aria-labelledby="proof-plate">
+      <div class="grid proof__heading">
+        <h2 id="proof-plate" class="proof__title"><span class="plate__number">Proof III</span> A sample plate</h2>
+      </div>
+      <div class="grid plate__frame">
+        <div class="plate__text">
+          <h3 class="plate__title"><span class="plate__number">Plate I</span> The specimen</h3>
+          <p class="plate__intro" data-develop>Here is our specimen, a small riddle. You probably solved it without noticing. The plates that follow show how a machine arrives at the same answer.</p>
+          <p class="plate__note" data-develop>It could mean the trophy or the suitcase. One word near the end decides which.</p>
+        </div>
+        <figure class="plate__figure" aria-labelledby="sample-caption">
+          <div class="field plate__field sample-field" data-field-name="Sample plate">
+            <div class="specimen-slip piece">
+              <p class="slip slip--specimen">The trophy doesn’t fit in the suitcase because it’s too big. What’s too big?</p>
+            </div>
+          </div>
+          <figcaption id="sample-caption" class="plate__caption" data-develop>Fig. 1. The specimen, a riddle of the kind called a Winograd schema.</figcaption>
+          <p class="proof-controls">
+            <button type="button" class="ink-button" data-action="print">Brush and expose</button>
+            <button type="button" class="ink-button" data-action="clear">Clear the field</button>
+            <span class="proof-status" role="status" aria-live="polite"></span>
+          </p>
+        </figure>
+      </div>
+    </section>
+
+    <section class="page proof plate plate--even" aria-labelledby="proof-materials">
+      <div class="grid proof__heading">
+        <h2 id="proof-materials" class="proof__title"><span class="plate__number">Proof IV</span> Figure materials</h2>
+      </div>
+      <div class="grid plate__frame">
+        <figure class="plate__figure" data-loupe aria-labelledby="materials-caption">
+          <div class="field plate__field materials-field" data-field-name="Materials">
+            <div class="materials__row materials__pieces" data-row="pieces"></div>
+            <div class="materials__row materials__threads" data-row="threads"></div>
+            <div class="materials__row materials__controls" role="group" aria-label="A sensitiser control in each state">
+              <div class="state"><button type="button" class="sens"><span class="sens__label">Expose</span></button><span class="state__name">default</span></div>
+              <div class="state"><button type="button" class="sens is-hover"><span class="sens__label">Expose</span></button><span class="state__name">hover</span></div>
+              <div class="state"><button type="button" class="sens is-focus"><span class="sens__label">Expose</span></button><span class="state__name">focus</span></div>
+              <div class="state"><button type="button" class="sens is-pressed"><span class="sens__label">Expose</span></button><span class="state__name">pressed</span></div>
+              <div class="state"><button type="button" class="sens" disabled><span class="sens__label">Expose</span></button><span class="state__name">disabled</span></div>
+            </div>
+            <button type="button" class="sens loupe-toggle" data-show="Show the machine’s view" data-hide="Hide the machine’s view"><span class="sens__label">Show the machine’s view</span></button>
+            <div class="machine" aria-hidden="true"></div>
+          </div>
+          <figcaption id="materials-caption" class="plate__caption">Fig. 2. Pinned pieces with their ticker strips, threads weighted by attention, and a sensitiser control in every state. IDs and weights illustrative.</figcaption>
+          <div class="visually-hidden" data-machine-text></div>
+        </figure>
+        <div class="plate__text">
+          <h3 class="plate__title">Slips, tape, thread</h3>
+          <p class="plate__intro">Each piece is a paper slip, pinned and lettered as on an anatomical plate. Its number feeds out beneath it on ticker tape.</p>
+          <p class="plate__note">Threads are laid cotton. Their width, and a second ply for the strongest, carry the weight; no line is wider than two pixels.</p>
+          <p class="plate__note">Only the sensitised slips can be changed by the reader.</p>
+          <p class="plate__note loupe-hint" data-loupe-hint data-touch="Press and hold a figure to see what the machine sees.">
+            <svg viewBox="0 0 22 22" width="22" height="22" aria-hidden="true" focusable="false"><circle cx="9" cy="9" r="7"/><path d="M14.2 14.3 L20.4 20.6"/></svg>
+            <span data-hint-text>Hold the loupe over a figure to see what the machine sees.</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page proof" aria-labelledby="proof-eases">
+      <div class="grid">
+        <h2 id="proof-eases" class="proof__title"><span class="plate__number">Proof V</span> Six eases</h2>
+        <p class="proof__intro">Every motion in the atlas is one of eight verbs, and each verb moves with one of these curves. Run one to feel it.</p>
+        <div class="eases" data-eases></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="page proof-foot">
+    <p class="t-small">A proof sheet for Anatomy of a Thought. It is not part of the atlas.</p>
+  </footer>
+</body>
+</html>

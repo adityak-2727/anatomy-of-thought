@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Anatomy of a Thought</title>
+  <meta name="description" content="An illustrated atlas that follows one sentence through a language model: tokens, meaning, attention and the answer.">
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <script>
+    document.documentElement.classList.add('js');
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('rm');
+  </script>
+  <script type="module" src="/src/main.ts"></script>
+</head>
+<body id="top">
+  <a class="skip" href="#plates">Skip to the plates</a>
+  <canvas class="paper" aria-hidden="true"></canvas>
+
+  <header class="page frontispiece grid">
+    <div class="field frontispiece__field" data-field-name="Frontispiece">
+      <h1 class="frontispiece__title">Anatomy of&nbsp;a&nbsp;Thought</h1>
+      <p class="frontispiece__subtitle">What happens to one sentence between the asking and the answer, in six plates.</p>
+    </div>
+    <p class="frontispiece__imprint">Printed in cyanotype and code, 2026</p>
+    <p class="frontispiece__hint">Scroll to begin</p>
+  </header>
+
+  <nav class="page contents" aria-labelledby="contents-title">
+    <div class="grid">
+      <div class="contents__inner">
+        <h2 id="contents-title" class="contents__title">List of plates</h2>
+        <ol class="contents__list">
+          <li><a class="contents__entry" href="#plate-1"><span>The specimen</span><span class="contents__leader" aria-hidden="true"></span><span class="contents__numeral">I</span></a></li>
+          <li><a class="contents__entry" href="#plate-2"><span>Dissection</span><span class="contents__leader" aria-hidden="true"></span><span class="contents__numeral">II</span></a></li>
+          <li><a class="contents__entry" href="#plate-3"><span>A chart of meaning</span><span class="contents__leader" aria-hidden="true"></span><span class="contents__numeral">III</span></a></li>
+          <li><a class="contents__entry" href="#plate-4"><span>The threads of attention</span><span class="contents__leader" aria-hidden="true"></span><span class="contents__numeral">IV</span></a></li>
+          <li><a class="contents__entry" href="#plate-5"><span>The weighing</span><span class="contents__leader" aria-hidden="true"></span><span class="contents__numeral">V</span></a></li>
+          <li><a class="contents__entry" href="#plate-6"><span>The composing stick</span><span class="contents__leader" aria-hidden="true"></span><span class="contents__numeral">VI</span></a></li>
+        </ol>
+        <ul class="contents__list contents__after">
+          <li><a class="contents__entry" href="#colophon"><span>Colophon</span></a></li>
+          <li><a class="contents__entry" href="#index"><span>Index</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main id="plates">
+    <section class="page plate plate--odd" id="plate-1" aria-labelledby="plate-1-title">
+      <div class="grid plate__frame">
+        <div class="plate__text">
+          <h2 id="plate-1-title" class="plate__title"><span class="plate__number">Plate I</span> The specimen</h2>
+          <p class="plate__intro">Here is our specimen, a small riddle. You probably solved it without noticing. The plates that follow show how a machine arrives at the same answer.</p>
+          <p class="plate__note">It could mean the trophy or the suitcase. One word near the end decides which.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page plate plate--even" id="plate-2" aria-labelledby="plate-2-title">
+      <div class="grid plate__frame">
+        <div class="plate__text">
+          <h2 id="plate-2-title" class="plate__title"><span class="plate__number">Plate II</span> Dissection</h2>
+          <p class="plate__intro">A machine can’t read letters or words. It reads pieces, called tokens. First the sentence is cut into pieces, and each piece is swapped for a number.</p>
+          <p class="plate__note">Doesn’t becomes two pieces, and so does suitcase. Common words stay whole; rarer ones are built from parts the machine already knows.</p>
+          <p class="plate__note">Most pieces carry the space in front of them.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page plate plate--odd" id="plate-3" aria-labelledby="plate-3-title">
+      <div class="grid plate__frame">
+        <div class="plate__text">
+          <h2 id="plate-3-title" class="plate__title"><span class="plate__number">Plate III</span> A chart of meaning</h2>
+          <p class="plate__intro">Each piece is given a place on a vast chart. Pieces that are used in similar ways end up close together.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page plate plate--even" id="plate-4" aria-labelledby="plate-4-title">
+      <div class="grid plate__frame">
+        <div class="plate__text">
+          <h2 id="plate-4-title" class="plate__title"><span class="plate__number">Plate IV</span> The threads of attention</h2>
+          <p class="plate__intro">To understand a piece, the machine lets it look back at every piece before it and weigh which ones matter. Never ahead: a piece can only see what has already been read.</p>
+          <p class="plate__note">When it first appears, it can’t know what it means. The clue hasn’t arrived yet.</p>
+          <p class="plate__note">When big arrives, it looks back and ties it to trophy.</p>
+          <p class="plate__note">This looking happens many times over, layer after layer, each round refining the last. Between rounds, each piece is also worked on by itself.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page plate plate--odd" id="plate-5" aria-labelledby="plate-5-title">
+      <div class="grid plate__frame">
+        <div class="plate__text">
+          <h2 id="plate-5-title" class="plate__title"><span class="plate__number">Plate V</span> The weighing</h2>
+          <p class="plate__intro">Now the machine must answer, one piece at a time. It gives every piece it knows a score, turns the scores into likelihoods, and chooses.</p>
+          <p class="plate__note">Turn it down and the machine always takes the favourite. Turn it up and it grows adventurous, and sometimes wrong.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page plate plate--even" id="plate-6" aria-labelledby="plate-6-title">
+      <div class="grid plate__frame">
+        <div class="plate__text">
+          <h2 id="plate-6-title" class="plate__title"><span class="plate__number">Plate VI</span> The composing stick</h2>
+          <p class="plate__intro">Each chosen piece is added to the end, and the whole reading runs again to choose the next. It stops when the likeliest next piece is the end.</p>
+          <p class="plate__note">Four pieces, four full readings. Five for suitcase.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="page endmatter">
+    <div class="grid">
+      <section class="colophon" id="colophon" aria-labelledby="colophon-title">
+        <h2 id="colophon-title" class="colophon__title">Colophon</h2>
+        <p>This atlas was designed, written and built by Aditya. Every mark on these plates, each star, thread and letter, is drawn by code; there are no photographs. The text is set in Old Standard, a revival of the type style common in late nineteenth-century books, and the machine’s numbers in League Gothic. The plates imitate cyanotype, the blue sun print Anna Atkins used in 1843 for what is widely considered the first book illustrated with photographs. Figures marked illustrative are drawings, not measurements. Whether any of this amounts to a thought is a question for another atlas.</p>
+        <a class="colophon__again" href="#top">Expose the atlas again</a>
+      </section>
+
+      <section class="index" id="index" aria-labelledby="index-title">
+        <h2 id="index-title" class="index__title">Index</h2>
+        <ul class="index__list">
+          <li><a href="#plate-4">attention</a>, IV</li>
+          <li>attention head, <i>see</i> <a href="#plate-4">reader</a></li>
+          <li><a href="#plate-3">chart of meaning</a>, III</li>
+          <li><a href="#plate-3">constellation</a>, III</li>
+          <li><a href="#plate-3">embedding</a>, III</li>
+          <li><a href="#plate-4">layer</a>, IV</li>
+          <li><a href="#plate-5">likelihood</a>, V</li>
+          <li>logit, <i>see</i> <a href="#plate-5">score</a></li>
+          <li><a href="#plate-6">one piece at a time</a>, VI</li>
+          <li><a href="#plate-4">reader</a>, IV</li>
+          <li><a href="#plate-5">sampling</a>, V</li>
+          <li><a href="#plate-5">score</a>, V</li>
+          <li><a href="#plate-6">stopping</a>, VI</li>
+          <li><a href="#plate-5">temperature</a>, V</li>
+          <li><a href="#plate-2">token</a>, II</li>
+          <li><a href="#plate-2">tokeniser</a>, II</li>
+        </ul>
+      </section>
+    </div>
+  </footer>
+</body>
+</html>

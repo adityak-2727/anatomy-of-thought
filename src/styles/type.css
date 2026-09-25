@@ -1,0 +1,161 @@
+/* Two families for two voices: Old Standard TT for words, League Gothic for the machine's numbers. */
+
+@font-face {
+  font-family: 'Old Standard TT';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource/old-standard-tt/files/old-standard-tt-latin-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Old Standard TT';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource/old-standard-tt/files/old-standard-tt-latin-400-italic.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'League Gothic';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource/league-gothic/files/league-gothic-latin-400-normal.woff2') format('woff2');
+}
+
+/* Metric-matched fallbacks, measured against the real files in Chromium (Phase 1),
+   so nothing shifts when the web fonts arrive. Every text style sets its own
+   line-height, so the line gap is zeroed. */
+@font-face {
+  font-family: 'Old Standard fallback';
+  font-style: normal;
+  src: local('Times New Roman'), local('TimesNewRomanPSMT'), local('Times');
+  size-adjust: 107.26%;
+  ascent-override: 70.86%;
+  descent-override: 22.38%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Old Standard fallback';
+  font-style: italic;
+  src: local('Times New Roman Italic'), local('TimesNewRomanPS-ItalicMT'), local('Times-Italic');
+  size-adjust: 106.45%;
+  ascent-override: 71.4%;
+  descent-override: 22.55%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'League Gothic fallback';
+  src: local('Arial Narrow'), local('ArialNarrow');
+  size-adjust: 71.91%;
+  ascent-override: 134.88%;
+  descent-override: 31.98%;
+  line-gap-override: 0%;
+}
+
+html {
+  font-family: var(--font-words);
+  font-size: 100%;
+  font-kerning: normal;
+  font-variant-ligatures: common-ligatures;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-size: var(--type-body);
+  line-height: var(--lh-body);
+  color: var(--ink);
+}
+
+h1, h2, h3 {
+  font-weight: 400;
+  text-wrap: balance;
+}
+
+p, li, figcaption, dd {
+  text-wrap: pretty;
+}
+
+.t-title {
+  font-size: var(--type-title);
+  line-height: var(--lh-title);
+  letter-spacing: var(--tracking-title);
+}
+
+.t-subtitle {
+  font-size: var(--type-subtitle);
+  line-height: var(--lh-subtitle);
+  font-style: italic;
+}
+
+.t-plate-title {
+  font-size: var(--type-plate-title);
+  line-height: var(--lh-plate-title);
+}
+
+.t-plate-number {
+  display: block;
+  font-size: var(--type-body);
+  line-height: var(--lh-body);
+  font-style: italic;
+  margin-block-end: var(--s-2);
+}
+
+.t-intro {
+  font-size: var(--type-intro);
+  line-height: var(--lh-intro);
+  max-inline-size: var(--measure);
+}
+
+.t-body {
+  font-size: var(--type-body);
+  line-height: var(--lh-body);
+  max-inline-size: var(--measure);
+}
+
+.t-note {
+  font-size: var(--type-body);
+  line-height: var(--lh-body);
+  font-style: italic;
+  max-inline-size: var(--measure);
+}
+
+.t-caption {
+  font-size: var(--type-caption);
+  line-height: var(--lh-caption);
+  font-style: italic;
+  max-inline-size: 36em;
+}
+
+.t-label {
+  font-size: var(--type-field-label);
+  line-height: var(--lh-label);
+  font-style: italic;
+}
+
+.t-small {
+  font-size: var(--type-small);
+  line-height: var(--lh-small);
+  font-style: italic;
+}
+
+/* The machine's voice: numbers only, normal tracking, never capitals. */
+.t-machine {
+  font-family: var(--font-numbers);
+  font-size: var(--type-machine);
+  line-height: var(--lh-machine);
+  letter-spacing: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Light type on the blue loses its hairlines to heavier antialiasing on some systems. */
+.on-field {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

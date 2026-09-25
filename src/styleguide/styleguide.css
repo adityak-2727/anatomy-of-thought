@@ -1,0 +1,428 @@
+/* The proof sheet: laid out like a printer's proof, from the atlas's own tokens. */
+
+.proof-head {
+  padding-block: var(--s-9) var(--s-8);
+}
+
+.proof-head .grid > * {
+  grid-column: 1 / span 7;
+}
+
+.proof-head__project {
+  font-style: italic;
+  margin-block-end: var(--s-2);
+}
+
+.proof-head__title {
+  font-size: var(--type-plate-title);
+  line-height: var(--lh-plate-title);
+  margin-block-end: var(--s-5);
+}
+
+.proof-head__intro {
+  font-size: var(--type-intro);
+  line-height: var(--lh-intro);
+  max-inline-size: var(--measure);
+}
+
+.proof {
+  padding-block: var(--s-9);
+  border-block-start: var(--hairline) solid var(--rule);
+}
+
+.proof.plate {
+  padding-block: var(--s-9);
+}
+
+.proof__heading {
+  margin-block-end: var(--s-7);
+}
+
+.proof__title {
+  grid-column: 1 / -1;
+  font-size: var(--type-plate-title);
+  line-height: var(--lh-plate-title);
+  margin-block-end: var(--s-5);
+}
+
+.proof__heading .proof__title {
+  margin-block-end: 0;
+}
+
+.proof__intro {
+  grid-column: 1 / span 6;
+  font-size: var(--type-intro);
+  line-height: var(--lh-intro);
+  max-inline-size: var(--measure);
+  margin-block-end: var(--s-8);
+}
+
+/* Proof I: a ledger of inks. */
+.ledger {
+  grid-column: 1 / span 7;
+}
+
+.ledger__group {
+  font-size: var(--type-body);
+  font-style: italic;
+  line-height: var(--lh-body);
+  padding-block-end: var(--s-2);
+  border-block-end: var(--hairline) solid var(--ink);
+}
+
+.ledger__group:not(:first-child) {
+  margin-block-start: var(--s-6);
+}
+
+.ledger__rows {
+  margin: 0;
+}
+
+.ledger__row {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  column-gap: var(--gutter);
+  align-items: center;
+  padding-block: var(--s-3);
+  border-block-end: var(--hairline) solid var(--rule);
+}
+
+.ledger__row dt {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  column-gap: var(--s-4);
+  align-items: center;
+}
+
+.ledger__row dd {
+  margin: 0;
+  font-style: italic;
+}
+
+.ledger__hex {
+  font-size: var(--type-caption);
+  color: color-mix(in srgb, var(--ink) 80%, var(--paper));
+}
+
+/* A chip of ink, cut a little out of true, with a hairline so paper shows on paper. */
+.chip {
+  position: relative;
+  display: block;
+  inline-size: 64px;
+  block-size: 36px;
+  background: var(--rule);
+  clip-path: polygon(1px 2px, 99% 0, 100% 96%, 2% 100%);
+}
+
+.chip::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  background: var(--chip);
+  clip-path: polygon(1px 2px, 99% 0, 100% 96%, 2% 100%);
+}
+
+.contrast {
+  grid-column: 9 / span 4;
+}
+
+.contrast__list li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--s-4);
+  align-items: center;
+  padding-block: var(--s-3);
+  border-block-end: var(--hairline) solid var(--rule);
+}
+
+.pair {
+  display: inline-block;
+  padding: var(--s-1) var(--s-3) 6px;
+  background: var(--bg);
+  color: var(--fg);
+  font-size: var(--type-field-label);
+  line-height: 1.2;
+}
+
+.contrast__note {
+  margin-block-start: var(--s-5);
+  font-size: var(--type-caption);
+  line-height: var(--lh-caption);
+  font-style: italic;
+}
+
+/* Proof II: type specimens with their measurements in the margin. */
+.specimens {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--s-7);
+}
+
+.specimen {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  column-gap: var(--gutter);
+  align-items: baseline;
+  padding-block-start: var(--s-5);
+  border-block-start: var(--hairline) solid var(--rule);
+}
+
+.specimen__meta {
+  grid-column: 1 / span 3;
+  font-size: var(--type-caption);
+  line-height: var(--lh-caption);
+  font-style: italic;
+}
+
+.specimen__sample {
+  grid-column: 4 / span 9;
+  max-inline-size: none;
+}
+
+.specimen__sample.plate__intro,
+.specimen__sample .t-body,
+.specimen__sample .plate__note {
+  max-inline-size: var(--measure);
+}
+
+.scores {
+  border-collapse: collapse;
+  min-inline-size: 16em;
+}
+
+.scores th,
+.scores td {
+  padding: var(--s-2) var(--s-5) var(--s-2) 0;
+  text-align: start;
+  font-weight: 400;
+  border-block-end: var(--hairline) solid var(--rule);
+}
+
+.scores thead th {
+  font-size: var(--type-caption);
+  font-style: italic;
+  border-block-end: var(--hairline) solid var(--ink);
+}
+
+.scores tbody th {
+  font-size: var(--type-body);
+}
+
+/* Proof III: the sample plate. */
+.sample-field {
+  display: grid;
+  place-items: center;
+  min-block-size: clamp(320px, 42vw, 520px);
+  padding: var(--s-8) var(--s-7);
+}
+
+.specimen-slip {
+  --turn: -0.6deg;
+  max-inline-size: 34em;
+}
+
+.proof-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-5);
+  align-items: baseline;
+  margin-block-start: var(--s-5);
+}
+
+.proof-status {
+  font-style: italic;
+}
+
+/* Proof IV: materials. */
+.materials-field {
+  display: grid;
+  gap: var(--s-8);
+  padding: var(--s-9) var(--s-7) var(--s-7);
+}
+
+.materials__row {
+  position: relative;
+}
+
+.materials__pieces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-8) var(--s-7);
+  align-items: flex-start;
+  padding-block-end: var(--s-7);
+}
+
+.materials__threads {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--s-3);
+  align-items: flex-end;
+  padding-block-start: 132px;
+}
+
+.materials__threads .threads {
+  z-index: 3;
+}
+
+.gap-mark {
+  align-self: center;
+  padding-inline: var(--s-2);
+  color: var(--silhouette);
+  font-size: var(--type-field-label);
+  letter-spacing: 0.2em;
+}
+
+.materials__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-5);
+}
+
+.state {
+  display: grid;
+  justify-items: start;
+  gap: var(--s-3);
+}
+
+.state__name {
+  font-size: var(--type-field-label);
+  font-style: italic;
+  line-height: 1;
+}
+
+.loupe-toggle {
+  justify-self: end;
+}
+
+/* Proof V: ease specimens. */
+.eases {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-8) var(--gutter);
+}
+
+.ease {
+  display: grid;
+  gap: var(--s-3);
+  align-content: start;
+}
+
+.ease .ink-button {
+  justify-self: start;
+}
+
+.ease__plot {
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 5 / 3;
+}
+
+.ease__axis {
+  fill: none;
+  stroke: var(--rule);
+  stroke-width: var(--hairline);
+}
+
+.ease__diagonal {
+  fill: none;
+  stroke: var(--prussian-wash);
+  stroke-width: var(--hairline);
+  stroke-dasharray: 2 5;
+}
+
+.ease__curve {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ease__name {
+  font-size: var(--type-intro);
+  line-height: 1.2;
+}
+
+.ease__job {
+  font-size: var(--type-caption);
+  line-height: var(--lh-caption);
+  font-style: italic;
+  max-inline-size: 24em;
+}
+
+.ease__track {
+  position: relative;
+  block-size: 36px;
+  border-block-end: var(--hairline) solid var(--ink);
+}
+
+.ease__slip {
+  position: absolute;
+  inset-block-end: 4px;
+  inset-inline-start: 0;
+  padding: 1px 8px 3px;
+  font-size: var(--type-caption);
+  font-style: italic;
+  line-height: 1.3;
+  background: var(--paper);
+  outline: var(--hairline) solid var(--ink);
+}
+
+.proof-foot {
+  padding-block: var(--s-8) var(--s-9);
+  border-block-start: var(--hairline) solid var(--rule);
+}
+
+@media (max-width: 1099px) {
+  .proof-head .grid > *,
+  .proof__intro,
+  .ledger,
+  .contrast {
+    grid-column: 1 / -1;
+  }
+
+  .contrast {
+    margin-block-start: var(--s-8);
+  }
+
+  .eases {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .ledger__row {
+    grid-template-columns: 1fr;
+    row-gap: var(--s-2);
+  }
+
+  .ledger__row dt {
+    grid-template-columns: 48px 1fr auto;
+  }
+
+  .chip {
+    inline-size: 48px;
+  }
+
+  .specimen__meta,
+  .specimen__sample {
+    grid-column: 1 / -1;
+  }
+
+  .specimen__meta {
+    margin-block-end: var(--s-3);
+  }
+
+  .eases {
+    grid-template-columns: 1fr;
+  }
+
+  .materials-field {
+    padding: var(--s-8) var(--s-5) var(--s-6);
+  }
+
+  .materials__threads {
+    gap: var(--s-2);
+  }
+}

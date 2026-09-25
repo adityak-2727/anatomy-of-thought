@@ -142,7 +142,7 @@ Fluid sizes run from 390px to 1600px wide (values in rem, 1rem = 16px):
 Rules:
 - The measure is at most 62 characters (`max-inline-size: 31em` for body text), ragged right.
 - Titles use `text-wrap: balance`; paragraphs use `pretty`. Widows are also prevented by hand with no-break spaces, because Safari’s support for `pretty` is recent.
-- The title is written “Anatomy&nbsp;of&nbsp;a&nbsp;Thought” with no-break spaces after “Anatomy”, so it only ever breaks as “Anatomy / of a Thought”.
+- The title is written “Anatomy of&nbsp;a&nbsp;Thought”, with no-break spaces inside “of a Thought”, so it only ever breaks as “Anatomy / of a Thought”.
 - Curly quotes and apostrophes throughout, including in the specimen (see §10).
 - Nothing smaller than 18px on blue. Captions (16px) always sit on paper.
 - Roman numerals for plate numbers are set in Old Standard. They are words, not the machine’s numbers.
@@ -230,7 +230,7 @@ Deliberate grid breaks, each with its reason:
 
   <header class="frontispiece">                                 <!-- banner -->
     <div class="field" data-field data-seed="1843">
-      <h1>Anatomy&nbsp;of&nbsp;a&nbsp;Thought</h1>
+      <h1>Anatomy of&nbsp;a&nbsp;Thought</h1>
       <p class="subtitle">What happens to one sentence …</p>
       <svg role="img" aria-labelledby="…"><title>A paper slip, pinned</title>…</svg>
     </div>
@@ -619,7 +619,7 @@ Desktop:
 +------------------------------------------------------------------------------+
 |  Colophon                                                                    |
 |                                                                              |
-|  This atlas was designed, written and built by … with Claude Opus 5.5.      |
+|  This atlas was designed, written and built by Aditya.                      |
 |  Every mark on these plates, each star, thread and letter, is drawn by      |
 |  code; there are no photographs. The text is set in Old Standard, …         |
 |  … Whether any of this amounts to a thought is a question for another       |
@@ -848,9 +848,11 @@ As in BRIEF §10, plus three small additions (marked *):
 | `src/motion/scroll.ts` | Lenis + ScrollTrigger, the pin skeleton, `scrollToPlate()`, “paper offset” maths (§8.4) |
 | `src/motion/reduced-motion.ts` | `gsap.matchMedia` conditions; switches between the live and still builds |
 | `src/motion/random.ts`* | Seeded PRNG (mulberry32) behind `vary` and all hand-made irregularity |
-| `src/gl/background.ts` (+ `.vert`/`.frag` via `?raw`) | Paper and fields; field registry; render-on-demand |
-| `src/components/marks.ts`* | Generates the hand-made SVG: pins, torn edges, the needle, the fleuron, the dial, the lever, the stick, sorts, star symbols, the loop arrow, the lens rim, tally strokes, the disclosure mark |
-| `src/components/field.ts`* | The `FieldHandle`: `{ el, seed, state: {brush, exposure, tone} }`. Tweened by GSAP; marks the background dirty; writes CSS variables only in fallback mode |
+| `src/boot.ts`* | Shared start-up for every page: CSS, flags, fonts, Lenis, the background, `?debug` |
+| `src/gl/background.ts` (+ `.vert`/`.frag` via `?raw`) | Paper and fields; `createField()` returns a `FieldHandle` (`{ el, state: {brush, exposure, tone}, style, invalidate() }`) tweened by GSAP; render on demand; CSS fallback |
+| `src/motion/verbs.ts`* | `setPress()` (the 1px recoil), pen-speed helpers |
+| `src/components/marks.ts`* | Generates the hand-made marks: pins, slip cuts, torn and deckled edges, threads and stray fibres, leaders, the ␣ mark, the lens rim. Later: the needle, the fleuron, the dial, the lever, the stick, sorts, star symbols, the loop arrow, tally strokes |
+| `src/components/piece.ts`* | A token slip with its pin, letter, leader and ticker; `pinPieces()` batches the layout read |
 | `src/components/ticker.ts` | Ticker strip creation (seeded torn `clip-path` polygon, rotation) and `feedOut()` |
 | `src/components/loupe.ts` | Lens, pointer and touch logic, toggles, hint |
 | `src/components/plate-indicator.ts` | Watches the pins; crossfades the label |
@@ -910,50 +912,35 @@ As in BRIEF §10, plus three small additions (marked *):
 
 ### 8.4 The background: how fields reach the shader
 
-**The canvas**
-- One fixed, full-viewport `<canvas>` behind all content, WebGL2, `alpha: false`, drawing a single fullscreen triangle.
-- `body` also has a `--paper` background, for the first frame and for the fallback.
-- DPR is capped at 2 (1.5 on `pointer: coarse`).
+*Revised in Phase 1.* The plan at first had one fixed canvas draw the paper and up to two fields, positioned each frame from the scroll. That breaks wherever scrolling is native (every phone, and reduced motion on desktop): the compositor moves the text a frame or more before the main thread can redraw the canvas, so a field would visibly trail its own content. The as-built design keeps the brief’s one WebGL2 context and one fragment shader, but gives each field its own canvas.
 
-**Field registry**
-- Every `[data-field]` registers a `FieldHandle`.
-- An IntersectionObserver keeps the set of fields near the viewport, which costs no layout.
+**Two passes, one shader**
+- **Paper pass (`uMode 0`).** The fixed, full-viewport `canvas.paper` sits behind all content (`z-index: -1`). Only `html` carries the `--paper` colour: a `body` background would paint over the canvas. DPR is capped at 2 (1.5 on `pointer: coarse`).
+- **Field pass (`uMode 1`).** Each `.field` holds a `canvas.field__canvas` behind its content (inside the field’s own stacking context, bleeding `--field-bleed` past its edges for the overshoot). To draw a field, the shader renders it into a corner of the WebGL drawing buffer at the field’s size, and that region is copied with `drawImage` into the field’s canvas within the same task. The paper pass then redraws the whole buffer before the frame is shown.
+- Because each field canvas lives in the DOM, it scrolls and pins with its content natively: no lag, no pin maths, no per-frame layout reads.
 
-**Geometry without per-frame layout reads**
-- On each ScrollTrigger `refresh`, every field’s document rectangle is measured once and cached, relative to its pin.
-- Each frame, a field’s viewport rectangle is computed from `scrollY` and its pin’s `start` and `end`:
+**Render on demand**
+- A field is redrawn only when its `brush`, `exposure`, `tone` or style changes, or when it is resized. **A still field costs nothing while the page scrolls.**
+- The paper is redrawn when the page scrolls (its grain travels with the page), on resize, and after any field pass.
+- An IntersectionObserver (60% margin) keeps each field canvas at full size only near the viewport. Far off screen, it shrinks to 1×1 and is redrawn on return.
+- A field larger than the drawing buffer renders at a reduced scale.
 
-  | Scroll position | Field top in the viewport |
-  |---|---|
-  | Before the pin | `docTop − scroll` |
-  | During the pin | `docTop − pin.start` (the field holds still) |
-  | After the pin | `docTop − scroll + (pin.end − pin.start)` |
-
-- So the shader normally costs **zero** `getBoundingClientRect` calls per frame.
-- A field flagged `data-field-live` (the reader’s slip area, if it ever grows) is read in one batched pass per frame instead. That is the single allowed read.
-
-**Two rectangles**
-- Of the fields on screen, the two with the largest visible area are passed as `uRect[2]`.
-- A field that is only partly visible still renders correctly, because the rectangle extends off screen.
-
-**Uniforms per rectangle:** `uRect` (x, y, w, h in CSS px), `uSeed`, `uBrush`, `uExposure`, `uTone`, `uBrushAngle`, `uStrokes` (3 or 4).
-
-**Global uniforms**
-- `uResolution` and `uDpr`.
-- `uPalette[9]`, read from the CSS tokens.
-- `uPaperOffset`: the scroll position minus the distance consumed by pins so far. The paper grain holds still under a pinned plate, as the page appears to, then moves on with it.
+**Uniforms**
+- Global: `uResolution`, `uScale` (device px per CSS px), `uPalette[9]` (read from the CSS tokens), `uPaperTune`, `uTune`.
+- Paper: `uPaperOffset`. Later, the scroll module can hold the grain still under a pinned plate (`setPaperOffset`).
+- Field: `uRect` (the field inside its canvas), `uState` (brush, exposure, tone, seed) and `uStyle` (angle, strokes, overshoot, centre bias).
 
 **Shader outline**
 
-1. **Paper.** Low-frequency unevenness plus fine fibres, sampled from two tileable noise textures baked once at start-up in a single offscreen pass. Per-frame work is then texture fetches, not noise octaves.
-2. **The field edge.** A rounded-rectangle SDF, displaced by anisotropic noise stretched along the brush angle. The overshoot varies around the edge (seeded).
-3. **Brush coverage.** Stroke k covers a band along the brush angle. It is revealed along its length while `uBrush` lies between k/n and (k+1)/n, with bristle streaks from stretched high-frequency noise. Where it is covered, the paper takes the `--sensitiser` colour.
-4. **Exposure.** A develop mask: `smoothstep` of noise against `uExposure × 1.25 − centreDistance × bias`. It mixes sensitiser → prussian. Heavy pockets tend towards prussian-deep and streak edges towards prussian-wash, for partial exposure.
-5. **Tone.** A radial mask growing with `uTone`, with a noisy edge. Prussian becomes umber, and the paper inside the field becomes cream.
+All noise is gradient noise. Value noise showed its square lattice wherever it was thresholded.
 
-**Render on demand**
-- A `dirty` flag is set by the Lenis scroll, by field-state tweens, by resize and by palette edits in debug.
-- The GSAP ticker renders only when it is dirty. A pinned plate at rest therefore costs nothing.
+1. **Paper.** A soft cloudy formation at two scales, plus faint fibres whose direction changes from region to region. Only ever darker than paper.
+2. **The field edge.** A rectangle SDF, pushed in and out by noise stretched along the brush, with a slow undulation, and bristle hairs that are strong along some stretches and absent along others. The overshoot varies around the edge.
+3. **Brush coverage.** 3–4 bands across the brush direction, laid one after another in alternating directions. Each band is revealed along its length with ragged bristle tips, frays at its edges, and runs dry past the far edge. Overlaps are a double coat and expose a little deeper. Each stroke carries a slightly different load.
+4. **Exposure.** The whole sheet shifts from sensitiser through grey-green to blue, the centre ahead, mottled. Pigment pools along the strokes (deeper blue). Brush marks gather in clusters of varied width (lighter, towards wash), with a few dark ones.
+5. **Tone.** A radial mask growing with `uTone`, with a noisy edge. Prussian becomes umber, with cream in the streaks.
+
+Measured cost is not yet known on real hardware. The software renderer used for screenshots can’t measure it, so this is checked on real devices in Phase 8.
 
 **Exposure only goes up**
 - Field `brush` and `exposure` are scrubbed on the first pass but stay at their maximum (`state.exposure = max(current, progress)`): something the machine has processed stays processed.
@@ -1188,7 +1175,7 @@ Every line of copy in the brief was checked against BRIEF §8’s list of safe c
 | “Most pieces carry the space in front of them.” | True of the common tokeniser families. Keep. |
 | Plate III stops | These describe the chart’s fixed positions, which is correct for input embeddings. The Wardrobe’s “becomes luggage only once case arrives and the reading begins” speaks of the word, not of a position, so it holds. Keep. |
 | Plate IV notes | Correct: attention looks back only; there are many layers; the “worked on by itself” step is the per-position block between rounds. Keep. |
-| **Fig. 4b: “After the reading, it has moved. It now sits close to trophy.”** | **Not strictly right for this kind of model.** Reading is causal, so the working vector at it’s own position is computed before big exists and never changes afterwards. What moves towards trophy is the sense of it carried by the later pieces, from big onwards and above all at the final “?”, which is where the answer is chosen. See question 1 (§13). |
+| **Fig. 4b: “After the reading, it has moved. It now sits close to trophy.”** | **Not strictly right for this kind of model.** Reading is causal, so the working vector at it’s own position is computed before big exists and never changes afterwards. What moves towards trophy is the sense of it carried by the later pieces, from big onwards and above all at the final “?”, which is where the answer is chosen. **Resolved:** the revised caption and the two-mark inset in §13 replace it. |
 | Plate V and VI copy | Correct: scores for every piece, a softmax, sampling, temperature, appending, stopping at the end mark. “Four pieces, four full readings” counts one full pass per chosen piece, which is correct. |
 | Colophon | Honest about “thought” and about illustrative figures. Keep. |
 
@@ -1222,7 +1209,8 @@ Every line of copy in the brief was checked against BRIEF §8’s list of safe c
 
 | Risk | Likelihood | Mitigation | Fallback |
 |---|---|---|---|
-| Background shader too heavy on integrated GPUs or phones | Medium | Baked noise textures, render on demand, the DPR caps, zero layout reads | Render scale 0.75, then the CSS fallback automatically |
+| Background shader too heavy on integrated GPUs or phones | Medium | Fields redraw only when their state changes (never for scrolling); the paper pass is cheap; DPR caps; zero layout reads | Render scale 0.75, then the CSS fallback automatically (to build in Phase 8 if real devices need it) |
+| Fields trailing their text on native scroll | Was certain with one fixed canvas | Each field draws into its own canvas inside the field (§8.4) | — |
 | Two WebGL contexts at once (background and Plate III) | Low–medium | The background is idle while Plate III is pinned, because nothing on it changes | SVG chart |
 | Lenis and pinning jitter, especially in Safari | Medium | ScrollTrigger’s default fixed pinning on the window scroller, `anticipatePin: 1`, testing in WebKit through Playwright | Disable Lenis in Safari only |
 | iOS toolbar resizes re-triggering refreshes | High | `ignoreMobileResize`, svh units, pins sized in svh | — |
@@ -1278,7 +1266,9 @@ Candidates for the “remove one element per plate” pass (Phase 8), noted now 
 
 ---
 
-## 13. Open questions
+## 13. Questions, resolved at the start of Phase 1
 
-1. **Fig. 4b and causal reading.** As §9 explains, “it has moved” isn’t strictly right, because the piece it can never see big. I propose the inset shows two marks: a faint ring where it stays in The Crowded Centre, and a mark that drifts to trophy, standing for the sense of it carried by the pieces after big. The caption would be: “Fig. 4b. By the question mark, the machine’s sense of it sits close to trophy. The first it stays put; it cannot see ahead.” This version also teaches the causal point. Use it, or keep the brief’s wording as licence?
-2. **The colophon credit.** The draft reads “by ADITYA with Claude Opus 5.5”. How should your name be set: “Aditya”, a full name, or exactly as written? And given your rule of no Claude attribution in git, should the colophon still name Claude Opus 5.5? Your draft does, so I have kept it.
+These answers override the brief’s draft copy.
+
+1. **Fig. 4b.** Use the revised wording. The inset shows two marks: a faint ring where it stays in The Crowded Centre, and a mark that drifts to trophy (or suitcase), standing for the sense of it carried by the pieces after big. The caption: “Fig. 4b. By the question mark, the machine’s sense of it sits close to trophy. The first it stays put; it cannot see ahead.” In the variant, “trophy” becomes “suitcase”.
+2. **The colophon credit.** Only the author’s name, with no mention of Claude. The first sentence reads: “This atlas was designed, written and built by Aditya.” The rest of the draft is unchanged.

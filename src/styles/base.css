@@ -1,0 +1,169 @@
+/* Base: a quiet reset, the page as paper, and the rules every element shares. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+}
+
+/* Only the root carries the paper colour. A body background would paint above
+   the paper canvas (which sits at z-index -1) and hide its grain. */
+body {
+  margin: 0;
+  min-block-size: 100vh;
+  background: transparent;
+  overflow-x: clip;
+}
+
+h1, h2, h3, h4, p, figure, ol, ul, dl, dd, blockquote {
+  margin: 0;
+}
+
+ol, ul {
+  padding: 0;
+  list-style: none;
+}
+
+img, svg, canvas {
+  display: block;
+  max-inline-size: 100%;
+}
+
+svg {
+  overflow: visible;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-thickness: var(--hairline);
+  text-underline-offset: 0.2em;
+  text-decoration-color: color-mix(in srgb, currentColor 55%, transparent);
+}
+
+a:hover {
+  text-decoration-color: currentColor;
+}
+
+::selection {
+  background: var(--paper-shade);
+  color: var(--ink);
+}
+
+/* Visible focus: 2px, offset 3px; sensitiser on blue, prussian-deep on paper (BRIEF §10). */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip {
+  position: absolute;
+  inset-block-start: var(--s-3);
+  inset-inline-start: var(--s-3);
+  z-index: var(--z-lens);
+  padding: var(--s-2) var(--s-3);
+  background: var(--paper);
+  transform: translateY(-200%);
+}
+
+.skip:focus-visible {
+  transform: none;
+}
+
+/* The fixed paper canvas sits behind all content. A negative z-index keeps it
+   above the root background but below every block on the page. */
+.paper {
+  position: fixed;
+  inset: 0;
+  inline-size: 100vw;
+  block-size: 100lvh;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* A brushed cyanotype field. Its canvas (added by JS) sits behind its content,
+   inside the field's own stacking context, and bleeds past its edges. */
+.field {
+  position: relative;
+  isolation: isolate;
+  color: var(--silhouette);
+  --focus: var(--focus-on-field);
+}
+
+.field ::selection {
+  background: var(--paper);
+  color: var(--prussian-deep);
+}
+
+.field__canvas {
+  position: absolute;
+  inset: calc(var(--field-bleed) * -1);
+  inline-size: calc(100% + var(--field-bleed) * 2);
+  block-size: calc(100% + var(--field-bleed) * 2);
+  max-inline-size: none;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Anything that follows a field is positioned, so the field's bleed never paints over it. */
+.field ~ * {
+  position: relative;
+}
+
+/* Without JavaScript there is no chemistry: fields are plain paper, text is ink. */
+html:not(.js) .field {
+  color: var(--ink);
+  --focus: var(--focus-on-paper);
+}
+
+/* Without WebGL: the same states in plain CSS, driven by the same variables. */
+.no-gl .field::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--s-3) * -1);
+  z-index: -1;
+  background-color: color-mix(
+    in srgb,
+    var(--tone-umber) calc(var(--tone, 0) * 100%),
+    color-mix(in srgb, var(--prussian) calc(var(--exposure, 0) * 100%), var(--sensitiser))
+  );
+  opacity: var(--brush, 0);
+  clip-path: var(--field-clip, none);
+}

@@ -1,0 +1,371 @@
+/* Recurring materials: slips, pins, labels, ticker strips, threads,
+   sensitiser controls and the loupe. */
+
+/* A piece: a paper slip, with its pin, its letter and its ticker, turned as one. */
+.piece {
+  position: relative;
+  display: inline-block;
+  rotate: var(--turn, 0deg);
+}
+
+.slip {
+  position: relative;
+  z-index: 2;
+  display: inline-block;
+  padding: 0.16em 0.46em 0.22em;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: var(--type-slip);
+  line-height: 1.2;
+  white-space: pre;
+  clip-path: var(--slip-clip, none);
+}
+
+/* The specimen slip on Plate I: set large, several lines. */
+.slip--specimen {
+  display: block;
+  padding: 0.5em 0.8em 0.6em;
+  font-size: clamp(1.5rem, 1.2rem + 1.1vw, 2.125rem);
+  line-height: 1.3;
+  white-space: normal;
+  text-wrap: balance;
+}
+
+.pin {
+  position: absolute;
+  z-index: 3;
+  inline-size: 60px;
+  block-size: 60px;
+  margin: -30px 0 0 -30px;
+  pointer-events: none;
+}
+
+.pin__shaft {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.1;
+  stroke-linecap: round;
+}
+
+.pin__head {
+  fill: var(--ink);
+}
+
+.pin__glint {
+  fill: var(--paper);
+  opacity: 0.8;
+}
+
+.pin__shaft--field {
+  stroke: var(--silhouette);
+}
+
+.pin__head--field {
+  fill: var(--silhouette);
+}
+
+/* A letter label, exposed into the print, with a fine leader to its piece. */
+.letter {
+  position: absolute;
+  inset-block-end: calc(100% + 14px);
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  font-size: var(--type-field-label);
+  line-height: 1;
+  font-style: italic;
+  color: var(--silhouette);
+}
+
+.leader {
+  position: absolute;
+  inset-block-end: 100%;
+  inset-inline-start: 50%;
+  inline-size: 8px;
+  block-size: 14px;
+  translate: -50% 0;
+  fill: none;
+  stroke: var(--silhouette);
+  stroke-width: var(--hairline);
+}
+
+/* Ticker tape: a narrow paper strip that feeds out from under its piece. */
+.ticker-holder {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: calc(100% - 2px);
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  padding-inline: 4px;
+  overflow: clip;
+  rotate: var(--ticker-turn, 0deg);
+}
+
+.ticker {
+  display: block;
+  block-size: var(--ticker-height);
+  padding: 0 0.55em;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-numbers);
+  font-size: var(--type-machine);
+  line-height: var(--ticker-height);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  clip-path: var(--torn, none);
+}
+
+/* The mark for a leading space. */
+.space-mark {
+  display: inline-block;
+  vertical-align: baseline;
+  margin-inline-end: 0.08em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 0.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Threads: laid cotton, white on the blue. Width and ply carry the weight. */
+.threads {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.thread {
+  fill: none;
+  stroke: var(--silhouette);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.thread--fuzz {
+  stroke-width: 0.45;
+  opacity: 0.45;
+}
+
+/* Sensitiser controls: slips of unexposed paper, the only things the reader can change.
+   Colour states are stacked layers crossfaded by opacity. */
+.sens {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 44px;
+  padding: 0 var(--s-5) 2px;
+  color: var(--ink);
+  font-size: var(--type-field-label);
+  font-style: italic;
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+  transition: translate var(--dur-respond-fast) var(--ease-press);
+}
+
+.sens::before,
+.sens::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  clip-path: var(--deckle, polygon(3px 0, calc(100% - 4px) 0, 100% 3px, 100% calc(100% - 4px), calc(100% - 3px) 100%, 4px 100%, 0 calc(100% - 3px), 0 4px));
+}
+
+.sens::before {
+  background: var(--sensitiser);
+}
+
+.sens::after {
+  background: var(--sensitiser-deep);
+  opacity: 0;
+  transition: opacity var(--dur-respond-fast) var(--ease-press);
+}
+
+.sens__label {
+  position: relative;
+}
+
+.sens__label::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -4px;
+  block-size: var(--hairline);
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-respond) var(--ease-hand);
+}
+
+.sens:hover:not(:disabled) .sens__label::after,
+.sens.is-hover .sens__label::after {
+  transform: scaleX(1);
+}
+
+.sens:active:not(:disabled),
+.sens.is-pressed,
+.sens[aria-pressed='true'] {
+  translate: 0 1px;
+}
+
+.sens:active:not(:disabled)::after,
+.sens.is-pressed::after,
+.sens[aria-pressed='true']::after {
+  opacity: 1;
+}
+
+.sens.is-focus {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.sens:disabled {
+  color: color-mix(in srgb, var(--ink) calc(var(--o-disabled) * 100%), var(--paper-shade));
+}
+
+.sens:disabled::before {
+  background: var(--paper-shade);
+}
+
+/* An ink button on paper: words with a fine underline, like a link. */
+.ink-button {
+  color: var(--ink);
+  font-style: italic;
+  text-decoration-line: underline;
+  text-decoration-thickness: var(--hairline);
+  text-underline-offset: 0.22em;
+  text-decoration-color: color-mix(in srgb, currentColor 55%, transparent);
+}
+
+.ink-button:hover {
+  text-decoration-color: currentColor;
+}
+
+/* The loupe. The machine layer is ink on paper, revealed in a circle at the pointer. */
+/* The machine layer reaches past the field's edges by the bleed, so a lens near an
+   edge still looks onto paper rather than through to the page. */
+.machine {
+  position: absolute;
+  inset: calc(var(--field-bleed) * -1);
+  z-index: 5;
+  background: var(--paper);
+  color: var(--ink);
+  pointer-events: none;
+  opacity: 0;
+  clip-path: circle(0 at 50% 50%);
+  transition: opacity var(--dur-crossfade) linear;
+}
+
+.machine.is-live {
+  opacity: 1;
+}
+
+/* Revealed in full, the machine's view is a tissue guard laid over the plate,
+   as old atlases bound a printed tissue over each plate: the drawing shows faintly through. */
+.machine.is-revealed {
+  opacity: 1;
+  clip-path: none;
+  transform: none;
+  background: transparent;
+}
+
+.machine.is-revealed::before {
+  content: '';
+  position: absolute;
+  inset: calc(var(--field-bleed) - var(--s-6));
+  z-index: -1;
+  background: color-mix(in srgb, var(--paper) 90%, transparent);
+  clip-path: var(--tissue-clip, none);
+}
+
+.machine__item {
+  position: absolute;
+  translate: -50% 0;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  white-space: pre;
+}
+
+.machine__piece {
+  font-size: var(--type-slip);
+  line-height: 1.2;
+}
+
+.machine__ghost {
+  position: absolute;
+  border: var(--hairline) solid var(--rule);
+}
+
+.machine__note {
+  font-size: var(--type-caption);
+  font-style: italic;
+  line-height: var(--lh-caption);
+}
+
+/* The toggle stays above the tissue, so the view can always be put away again. */
+.loupe-toggle {
+  z-index: 6;
+}
+
+.lens {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  z-index: var(--z-lens);
+  inline-size: var(--lens-size);
+  block-size: var(--lens-size);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-crossfade) linear;
+}
+
+.lens.is-live {
+  opacity: 1;
+}
+
+.lens__line {
+  fill: none;
+  stroke: var(--silhouette);
+  stroke-width: var(--lens-rim);
+}
+
+.lens__hatch line {
+  stroke: var(--prussian-wash);
+  stroke-width: 0.7;
+  opacity: 0.55;
+}
+
+@media (pointer: fine) {
+  .js [data-loupe] {
+    cursor: none;
+  }
+
+  .js [data-loupe] :is(button, input, a, label),
+  .js [data-loupe].loupe-off {
+    cursor: auto;
+  }
+}
+
+[data-loupe] {
+  -webkit-touch-callout: none;
+}
+
+.loupe-hint {
+  display: flex;
+  gap: var(--s-3);
+  align-items: flex-start;
+}
+
+.loupe-hint svg {
+  flex: none;
+  margin-block-start: 0.2em;
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1;
+}

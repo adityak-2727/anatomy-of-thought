@@ -1,0 +1,108 @@
+/* Anatomy of a Thought: design tokens.
+   The only place colours, type sizes, spacing and CSS timings are defined.
+   The shader and three.js read the palette from these properties at start-up. */
+
+:root {
+  /* Palette (BRIEF §4). No black anywhere; the darkest colour is prussian-deep. */
+  --paper: #EDEFE8;
+  --paper-shade: #DADFD6;
+  --prussian-deep: #0F2C54;
+  --prussian: #1C4A82;
+  --prussian-wash: #6E8FB8;
+  --sensitiser: #D8D08A;
+  --sensitiser-deep: #B9AE5E;
+  --tone-umber: #4A3228;
+  --tone-cream: #E6D6BA;
+
+  /* Semantic aliases: components use these, not the raw palette. */
+  --ink: var(--prussian-deep);
+  --silhouette: var(--paper);
+  --rule: var(--paper-shade);
+  --focus-on-paper: var(--prussian-deep);
+  --focus-on-field: var(--sensitiser);
+  --focus: var(--focus-on-paper);
+
+  /* Opacities that carry meaning. */
+  --o-constellation: 0.4;
+  --o-ghost: 0.16;
+  --o-graticule: 0.22;
+  --o-disabled: 0.55;
+
+  /* Type families. The fallbacks are metric-matched in type.css. */
+  --font-words: 'Old Standard TT', 'Old Standard fallback', 'Times New Roman', Times, serif;
+  --font-numbers: 'League Gothic', 'League Gothic fallback', 'Arial Narrow', sans-serif;
+
+  /* Type scale: fluid from 390px to 1600px wide (DESIGN-PLAN §2.2). */
+  --type-title: clamp(2.75rem, 1.719rem + 6.281vw, 8rem);
+  --type-subtitle: clamp(1.25rem, 1.088rem + 0.661vw, 1.75rem);
+  --type-plate-title: clamp(2.125rem, 1.754rem + 1.524vw, 3.25rem);
+  --type-intro: clamp(1.25rem, 1.204rem + 0.19vw, 1.375rem);
+  --type-body: clamp(1.125rem, 1.09rem + 0.143vw, 1.25rem);
+  --type-caption: 1rem;
+  --type-field-label: clamp(1.125rem, 1.105rem + 0.083vw, 1.1875rem);
+  --type-machine: clamp(1.25rem, 1.204rem + 0.19vw, 1.375rem);
+  --type-small: 1rem;
+  --type-slip: clamp(1.125rem, 1.07rem + 0.2vw, 1.3125rem);
+
+  --lh-title: 1;
+  --lh-subtitle: 1.35;
+  --lh-plate-title: 1.08;
+  --lh-intro: 1.5;
+  --lh-body: 1.55;
+  --lh-caption: 1.45;
+  --lh-label: 1.3;
+  --lh-machine: 1;
+  --lh-small: 1.4;
+  --tracking-title: -0.01em;
+  --measure: 31em;
+
+  /* Space: a 4px base. */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+  --s-9: 96px;
+  --s-10: 144px;
+  --s-11: 192px;
+  --plate-gap: clamp(96px, 22vh, 240px);
+
+  /* Grid (BRIEF §4). */
+  --cols: 12;
+  --gutter: 24px;
+  --margin: clamp(20px, 6vw, 96px);
+  --content-max: 1600px;
+
+  /* Materials. */
+  --hairline: 1px;
+  --line-strong: 2px;
+  --ticker-height: 28px;
+  --lens-size: 168px;
+  --lens-rim: 1.5px;
+  --field-pad: clamp(20px, 3vw, 48px);
+  --field-bleed: 56px;       /* room around a field for its brushed overshoot */
+
+  /* CSS timings for small responses. Story motion lives in eases.ts. */
+  --dur-respond-fast: 120ms;
+  --dur-respond: 160ms;
+  --dur-respond-slow: 220ms;
+  --dur-crossfade: 150ms;
+
+  /* CSS approximations of the eases in eases.ts, for transitions only. */
+  --ease-press: cubic-bezier(0.3, 0, 0.62, 0.5);
+  --ease-hand: cubic-bezier(0.3, 0.42, 0.42, 0.98);
+  --ease-settle: cubic-bezier(0.18, 0.9, 0.3, 1.02);
+  --ease-develop: cubic-bezier(0.45, 0.05, 0.25, 1);
+  --ease-tone: cubic-bezier(0.62, 0, 0.38, 1);
+
+  /* Layers. */
+  --z-paper: 0;
+  --z-content: 1;
+  --z-indicator: 20;
+  --z-lens: 30;
+
+  color-scheme: light;
+}
