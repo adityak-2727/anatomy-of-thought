@@ -58,8 +58,9 @@ const OFFCUT = 12;
 /** How far a hand-laid layout strays from a grid, in px. */
 const HAND = { rowIndent: 22, rise: 6, gap: 5, stripIndent: 18 };
 
-function metrics(): Metrics {
-  const css = getComputedStyle(document.documentElement);
+/** Read from the stage, so a plate may lay its pieces closer or looser than Plate II. */
+function metrics(stage: HTMLElement): Metrics {
+  const css = getComputedStyle(stage);
   const px = (name: string) => parseFloat(css.getPropertyValue(name)) || 0;
   return {
     label: px('--cut-label-room'),
@@ -127,7 +128,7 @@ export function prepare(list: HTMLElement, seed: number, letters?: readonly stri
  */
 export function lay(stage: HTMLElement, list: HTMLElement, pieces: CutPiece[], seed: number, breaks: number[] = []): Laid {
   list.classList.add('is-laid');
-  const m = metrics();
+  const m = metrics(stage);
   const width = stage.clientWidth;
   // Read everything first, then write: one layout pass, not one per piece.
   const sizes = pieces.map((p) => ({ w: p.slip.offsetWidth, h: p.slip.offsetHeight, tw: (p.ticker.firstElementChild as HTMLElement).offsetWidth }));

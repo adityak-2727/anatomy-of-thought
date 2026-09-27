@@ -43,6 +43,9 @@
   --type-machine: clamp(1.25rem, 1.204rem + 0.19vw, 1.375rem);
   --type-small: 1rem;
   --type-slip: clamp(1.125rem, 1.07rem + 0.2vw, 1.3125rem);
+  /* Seen only through the loupe, which magnifies 1.4×: 13px reads as 18px, 16px as 22px. */
+  --type-lens: 0.8125rem;
+  --type-lens-numbers: 1rem;
 
   --lh-title: 1;
   --lh-subtitle: 1.35;
@@ -101,6 +104,12 @@
   --cut-space: 0.34em;       /* the leading space a piece carries */
   --toggle-room: 44px;       /* the height of a sensitiser control, for the space it needs */
 
+  /* Plate III: the chart. */
+  --chart-band: 68px;        /* the strip at the foot of the chart, for The Uncharted and the toggle */
+  --chart-inset: 10px;       /* from the field's edge to the chart's ruled border */
+  --chart-ring: 1.2px;       /* a ring drawn round one of the reader's own pieces */
+  --star-line: 0.8px;        /* the rays and rings of an engraved star symbol */
+
   /* CSS timings for small responses. Story motion lives in eases.ts. */
   --dur-respond-fast: 120ms;
   --dur-respond: 160ms;
@@ -131,5 +140,6 @@
     --cut-col-gap: 12px;
     --cut-row-gap: 6px;
     --cut-strip-gap: 14px;
+    --chart-band: 104px;       /* The Uncharted above the toggle, not beside it */
   }
 }

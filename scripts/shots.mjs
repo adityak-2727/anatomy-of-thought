@@ -18,6 +18,8 @@ const OUT = path.resolve('shots');
 const filter = process.argv[2] ?? '';
 // Optional second filter on the pass, e.g. "desktop-normal", "phone-reduce", "desktop-normal-nogl".
 const passFilter = process.argv[3] ?? '';
+// And a third narrows it to checkpoints whose names start with it (e.g. plate-3).
+const cpFilter = process.argv[4] ?? '';
 // The software renderer can take many seconds over one frame of a busy page.
 const SCREENSHOT_TIMEOUT = 120000;
 
@@ -167,6 +169,133 @@ const PAGES = [
           ctx.check('Clear resets the bench', result.said === 'Cleared.' && result.pieces === 0 && result.focused === 'reader-sentence' && result.handedOn === 0, result);
         },
       },
+      { name: 'plate-3-approach', motion: 'normal', gl: true, run: chartAt(-0.4) },
+      { name: 'plate-3-handoff', motion: 'normal', run: chartAt(0.12) },
+      { name: 'plate-3-developing', motion: 'normal', gl: true, run: chartAt(0.2) },
+      { name: 'plate-3-lettered', motion: 'normal', run: chartAt(0.265) },
+      { name: 'plate-3-laurel', motion: 'normal', run: chartAt(0.38) },
+      { name: 'plate-3-chest', motion: 'normal', gl: true, run: chartAt(0.555) },
+      { name: 'plate-3-wardrobe', motion: 'normal', gl: true, run: chartAt(0.705) },
+      { name: 'plate-3-rule', motion: 'normal', run: chartAt(0.845) },
+      {
+        name: 'plate-3',
+        run: async (p, ctx) => {
+          await chartAt(0.97)(p);
+          const result = await p.evaluate(() => {
+            const shown = [...document.querySelectorAll('.chart-stop')].filter((c) => Number(getComputedStyle(c).opacity) > 0.9).map((c) => c.dataset.stop);
+            return {
+              drawing: document.getElementById('plate-3').dataset.chart,
+              names: [...document.querySelectorAll('.chart-name')].filter((b) => getComputedStyle(b).visibility === 'visible').length,
+              shown,
+            };
+          });
+          const drawing = ctx.gl ? 'gl' : 'svg';
+          const captions = ctx.motion === 'reduce' ? result.shown.length === 5 : result.shown.join() === 'centre';
+          ctx.check(`the chart is drawn (${drawing}), lettered, and at rest with its caption`, result.drawing === drawing && result.names > 0 && captions, result);
+        },
+      },
+      {
+        // The reader's own words on the chart: ringed if charted, set at The Uncharted if not.
+        name: 'plate-3-yours',
+        run: async (p, ctx) => {
+          await scrollToSelector(p, '.reader-bench', -120);
+          if (await p.isVisible('.reader-clear')) await p.click('.reader-clear');
+          await p.fill('#reader-sentence', 'My cat doesn’t fit in the red box.');
+          await p.click('.reader-form .sens');
+          await p.waitForFunction(() => document.querySelector('.reader-status')?.textContent?.startsWith('Exposed.'), null, { timeout: 12000 }).catch(() => {});
+          await chartAt(0.97)(p);
+          const result = await p.evaluate(() => ({
+            rings: document.querySelectorAll('.chart-ring').length,
+            note: !document.querySelector('.chart-uncharted').hidden,
+            yours: document.querySelector('.star-list__yours').textContent,
+            uncharted: document.querySelector('[data-uncharted]').textContent,
+          }));
+          const ok = result.rings === 9 && result.note && result.yours.includes('cat') && result.uncharted.includes('My');
+          ctx.check('the reader’s pieces are ringed on the chart, and the unknown one set at The Uncharted', ok, result);
+        },
+        after: async (p) => {
+          await scrollToSelector(p, '.reader-bench', -120);
+          await p.click('.reader-clear');
+        },
+      },
+      {
+        name: 'plate-3-flight',
+        run: async (p, ctx) => {
+          await chartAt(0.97)(p);
+          // Whichever name points the way from the border, take it.
+          const id = await p.evaluate(() => {
+            const shown = [...document.querySelectorAll('.chart-name')].filter((b) => getComputedStyle(b).visibility === 'visible' && b.dataset.constellation !== 'centre');
+            const stop = shown.find((b) => ['laurel', 'chest', 'wardrobe', 'rule'].includes(b.dataset.constellation));
+            return (stop ?? shown[0])?.dataset.constellation ?? null;
+          });
+          if (id) await p.locator(`.chart-name[data-constellation="${id}"]`).click();
+          await p.waitForTimeout(400);
+          const result = await p.evaluate((target) => {
+            const caption = document.querySelector(`.chart-stop[data-stop="${target}"]`);
+            return {
+              target,
+              caption: caption ? Number(getComputedStyle(caption).opacity) : null,
+              arrived: [...document.querySelectorAll('.chart-name')].some((b) => b.dataset.constellation === target && getComputedStyle(b).visibility === 'visible' && !b.classList.contains('is-edge')),
+            };
+          }, id);
+          const ok = !!id && result.arrived && (ctx.motion === 'reduce' || result.caption === null || result.caption > 0.9);
+          ctx.check('a constellation’s name takes the chart there', ok, result);
+        },
+      },
+      {
+        name: 'plate-3-loupe',
+        only: 'desktop',
+        run: async (p, ctx) => {
+          await chartAt(0.97)(p);
+          const box = await p.locator('.chart-field').boundingBox();
+          if (!box) return;
+          await p.mouse.move(box.x + box.width / 2 - 40, box.y + box.height * 0.4);
+          await p.mouse.move(box.x + box.width / 2, box.y + box.height * 0.45, { steps: 8 });
+          await p.waitForTimeout(450);
+          const lens = await p.evaluate(() => document.querySelector('.chart-field .machine__star')?.textContent ?? '');
+          ctx.check('under the loupe, a star is written as coordinates and thousands more', /\d\.\d{3}.*and thousands more/.test(lens), { lens });
+        },
+        after: (p) => p.mouse.move(5, 5),
+      },
+      {
+        // A gentle drag turns the chart a little: the names move with it.
+        name: 'plate-3-drag',
+        only: 'desktop',
+        run: async (p, ctx) => {
+          await chartAt(0.97)(p);
+          const where = () => p.evaluate(() => [...document.querySelectorAll('.chart-name')].map((b) => b.style.transform).join('|'));
+          const before = await where();
+          const box = await p.locator('.chart-field').boundingBox();
+          if (!box) return;
+          await p.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.5);
+          await p.mouse.down();
+          await p.mouse.move(box.x + box.width * 0.3 + 160, box.y + box.height * 0.5 + 40, { steps: 12 });
+          await p.mouse.up();
+          await p.waitForTimeout(1500);
+          const after = await where();
+          ctx.check('a drag at rest turns the chart', before !== after, { moved: before !== after });
+        },
+        after: (p) => p.mouse.move(5, 5),
+      },
+      {
+        name: 'plate-3-machine-view',
+        run: async (p) => {
+          await chartAt(0.97)(p);
+          await p.locator('.chart-field .loupe-toggle').click();
+        },
+        after: (p) => p.locator('.chart-field .loupe-toggle').click(),
+      },
+      {
+        name: 'plate-3-stars',
+        run: async (p, ctx) => {
+          await chartAt(1)(p);
+          await scrollToSelector(p, '.star-bench', -60);
+          await p.locator('.star-list__summary').click();
+          const text = await p.textContent('.star-list__body');
+          ctx.check('the list of the stars gives every constellation and its words', text.includes('The Crowded Centre') && text.includes('trophy, medal'), { length: text.length });
+        },
+        after: (p) => p.locator('.star-list__summary').click(),
+      },
       { name: 'endmatter', run: goTo('colophon') },
       {
         // A list entry carries the reader to the plate and hands its heading focus.
@@ -258,6 +387,15 @@ const PAGES = [
   },
 ];
 
+/** Plate III, once its drawing (three.js or SVG) is in place. */
+function chartAt(progress) {
+  return async (page) => {
+    await goTo(3, progress)(page);
+    await page.waitForSelector('#plate-3[data-chart]', { state: 'attached', timeout: 30000 });
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+  };
+}
+
 function goTo(target, progress = 0) {
   return (page) => page.evaluate(([t, pr]) => window.__atlas.goTo(t, pr), [target, progress]);
 }
@@ -289,7 +427,8 @@ async function run() {
   // A filtered run replaces only its own pictures; a full run starts clean.
   await fs.mkdir(OUT, { recursive: true });
   for (const file of await fs.readdir(OUT)) {
-    if (!filter || file.startsWith(filter)) await fs.rm(path.join(OUT, file), { force: true });
+    const mine = (!filter || file.startsWith(filter)) && (!passFilter || file.includes(passFilter)) && (!cpFilter || file.includes(`-${cpFilter}`));
+    if (mine) await fs.rm(path.join(OUT, file), { force: true });
   }
 
   const server = await createServer({ logLevel: 'error', server: { port: 5199, strictPort: false } });
@@ -338,10 +477,12 @@ async function run() {
       for (const cp of def.checkpoints) {
         if (cp.motion && cp.motion !== pass.motion) continue;
         if (cp.only && cp.only !== pass.vpName) continue;
+        if (cpFilter && !cp.name.startsWith(cpFilter)) continue;
         if (!pass.gl && (cp.gl || ['plate-brushing', 'plate-developing', 'loupe'].includes(cp.name))) continue;
         const ctx = {
           touch: pass.vpName === 'phone',
           motion: pass.motion,
+          gl: pass.gl,
           check: (what, ok, detail) => report.checks.push({ tag, what, ok, detail }),
         };
         const started = Date.now();

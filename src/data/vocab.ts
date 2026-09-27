@@ -3,7 +3,8 @@
 //
 // Every piece of both specimens and both replies is here: suit in The Wardrobe, case in
 // The Chest, the small words and the punctuation in The Crowded Centre. “The” and “the”
-// are different pieces with different IDs, so they are different stars. “Suitcase” is
+// are different pieces with different IDs, so they are different stars; so are “What”
+// and “what”. “Suitcase” is
 // not on this chart: the machine builds it from suit and case. Each word appears once.
 
 export interface Constellation {
@@ -159,8 +160,8 @@ export const CONSTELLATIONS: readonly Constellation[] = [
     words: [
       'the', 'The', 'a', 'an', 'it', 'is', 'was', 'be', 'are', 'in',
       'on', 'at', 'of', 'to', 'by', 'for', 'with', 'from', 'and', 'or',
-      'but', 'not', 'no', 'so', 'if', 'as', 'that', 'this', 'what', 'which',
-      'who', 'because', 'does', 'doesn', 'do', 'did', 'too', "'s", "'t", "'re",
+      'but', 'not', 'no', 'so', 'if', 'as', 'that', 'this', 'what', 'What',
+      'which', 'who', 'because', 'does', 'doesn', 'do', 'did', 'too', "'s", "'t", "'re",
       '.', ',', '?', '!',
     ],
   },

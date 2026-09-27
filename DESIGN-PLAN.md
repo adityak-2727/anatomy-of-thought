@@ -483,6 +483,13 @@ Desktop (odd plate: text left):
 
 Phone: the field is square (full width) and only the names near the current stop are lettered. There is no drag; constellation names are tapped.
 
+**As built (Phase 4).**
+- The stop captions sit under the field, above Fig. 3, not in the text column: on a phone only the figure pins, and the captions must be seen with the chart they describe. They share one place and replace one another; without JavaScript, or under reduced motion, all five are read in turn.
+- “List the stars” follows the plate (like Plate II’s bench), aligned to the text column. Opened inside the pinned frame it would push the frame past the screen.
+- The field is 4:3 on wide screens (at most 64svh) and 4:5 on a phone. A strip at its foot (`--chart-band`) holds The Uncharted beside the toggle; on a phone The Uncharted lies above it. The drawing is clipped to the ruled border (`--chart-inset`).
+- At each stop the words its caption names are set beside their stars (trophy, medal, cup, prize; case, box, bag, trunk; suit, coat, shirt, jacket; big, small; it, the, too, ’s).
+- At rest, constellations off the field are named at the border, a size smaller, pointing the way; each slides along the border to where it covers fewest bright stars. A phone points at most four ways; over the whole chart it letters only the five stops’ names.
+
 ### Plate IV. The threads of attention
 
 Desktop (full-width break):
@@ -687,7 +694,7 @@ Static. Printed ink on paper does not animate on arrival. Only the reader’s re
 | Range | Beat | Verb | Ease |
 |---|---|---|---|
 | Approach 100%→45% | Three horizontal strokes of sensitiser (seed 1844) | brush | `brush` |
-| Approach 90%→40% | The intro develops (as one paragraph: splitting scrubbed text into lines would have to be rebuilt on every resize; the restrained choice) | expose | `develop` |
+| Approach 90%→40% | The intro develops (as one paragraph: splitting scrubbed text into lines would have to be rebuilt on every resize; the restrained choice). As built from Phase 4, on every plate: from its top entering the screen to its top at 60% (`INTRO_ARRIVED`), so it is never half-developed out of sight | expose | `develop` |
 | Approach 60%→0% | The slip is laid: y −14px → 0, rotation −1.4° → −0.6° | pin | `settle` |
 | Approach 30%→0% | Left pin, then right pin, pressed in (+jitter) | pin | `press` |
 | Pin 0–60vh | The field exposes centre first. The slip and the pin shadows stay white. | expose | `develop` |
@@ -740,6 +747,7 @@ three.js starts importing one screen before the plate (IntersectionObserver, `ro
 - The camera moves along a Catmull-Rom path through the stop poses. It only moves when the reader scrolls, and it never drifts on its own.
 - Each stop’s dwell is a still page for reading.
 - Captions replace each other: the old one fades in 150ms and the new one develops.
+- As built: between stops the camera stands back a little (`PLATE3.cameraLift`, 30% of the distance between the two targets), so the reader sees where it is going. The pieces arrive pinned, without their tickers or letters: their numbers stay behind on Plate II, and here each is given a place instead. Each pin comes out (the press reversed) before its piece lifts. The caption swap is time-based, triggered when the camera arrives, so a caption is never left half-developed under a slow scroll.
 
 ### Plate IV. The threads of attention (pin 300vh)
 
@@ -861,7 +869,9 @@ As in BRIEF §10, plus three small additions (marked *):
 | `src/plates/*.ts` | One per page; `init(ctx)` and `destroy()`, animations inside `gsap.context()` |
 | `src/lib/tokeniser.ts`, `softmax.ts`, `hash.ts` | Pure, dependency-free, tested |
 | `src/data/specimen.ts`, `vocab.ts` | Hand-authored data (below) |
-| `scripts/vocab-place.mjs` | Dev-only helper: seeded placement and nearest-neighbour lines for words not placed by hand, printed as literal data and pasted into `vocab.ts`. The committed data is literal, not generated at runtime. |
+| `src/data/chart.ts`* | The chart laid out: hand-placed story words, a seeded scatter for the rest, the lines, the stops and the words each stop names. Worked out once at load, the same on every visit, and pinned by tests. (It replaces the planned `scripts/vocab-place.mjs`: about 520 pasted literals would have been hard to keep true, while seeded code plus tests hold the same guarantees.) |
+| `src/lib/projection.ts`* | The chart's camera by hand: projection, orbit, Catmull-Rom path. three.js, the SVG chart, the lettering and (Phase 5) Fig. 4b all project through it, so they agree to the pixel. |
+| `src/plates/chart/*`* | `geometry.ts` (reveal order, laid-thread lines, graticule), `scene.ts` (three.js, lazy), `svg-chart.ts` (the fallback), `overlay.ts` (names, words, rings, The Uncharted, border), `machine.ts` (the loupe's coordinates), `renderer.ts` (the interface both drawings share). |
 
 `PlateContext = { root, trigger, field, mm, seed, reduced, phone }`.
 
@@ -886,12 +896,14 @@ As in BRIEF §10, plus three small additions (marked *):
 | **Average** | **trophy .367, it .183, too .150**, self .140, because .133 | Meets the brief |
 
 **`src/data/vocab.ts`**
-- About 520 entries `{ text, c, p: [x, y, z], mag }` across 15 constellations (25–45 each), plus The Uncharted as a region, not entries.
+- 523 entries `{ text, constellation, p: [x, y, z], mag }` across 15 constellations (25–45 each), plus The Uncharted as a region, not entries. The words live in `vocab.ts`; their places, magnitudes and lines are worked out in `chart.ts`.
 - Magnitude follows astronomical convention: 1 is brightest, for the commonest words.
 - The words in the story (trophy, medal, cup, prize; case, box, bag, trunk; suit; big, small; it and the other small words) are placed by hand. The rest are placed by the helper and then adjusted.
 - `LINES`: 5–12 index pairs per constellation, near neighbours only, never between constellations.
-- `STOPS`: six camera poses (the overview and the five stops), each with a target, a distance and an angle.
-- An end-mark star sits at the edge of The Crowded Centre, because the brief puts every reply piece on the chart.
+- `STOPS`: six camera poses (the overview and the five stops), each with a target, a distance and an angle. As built: the overview is fitted to the field's shape at run time (`overviewFor(width, height, band)`), and each stop frames its constellation from its extent (`poseFor`), The Crowded Centre more closely so its small words part.
+- No end-mark star is needed: the replies are `The`, ` trophy`, `.` and `The`, ` suit`, `case`, `.`, all already on the chart.
+- Magnitudes: 1 for the fifteen commonest pieces (the, a, of, to, and, in, is, it, that, for, on, was, ’s, full stop, comma); 2 for the rest of The Crowded Centre and the tokeniser's common words; then 3–6 by length, since longer words are rarer.
+- Coordinates, as the machine's view writes them: each axis divided by the chart's half-width (120) and written to three places, with a true minus sign.
 
 **Tests (vitest):**
 - **Tokeniser:** both specimens give exactly the §3 pieces; `’` and `'` behave the same; contractions and punctuation split; suitcase becomes suit + case; long words split into 3–5-letter chunks; output is capped at 40 pieces; the same input always gives the same output.
@@ -1036,6 +1048,15 @@ Measured cost is not yet known on real hardware. The software renderer used for 
 - The SVG is used when WebGL fails, and when three.js hasn’t arrived by the time the pin passes 5%. In that case the plate keeps the SVG for the rest of the visit rather than swapping mid-sequence.
 - The same projection draws the Plate IV inset (Fig. 4b), so the two charts agree.
 - **Accessibility:** a “List the stars” `<details>` with an `h3` per constellation and its words.
+
+**As built (Phase 4)**
+- Both drawings answer to one description of a frame (`Look`: view, reveal, per-star reveal, pen, graticule), so the plate swaps one for the other without the story noticing. three.js is imported when the plate is a screen away; `?nogl`, a CSS-only background, a refused context, or three.js still missing when the pin passes 5% all give the SVG chart for the rest of the visit.
+- The SVG chart re-projects every star when the camera moves (transforms on `<use>`), rather than tweening a `viewBox`: a `viewBox` zoom would have enlarged the engraved symbols with the camera.
+- Symbols scale with the field's width (at least 62%) so a phone's chart stays figures, not blots; they grow only a little as the camera nears (at most 1.5×).
+- Lines are drawn in one draw call: each vertex carries the time the pen reaches it, and the fragment shader discards what the pen hasn't reached, so a line grows smoothly rather than a segment at a time.
+- The graticule is the far half of a sphere about the chart: parallels every 20° to ±40°, meridians every 30°, at `--o-graticule`.
+- Words set on the chart (stop words, “yours”, the hover word) find the first free place beside their star, keeping clear of names, rings and star symbols.
+- The loupe keeps its star while the star stays within 80% of the lens radius, so its writing holds still as the lens moves; the lens writing uses `--type-lens` sizes (read at 1.4×) so the word, three coordinates and “and thousands more” fit the lens together.
 
 ### 8.7 Plates IV to VI in brief
 
@@ -1194,7 +1215,7 @@ Every line of copy in the brief was checked against BRIEF §8’s list of safe c
   - The data keeps the brief’s straight `'`, which is what gets hashed, so IDs stay stable.
   - The tokeniser treats `’` and `'` as the same character.
 - **Leading spaces.** They are never drawn on the pieces themselves. They show in the loupe as `␣`, and on Plate II as the visible gap left of each piece after the cut.
-- **“The” and “the” on the chart.** They are different pieces with different IDs, so they get neighbouring stars in The Crowded Centre. Merging them would contradict Plate II.
+- **“The” and “the” on the chart.** They are different pieces with different IDs, so they get neighbouring stars in The Crowded Centre. Merging them would contradict Plate II. For the same reason “What” (piece p) has its own star beside “what” (added in Phase 4).
   - Rule: a piece maps to the star with exactly its text (without the leading space) when one exists, otherwise to its lowercase form.
   - Repeated identical pieces (too, ’s, big) share a star, which is correct.
 - **A third error on Plate II:** “Keep it under forty pieces.” A 120-character sentence of punctuation could exceed the tokeniser’s 40-piece cap. It is in the same voice as the brief’s two errors.
@@ -1204,6 +1225,7 @@ Every line of copy in the brief was checked against BRIEF §8’s list of safe c
   - “Last ten draws”, the head of the tally column.
   - “Show the machine’s view”, which becomes “Hide the machine’s view”.
   - “List the stars”, “yours” and “Skip to the plates”.
+  - In the list of the stars: “An edge region, for pieces the chart doesn’t know.” under The Uncharted, then “Yours here: …” and “Your pieces on this chart: …” once the reader has a sentence. Punctuation is named in running text (full stop, comma, question mark).
 - **Plate V tally.** Hand tally strokes per row, counting the last ten draws. The brief’s “tally” is taken literally; this puts observed counts beside expected likelihoods on the same row.
 - **Plate VI.** The mini row carries no letters (it is a row of small slip shapes), so the 18px rule on blue holds.
 - **Reader’s sentence.** It is not stored across visits. The brief asks for none, and the restrained choice is to keep nothing.

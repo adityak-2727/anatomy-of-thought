@@ -13,6 +13,7 @@ export interface PlateModule {
 const LOADERS: Record<number, () => Promise<PlateModule>> = {
   1: () => import('./plate1-specimen'),
   2: () => import('./plate2-dissection'),
+  3: () => import('./plate3-chart'),
 };
 
 const loaded = new Map<number, PlateModule>();

@@ -9,7 +9,7 @@ import { pinSlipEnds, refitSlipEnds } from '../components/piece';
 import { PINS, PIN_DROP, PLATE1, SEEDS } from '../motion/eases';
 import { COMPACT, REDUCED, WIDE, isPhone } from '../motion/media';
 import { scrubFor } from '../motion/scroll';
-import { pressInto } from '../motion/verbs';
+import { developOnArrival, pressInto } from '../motion/verbs';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -62,7 +62,7 @@ export function init(root: HTMLElement): void {
       scrollTrigger: { trigger: pinEl, start: 'top bottom', end: wide ? 'top top' : 'center center', scrub },
     });
     approach.fromTo(proxy, { brush: 0 }, { brush: 1, duration: span(a.brush), ease: 'brush', onUpdate: latch }, a.brush[0]);
-    if (wide && intro) approach.fromTo(intro, { opacity: 0 }, { opacity: 1, duration: span(a.intro), ease: 'develop' }, a.intro[0]);
+    if (wide && intro) developOnArrival(intro, scrub);
     // The slip is laid: it falls a little and turns to rest (its resting turn is in CSS).
     approach.fromTo(
       wrap,

@@ -13,6 +13,7 @@ import { COMPACT, REDUCED, WIDE, isPhone } from '../motion/media';
 import { scrubFor } from '../motion/scroll';
 import { addCuts, addFixing, addParting, addSeparating, lay, prepare, toFinal, toStrip, writeMachine } from './dissect';
 import { initReader } from './reader-sentence';
+import { developOnArrival } from '../motion/verbs';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -75,7 +76,7 @@ export function init(root: HTMLElement): void {
       });
       approach.fromTo(proxy, { brush: 0 }, { brush: 1, duration: span(a.brush), ease: 'brush', onUpdate: latch, immediateRender: false }, a.brush[0]);
       approach.fromTo(proxy, { exposure: 0 }, { exposure: 1, duration: span(a.exposure), ease: 'develop', onUpdate: latch, immediateRender: false }, a.exposure[0]);
-      if (wide && intro) approach.fromTo(intro, { opacity: 0 }, { opacity: 1, duration: span(a.intro), ease: 'develop' }, a.intro[0]);
+      if (wide && intro) developOnArrival(intro, scrub);
       approach.set({}, {}, 1);
 
       const hold = gsap.timeline({

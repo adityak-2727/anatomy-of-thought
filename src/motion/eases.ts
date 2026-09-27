@@ -103,6 +103,12 @@ export function jitterStagger(step: number, seed: number, key: string) {
 // Scroll.
 export const SCRUB = { story: 0.7, camera: 1.0, needle: 0.6 } as const;
 
+/**
+ * A plate's intro develops as it comes into view: from its top entering the screen to
+ * its top reaching this line. It is never half-developed out of sight.
+ */
+export const INTRO_ARRIVED = 'top 60%';
+
 /** Pin lengths in vh, desktop and phone (DESIGN-PLAN §2.4). */
 export const PINS = {
   1: [150, 90],
@@ -158,7 +164,6 @@ export const LIST = {
 export const PLATE1 = {
   approach: {
     brush: [0, 0.55],
-    intro: [0.1, 0.6],
     lay: [0.4, 1],
     pins: [0.7, 1],
   },
@@ -181,7 +186,6 @@ export const PLATE2 = {
   approach: {
     brush: [0, 0.5],
     exposure: [0.3, 1],
-    intro: [0.1, 0.6],
   },
   pin: {
     cuts: [10, 70],
@@ -214,6 +218,45 @@ export const READER = {
   fixStagger: 0.06,
   clear: 0.22,
   brushBack: 0.4,
+} as const;
+
+/**
+ * Plate III. Approach values are fractions of the approach; pin values are vh within
+ * the 350vh pin (DESIGN-PLAN §6), scaled with the pin on phones.
+ */
+export const PLATE3 = {
+  approach: {
+    brush: [0, 0.5],
+    exposure: [0.3, 1],
+    border: [0.55, 1],
+  },
+  pin: {
+    handoff: [15, 70],
+    reveal: [20, 60],
+    graticule: [20, 50],
+    lines: [60, 85],
+    names: [70, 90],
+    rings: [85, 95],
+    // The camera travels to each stop, then dwells there while its caption is read.
+    stops: [[90, 120], [150, 180], [205, 235], [260, 285], [305, 325]],
+  },
+  pieceTravel: 24,      // vh one piece takes from its row to its star
+  pinPull: 2,           // vh a pin takes to come out before the piece lifts
+  lift: 0.15,           // share of the travel spent lifting (scale up a hair, turn to square)
+  fade: 0.3,            // share at the end over which the slip fades and its star comes up
+  liftScale: 1.03,
+  arriveScale: 0.6,
+  nameSet: 2.6,         // vh one name takes to be lettered
+  cameraLift: 0.3,      // share of the distance between two stops the camera stands back mid-way
+  captionDevelop: 0.9,  // s: a stop's caption develops once the camera arrives
+  threeGrace: 1.5,      // s three.js may still take once the pin is 5% through, before the SVG chart stands in
+  ringDraw: 0.7,        // s: the reader's rings, when drawn in time rather than by scroll
+  dragYaw: 12,          // degrees either way
+  dragPitch: 6,
+  dragPerPx: 0.08,      // degrees of turn per px dragged
+  dragLerp: 0.08,
+  hoverRadius: 12,      // px from a star within which its word is set
+  lensRadius: 60,       // px about the lens centre in which the machine finds a star
 } as const;
 
 /** The scale a pin starts from as it is pressed into the paper. */

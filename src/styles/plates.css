@@ -446,6 +446,330 @@ html:not(.js) .reader-bench {
   display: none;
 }
 
+/* ─── Plate III: the chart of meaning ────────────────────────────────────────
+   The drawing (a three.js canvas, or SVG) fills the field; the pieces, the lettering
+   and the loupe lie over it. The strip at the foot holds The Uncharted and the toggle. */
+.chart-field {
+  inline-size: 100%;
+  aspect-ratio: 4 / 3;
+  max-block-size: 64svh;
+  padding: 0;
+}
+
+.chart,
+.chart__overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.chart__canvas,
+.chart__svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+/* The SVG chart, drawn when WebGL is not to hand: the same symbols in the same ink. */
+.chart-svg__graticule path,
+.chart-svg__lines path {
+  fill: none;
+  stroke: var(--silhouette);
+  stroke-width: var(--hairline);
+}
+
+.chart-svg__graticule path {
+  stroke-opacity: var(--o-graticule);
+}
+
+.chart-svg__lines path {
+  stroke-opacity: var(--o-constellation);
+}
+
+.chart-svg__dot {
+  fill: var(--silhouette);
+}
+
+.chart-svg__ring,
+.chart-svg__rays {
+  fill: none;
+  stroke: var(--silhouette);
+  stroke-width: var(--star-line);
+}
+
+/* The ruled border frames the chart: nothing is drawn past it. */
+.chart {
+  clip-path: inset(var(--chart-inset) var(--chart-inset) calc(var(--chart-band) + var(--chart-inset)) var(--chart-inset));
+}
+
+.chart__stage {
+  position: absolute;
+  inset: var(--s-6) var(--s-6) auto;
+  z-index: 1;
+  /* The pieces arrive pinned but without their numbers, so they lie closer. */
+  --cut-label-room: var(--s-3);
+  --cut-ticker-room: 0px;
+  --cut-row-gap: var(--s-3);
+}
+
+.chart__stage .ticker {
+  display: none;
+}
+
+.chart__overlay {
+  z-index: 2;
+  pointer-events: none;
+}
+
+.chart__marks {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+
+.chart__names {
+  position: absolute;
+  inset: 0;
+  font-size: var(--type-field-label);
+}
+
+.chart-name {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  padding: 0;
+  color: inherit;
+  visibility: hidden;
+  pointer-events: auto;
+}
+
+.chart-name__art {
+  display: block;
+  overflow: visible;
+}
+
+.chart-name__text {
+  fill: currentColor;
+  font-family: var(--font-words);
+  font-size: var(--type-field-label);
+  font-style: italic;
+}
+
+.chart-border__rule,
+.chart-border__ticks,
+.chart-uncharted__rim,
+.chart-uncharted__piece circle {
+  fill: none;
+  stroke: var(--silhouette);
+  stroke-width: var(--hairline);
+}
+
+.chart-border {
+  opacity: 0;
+}
+
+.chart-border__rule,
+.chart-border__ticks {
+  stroke-opacity: var(--o-constellation);
+}
+
+.chart-uncharted__rim {
+  stroke-dasharray: 4 3;
+  stroke-opacity: var(--o-constellation);
+}
+
+.chart-uncharted__name,
+.chart-uncharted__piece text,
+.chart-uncharted__more,
+.chart-ring text {
+  fill: var(--silhouette);
+  font-family: var(--font-words);
+  font-size: var(--type-small);
+  font-style: italic;
+}
+
+.chart-ring path {
+  fill: none;
+  stroke: var(--silhouette);
+  stroke-width: var(--chart-ring);
+  stroke-linecap: round;
+}
+
+.chart__words {
+  position: absolute;
+  inset: 0;
+}
+
+.chart-word {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  font-size: var(--type-small);
+  line-height: var(--lh-small);
+  font-style: italic;
+  white-space: pre;
+  opacity: 0;
+}
+
+.chart-hover {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  font-size: var(--type-field-label);
+  font-style: italic;
+  white-space: pre;
+  opacity: 0;
+  transition: opacity var(--dur-respond-fast) var(--ease-press);
+}
+
+.chart-hover.is-shown {
+  opacity: 1;
+}
+
+.chart-field .loupe-toggle {
+  position: absolute;
+  inset-inline-end: var(--s-5);
+  inset-block-end: var(--s-3);
+}
+
+/* The camera's stops. Without JavaScript, or under reduced motion, all five are read in
+   turn; in the sequence they share one place and replace one another. */
+.chart-stops {
+  margin-block-start: var(--s-6);
+  max-inline-size: 36em;
+  font-size: var(--type-body);
+  line-height: var(--lh-body);
+  font-style: italic;
+}
+
+.chart-stop + .chart-stop {
+  margin-block-start: var(--s-3);
+}
+
+.chart-stops.is-live {
+  display: grid;
+}
+
+.chart-stops.is-live > .chart-stop {
+  grid-area: 1 / 1;
+  margin: 0;
+}
+
+/* The machine's view of the chart: under the lens, one star's coordinates; shown in
+   full, a table of the specimen's stars on the tissue. */
+.machine__star {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  display: grid;
+  justify-items: center;
+  translate: -50% -50%;
+  white-space: pre;
+}
+
+/* Small enough that the word, three coordinates and the note fit the lens at once. */
+.machine__star .machine__piece,
+.machine__star .machine__note {
+  font-size: var(--type-lens);
+  line-height: 1.1;
+}
+
+.machine__star .machine__piece {
+  margin-block-end: 2px;
+}
+
+.machine__star .t-machine {
+  font-size: var(--type-lens-numbers);
+}
+
+.machine__star .machine__note {
+  margin-block-start: 2px;
+}
+
+.machine__table {
+  display: none;
+  position: absolute;
+  inset-block-start: calc(var(--field-bleed) + var(--s-5));
+  inset-inline-start: calc(var(--field-bleed) + var(--s-5));
+  gap: 2px;
+}
+
+.machine.is-revealed .machine__table {
+  display: grid;
+}
+
+.machine.is-revealed .machine__star {
+  display: none;
+}
+
+.machine__row {
+  display: grid;
+  grid-template-columns: 6.5em repeat(3, 3.4em);
+  column-gap: var(--s-3);
+  align-items: baseline;
+}
+
+.machine__coord {
+  text-align: end;
+}
+
+/* The list of the stars, after the plate: the chart as text. */
+.star-bench {
+  margin-block-start: var(--s-8);
+}
+
+.star-list {
+  grid-column: 1 / span 5;
+}
+
+.star-list__summary {
+  display: inline-flex;
+  gap: var(--s-2);
+  align-items: center;
+  font-style: italic;
+  list-style: none;
+  text-decoration-line: underline;
+  text-decoration-thickness: var(--hairline);
+  text-underline-offset: 0.2em;
+}
+
+.star-list__summary::-webkit-details-marker {
+  display: none;
+}
+
+.star-list__mark {
+  fill: var(--ink);
+  stroke: var(--ink);
+  stroke-width: var(--hairline);
+}
+
+.star-list__body {
+  max-inline-size: var(--measure);
+  margin-block-start: var(--s-4);
+}
+
+.star-list__name {
+  margin-block-start: var(--s-5);
+  font-size: var(--type-body);
+  line-height: var(--lh-body);
+  font-style: italic;
+}
+
+.star-list__words,
+.star-list__yours {
+  font-size: var(--type-body);
+  line-height: var(--lh-body);
+}
+
+.star-list__yours {
+  margin-block-start: var(--s-5);
+  font-style: italic;
+}
+
+/* Without JavaScript there is no chart to draw: the list of the stars stands for it. */
+html:not(.js) .chart-field {
+  display: none;
+}
+
 /* ─── The colophon and the index ──────────────────────────────────────────── */
 
 .endmatter {
@@ -577,5 +901,22 @@ html:not(.js) .reader-bench {
 
   .index__list {
     columns: 1;
+  }
+}
+
+/* On a phone the chart is a little taller than wide, and the list takes the full width. */
+@media (max-width: 767px) {
+  .chart-field {
+    aspect-ratio: 4 / 5;
+    max-block-size: none;
+  }
+
+  .star-list {
+    grid-column: 1 / -1;
+  }
+
+  .machine__row {
+    grid-template-columns: 5.5em repeat(3, 3em);
+    column-gap: var(--s-2);
   }
 }

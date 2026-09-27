@@ -69,6 +69,9 @@ export default defineConfig({
     target: 'es2022',
     // Fonts must stay separate files so they can be preloaded and cached.
     assetsInlineLimit: 0,
+    // three.js (Plate III) is one large chunk, loaded only near its plate and outside the
+    // initial-JavaScript budget (BRIEF §10), so it is allowed past the default warning.
+    chunkSizeWarningLimit: 600,
   },
   test: {
     include: ['src/**/*.test.ts'],

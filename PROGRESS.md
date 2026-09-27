@@ -1,5 +1,84 @@
 # Progress
 
+## Phase 4: Plate III, A chart of meaning (27 September 2026)
+
+### Done
+- **The chart laid out** (`src/data/chart.ts`): 523 stars in 15 constellations, each with a place in three dimensions and a magnitude of 1 to 6.
+  - The story's words are placed by hand: trophy among medal, cup and prize; case among box, bag and trunk; suit among the clothes; big beside small, hot beside cold, up beside down; it and the small words in The Crowded Centre.
+  - The rest are scattered about their constellation from a fixed seed, kept apart from one another, so the chart is the same on every visit.
+  - Magnitude follows use: the fifteen commonest pieces are brightest, then the rest of the small words and the tokeniser's common words, then fainter by length.
+  - Each constellation's figure joins its nine brightest stars by the shortest lines (a spanning tree) plus one line that closes a shape: 9 lines each, never between constellations.
+  - The camera: an overview fitted at run time to the field's shape, and five stops framed from each constellation's extent.
+  - “What” now has its own star beside “what”, as “The” has beside “the”: they are different pieces with different IDs.
+- **Shared projection** (`src/lib/projection.ts`): the camera worked out by hand (projection, orbit, a Catmull-Rom path that stands back between stops). three.js, the SVG chart and all the lettering project through it, so every drawing puts a star on the same pixel. Fig. 4b will use it in Phase 5.
+- **The three.js chart** (`src/plates/chart/scene.ts`), loaded only when the reader is a screen away (a separate 133 KB gzipped chunk):
+  - Engraved symbols drawn in the fragment shader with hard, antialiased edges in paper-white: dot, ring and eight rays for the brightest; dot and four rays; dot alone for the faintest. Normal blending, no depth test, no glow.
+  - Lines as laid threads (a slight seeded wobble), drawn by a pen: each vertex carries the time the pen reaches it, so lines grow smoothly at constant speed.
+  - A faint graticule on the far half of a sphere, as an old celestial atlas rules its sky.
+  - Renders only when something changes, and not at all when the plate is off screen.
+- **The SVG chart** (`svg-chart.ts`): the same symbols, lines and graticule projected through the same camera. Used with `?nogl`, a CSS-only background, a refused WebGL context, or when three.js hasn't arrived by the time the pin is 5% through.
+- **Lettering** (`overlay.ts`): the constellation names, each a real button, lettered in italic along a gentle arc sized to the name; the words each stop's caption names, set beside their stars; the rings round the reader's pieces with “yours”; The Uncharted at the rim; a ruled double border with degree ticks. Every word finds the first free place beside its star, clear of names, rings and star symbols.
+- **The sequence** (`plate3-chart.ts`), pinned for 350vh (210vh on a phone):
+  - The twenty pieces lie in Plate II's loose rows, pinned. Each pin comes out; the piece lifts, squares up, and travels to its star (x on `hand`, y on `develop`, so the path curves), shrinking; over the last 30% it fades as its star comes up in the same place. Repeated pieces converge on one star; The and the go to neighbouring stars.
+  - The other stars come up unevenly, the threads are drawn, and the names are lettered one by one.
+  - The reader's words are ringed and labelled “yours”; words the chart doesn't know are set at The Uncharted, and the note appears in the text column.
+  - The camera visits The Laurel, The Chest, The Wardrobe, The Rule and The Crowded Centre. At each, its caption replaces the last and the words it names are labelled.
+  - At rest: a gentle drag turns the chart (fine pointers only, ±12° by ±6°, damped); every name flies the camera there (from mid-sequence, the page first scrolls to the rest); names of constellations off the field point the way from the border.
+  - Reduced motion: the chart is shown whole and still, all five captions read in turn, and a name jumps the view with a crossfade under 150ms.
+- **The loupe on Plate III**: the star under the lens written as the machine would write it (its word, three coordinates, “and thousands more”), in type sized for the lens. “Show the machine's view” lays a table of the specimen's stars and their coordinates on the tissue; the same table, as real HTML, follows the figure for screen readers.
+- **“List the stars”** after the plate: every constellation and its words, The Uncharted, and the reader's own pieces once they have a sentence. Without JavaScript, the list stands in for the chart.
+- **Tests:** 80 (from 59). The chart: every word a star; magnitudes; constellations stay together; big–small, hot–cold and up–down close; trophy and case among their neighbours; no two stars on top of each other; every specimen and reply piece has a star; The and the separate; 5–12 lines each and none between constellations; the stops in order; the overview sees every star, clear of the strip at the foot. The page: the list of the stars, the coordinates table and the stop captions match the data. The projection: centre, orientation, scale, orbit, and the path through its stops.
+- **Shots:** Plate III checkpoints for approach, hand-off, developing, lettered, the four stops, rest, the reader's words, a flight by name, the loupe, a drag, the machine's view and the list; behaviour checks for each (the drawing in use, the caption at rest, rings and The Uncharted, a flight arriving, the loupe's coordinates, a drag turning the chart, the list). A third argument now runs one plate's checkpoints on their own (`npm run shots -- index desktop-normal plate-3`).
+
+### Verification (run at the end of this phase)
+- `npm run build`: zero TypeScript errors. The first-screen JS is 69.7 KB gzipped (budget about 180). Plate III is a 12.9 KB gzipped chunk; three.js loads separately (132.6 KB gzipped) when the plate is a screen away.
+- `npm test`: 80 of 80 pass.
+- `npm run shots`: 221 screenshots, 0 axe violations, 0 console errors or warnings, 59 of 59 behaviour checks, across both viewports in normal, reduced-motion and no-WebGL passes. After the last fix (names' fallback places) and a new drag check, Plate III was re-shot in all six passes on its own: 0 axe violations, 0 console problems, and every check passed, including “a drag at rest turns the chart” in all three desktop passes.
+- Checked by eye as well as by checks: three.js and SVG drawings put every star in the same place, and reduced motion shows the whole chart still, with all five captions.
+
+### Decisions and why
+- **The chart's places are worked out by seeded code, not pasted as literals.** The plan had a helper print about 520 positions for pasting into `vocab.ts`. Seeded placement gives the same chart on every visit, and the tests hold what the brief asks of it (pairs close, constellations together, no overlaps), so a hand edit can't quietly break it.
+- **One projection for every drawing.** three.js, the SVG chart, the names, the rings, the hand-off targets and the loupe all go through `lib/projection.ts`, which matches three's camera. The hand-off lands each slip exactly on its star because both are placed by the same sum.
+- **The SVG chart re-projects its stars rather than tweening a `viewBox`,** so its symbols keep their engraved size as the camera nears, as three.js's do.
+- **The stop captions sit under the field, not in the text column.** On a phone only the figure pins, and the captions have to be read with the chart they describe. Under reduced motion, or without JavaScript, all five are read in turn.
+- **At each stop the words its caption names are labelled.** Without them, “Trophy lives among medal, cup and prize” points at stars the reader can't tell apart.
+- **The pieces arrive pinned but without tickers or letters.** Their numbers belong to Plate II; here each is about to be given a place instead, and the rows lie closer so they fit a phone's chart.
+- **Names off the field point the way from the border** once the camera is at rest, a size smaller. Without them a reader at The Crowded Centre could not reach another constellation by name, and on touch, names are the only way round.
+- **The loupe uses lens-sized type** (13px and 16px, read at 1.4×), so the word, three coordinates and “and thousands more” fit the lens together.
+- **“What” has its own star,** for the same reason “The” does.
+- **The field is 4:5 on a phone rather than square,** so The Uncharted can sit above the toggle and the chart keeps its height.
+- **Coordinates are the chart's own three,** divided by its half-width and written to three places. Honest to the drawing, with “and thousands more” for the rest.
+- **Intros now develop as they come into view, on every plate** (from the top of the text entering the screen until it reaches 60% of the way up), no longer as a share of the plate's approach. axe caught Plate III's intro at 4.5% opacity below the fold while the reader was at Plate II's bench: part of the fade was happening where no one could see it. Plates I and II had the same pattern, so they changed too.
+- **three.js gets a 1.5s grace period** once the pin is 5% through, while the field goes on developing, before the SVG chart stands in. A reader who lands mid-plate (a reload, say) then still gets three.js on an ordinary connection.
+
+### Screenshot critique
+
+**What works**
+1. **At the stops it reads as an engraved celestial atlas:** paper-white symbols sized by brightness, thin laid threads, a ruled border with degree ticks, italic names along curves, and the stop's words set beside their stars.
+2. **The hand-off is one object changing state:** each slip unpins, lifts, travels on a curved path to its star, shrinks, and gives way to the star in the same place, and repeated pieces converge.
+3. **The loupe tells the truth plainly:** under the lens, trophy is −0.483, 0.267, 0.067 and thousands more; shown in full, the specimen's stars are a table on the tissue.
+
+**What looked off (fixed, then re-shot)**
+1. **The stop captions named words the chart didn't mark.** *Fixed:* each stop labels its caption's words beside their stars.
+2. **The Crowded Centre at rest was a blot,** with the reader's rings lost among the symbols' own rings and “yours” laid over stars. *Fixed:* a closer view of the centre, rings drawn outside the brightest symbol's rays, and every word placed where it clears names, rings and symbols.
+3. **On a phone:**
+   - desktop-sized symbols turned constellations into blots;
+   - names crowded the overview;
+   - the toggle covered The Uncharted;
+   - stars were drawn in the margin past the border.
+
+   *Fixed:* symbols scale with the field; a phone letters only the stops' names over the whole chart and points at most four ways; The Uncharted lies above the toggle; the drawing is clipped to the border.
+4. **Names dropped out of the overview when they touched another,** including The Wardrobe, one of the five stops. *Fixed:* a name that finds its place taken tries a little to either side, then below its constellation, before giving way. All fifteen are lettered on desktop, in both motion modes.
+
+Also caught by looking, not by any check: **the SVG fallback first came out black.** Its paths had no style, so SVG's default black fill took over. axe does not look inside SVG. *Fixed:* the SVG chart is styled in paper ink with the same opacities as three.js.
+
+### Known issues and watch list
+- **The star's word on hover is mostly read in the loupe.** On a fine pointer the lens is over the chart whenever the pointer is, so the word set beside a star is usually under it; the lens writes the same word, with its coordinates. The plain word shows whenever the lens is away (while dragging, for instance).
+- **Names cross stars.** Over their own constellation, and at the border where there is no clear place, a name may print over the fainter stars, as on an engraved chart. The Crowded Centre at rest is dense by nature.
+- **three.js on real hardware is unmeasured.** Every frame here was drawn by a software renderer. The chart redraws only when something changes and pauses off screen, but its cost on a mid-range laptop is still to be measured, with Plate II's.
+- **A phone's overview letters only the stops' names that fit** (usually three to five); the others appear once the camera comes closer.
+- **Fig. 4b will reuse `lib/projection.ts`** (Phase 5), so the inset agrees with this chart.
+
 ## Phase 3: Plate II, Dissection (26 September 2026)
 
 ### Done

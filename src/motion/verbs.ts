@@ -1,7 +1,10 @@
 // Small helpers for the verbs that need more than an ease.
 
 import { gsap } from 'gsap';
-import { DUR, pen } from './eases';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { DUR, INTRO_ARRIVED, pen } from './eases';
+
+gsap.registerPlugin(ScrollTrigger);
 
 /**
  * set: fast in, dead stop, then a recoil of exactly 1px whatever the distance.
@@ -41,4 +44,12 @@ export function lengthOf(el: SVGGeometryElement): number {
 /** Duration for drawing a path at pen speed. */
 export function penFor(el: SVGGeometryElement): number {
   return pen(lengthOf(el));
+}
+
+/**
+ * expose: text develops as it comes into view, tied to the scroll, from the moment its
+ * top enters the screen until it has risen to `INTRO_ARRIVED`.
+ */
+export function developOnArrival(el: HTMLElement, scrub: number | true): gsap.core.Tween {
+  return gsap.fromTo(el, { opacity: 0 }, { opacity: 1, ease: 'develop', scrollTrigger: { trigger: el, start: 'top bottom', end: INTRO_ARRIVED, scrub } });
 }
