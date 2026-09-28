@@ -1676,8 +1676,9 @@ html:not(.js) .stick__answer {
 
 /* On a phone the card takes the width. The lever sits beside the reply's empty slot, which
    is what it fills; the dial and what was drawn share the row under the card, and the
-   machine's-view toggle takes the corner beside the dial. So the field fits a phone's
-   screen while it is pinned (Phase 8). */
+   machine's-view toggle has a slim band of its own beneath them (in the corner beside the
+   dial it covered the dial's value). So the field fits a phone's screen while it is
+   pinned (Phase 8). */
 @media (max-width: 767px) {
   .weigh-field {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -1686,7 +1687,7 @@ html:not(.js) .stick__answer {
       "card card"
       "dial drawn";
     gap: var(--s-4);
-    padding: var(--s-5) var(--s-4);
+    padding: var(--s-5) var(--s-4) calc(var(--toggle-room) + var(--s-5));
   }
 
   .weigh-card {

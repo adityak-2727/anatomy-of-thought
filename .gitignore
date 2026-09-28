@@ -11,3 +11,6 @@ skills-lock.json
 *.log
 .DS_Store
 Thumbs.db
+
+# project notes and docs (kept locally, not in the repository)
+*.md
