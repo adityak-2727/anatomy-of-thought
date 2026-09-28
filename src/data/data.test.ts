@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { CONSTELLATIONS, VOCAB_WORDS } from './vocab';
 import { COMMON_WORDS } from './common-words';
-import { LETTERS, PIECES, REPLY, ids } from './specimen';
+import { END, LETTERS, PIECES, REPLY, SCORES, ids } from './specimen';
+import { percent, softmax } from '../lib/softmax';
+import { pieceId } from '../lib/hash';
 import html from '../../index.html?raw';
 
 describe('the specimen', () => {
@@ -78,5 +80,30 @@ describe('the chart’s words', () => {
   it('keeps about three hundred common words', () => {
     expect(new Set(COMMON_WORDS).size).toBeGreaterThanOrEqual(250);
     expect(new Set(COMMON_WORDS).size).toBeLessThanOrEqual(350);
+  });
+});
+
+describe('the answer', () => {
+  it('writes the likelihoods at temperature 1 into the page, as the softmax gives them', () => {
+    const written = [...html.matchAll(/<span class="weigh-likelihood" data-likelihood>([^<]+)<\/span>/g)].map((m) => m[1]);
+    const p = softmax(SCORES.big.map((c) => c.score), 1);
+    expect(written).toEqual(p.map(percent));
+  });
+
+  it('writes the scores for the machine’s view', () => {
+    const written = [...html.matchAll(/<td data-score>([^<]+)<\/td>/g)].map((m) => Number(m[1]));
+    expect(written).toEqual(SCORES.big.map((c) => c.score));
+  });
+
+  it('writes the reply’s numbers, end mark included', () => {
+    const written = [...html.matchAll(/<td data-reply-id>(\d+)<\/td>/g)].map((m) => Number(m[1]));
+    expect(written).toEqual([...REPLY.big, END].map(pieceId));
+  });
+
+  it('has seven candidates for each variant, each a piece the chart knows', () => {
+    for (const v of ['big', 'small'] as const) {
+      expect(SCORES[v]).toHaveLength(7);
+      for (const c of SCORES[v]) expect(VOCAB_WORDS.has(c.piece.trim())).toBe(true);
+    }
   });
 });

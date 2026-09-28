@@ -413,6 +413,181 @@ const PAGES = [
         },
         after: (p) => p.evaluate(() => window.__atlas.setVariant('big')),
       },
+      { name: 'plate-5-approach', motion: 'normal', gl: true, run: goTo(5, -0.4) },
+      { name: 'plate-5-weighing', motion: 'normal', run: goTo(5, 0.4) },
+      {
+        name: 'plate-5',
+        run: async (p, ctx) => {
+          await goTo(5, 0.95)(p);
+          const result = await p.evaluate(() => ({
+            tickers: [...document.querySelectorAll('.weigh-likelihood')].map((t) => t.textContent),
+            bar: Number(getComputedStyle(document.querySelector('.weigh-bar__strip')).transform.split(',')[0].replace('matrix(', '')),
+          }));
+          ctx.check('the bars weigh out trophy at 92.5%', result.tickers[0] === '92.5%' && Math.abs(result.bar - 0.925) < 0.01, result);
+        },
+      },
+      {
+        name: 'plate-5-cool',
+        run: async (p, ctx) => {
+          await goTo(5, 0.95)(p);
+          await toTemperature(p, ctx, '0.30');
+          const cool = await p.evaluate(() => document.querySelector('.weigh-likelihood').textContent);
+          await toTemperature(p, ctx, '2');
+          await p.waitForTimeout(400);
+          const hot = await p.evaluate(() => ({ trophy: document.querySelector('.weigh-likelihood').textContent, value: document.querySelector('.dial__value').textContent }));
+          ctx.check('turning the temperature re-weighs the bars from the softmax', cool === '100.0%' && hot.trophy === '62.9%' && hot.value === '2.00', { cool, ...hot });
+          await goTo(5, 0.95)(p);
+        },
+        after: async (p, ctx) => {
+          await toTemperature(p, ctx, '1');
+          await goTo(5, 0.95)(p);
+        },
+      },
+      {
+        name: 'plate-5-draw',
+        run: async (p, ctx) => {
+          await goTo(5, 0.95)(p);
+          await toControls5(p, ctx);
+          for (let i = 0; i < 12; i++) await p.locator('.lever').click();
+          await p.waitForTimeout(700);
+          const result = await p.evaluate(() => ({
+            strokes: document.querySelectorAll('.weigh-tally path').length,
+            drawn: document.querySelector('.drawn')?.hidden === false,
+            said: document.querySelector('.draw-status').textContent,
+          }));
+          await goTo(5, 0.95)(p);
+          ctx.check('the lever draws pieces, and the tally keeps the last ten', result.strokes === 10 && result.drawn && /^Drawn: \w+\. In the last 10 draws: /.test(result.said), result);
+        },
+      },
+      {
+        name: 'plate-5-dial',
+        only: 'desktop',
+        motion: 'normal',
+        run: async (p, ctx) => {
+          await goTo(5, 0.95)(p);
+          const box = await p.locator('.dial__face').boundingBox();
+          if (!box) return;
+          const cx = box.x + box.width / 2;
+          const cy = box.y + box.height / 2;
+          await p.mouse.move(cx, cy - box.height * 0.35);
+          await p.mouse.down();
+          for (let a = 0; a <= 60; a += 10) {
+            const r = (a * Math.PI) / 180;
+            await p.mouse.move(cx + Math.sin(r) * box.height * 0.35, cy - Math.cos(r) * box.height * 0.35);
+          }
+          await p.mouse.up();
+          await p.waitForTimeout(1200);
+          const value = await p.evaluate(() => Number(document.querySelector('#temperature').value));
+          ctx.check('the dial turns by hand and moves the temperature with it', value > 1.2 && Math.abs(value * 20 - Math.round(value * 20)) < 1e-6, { value });
+        },
+        after: async (p, ctx) => {
+          await toTemperature(p, ctx, '1');
+          await p.mouse.move(5, 5);
+        },
+      },
+      {
+        name: 'plate-5-loupe',
+        only: 'desktop',
+        run: async (p, ctx) => {
+          await goTo(5, 0.95)(p);
+          const box = await p.locator('.weigh-likelihood').first().boundingBox();
+          if (!box) return;
+          await p.mouse.move(box.x - 30, box.y + 30);
+          await p.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 8 });
+          await p.waitForTimeout(450);
+          const scores = await p.evaluate(() => [...document.querySelectorAll('.weigh-field .machine__score')].map((s) => s.textContent));
+          ctx.check('under the loupe, the scores before weighing', scores[0] === '6.1' && scores.length === 7, { scores });
+        },
+        after: (p) => p.mouse.move(5, 5),
+      },
+      {
+        name: 'plate-5-small',
+        run: async (p, ctx) => {
+          await p.evaluate(() => window.__atlas.setVariant('small'));
+          await goTo(5, 0.95)(p);
+          await p.waitForTimeout(400);
+          const result = await p.evaluate(() => ({
+            first: document.querySelector('.weigh-name').textContent,
+            ticker: document.querySelector('.weigh-likelihood').textContent,
+            note: !document.querySelector('.weigh-variant-note').hidden,
+          }));
+          ctx.check('in the variant suit is the favourite, and the note says why', result.first === 'suit' && result.ticker === '91.7%' && result.note, result);
+        },
+        after: (p) => p.evaluate(() => window.__atlas.setVariant('big')),
+      },
+      {
+        name: 'plate-5-machine-view',
+        run: async (p) => {
+          await goTo(5, 0.95)(p);
+          await p.locator('.weigh-field .loupe-toggle').click();
+        },
+        after: (p) => p.locator('.weigh-field .loupe-toggle').click(),
+      },
+      { name: 'plate-6-approach', motion: 'normal', gl: true, run: goTo(6, -0.4) },
+      { name: 'plate-6-loop', motion: 'normal', run: goTo(6, 0.16) },
+      { name: 'plate-6-trophy', motion: 'normal', gl: true, run: goTo(6, 0.4) },
+      { name: 'plate-6-before-end', motion: 'normal', run: goTo(6, 0.63) },
+      {
+        name: 'plate-6',
+        run: async (p, ctx) => {
+          await goTo(6, 0.95)(p);
+          await p.waitForTimeout(ctx.motion === 'reduce' ? 300 : 4000);
+          const result = await p.evaluate(() => ({
+            toned: document.querySelector('.stick-field').classList.contains('is-toned'),
+            answer: document.querySelector('.stick__answer').textContent,
+            shown: Number(getComputedStyle(document.querySelector('.stick__answer')).opacity),
+            sorts: document.querySelectorAll('.stick .sort').length,
+          }));
+          ctx.check('the reply is set, the end mark stops it, and the plate tones to its answer', result.toned && result.answer === 'The trophy.' && result.shown > 0.9 && result.sorts === 4, result);
+        },
+      },
+      {
+        name: 'plate-6-untoned',
+        motion: 'normal',
+        run: async (p, ctx) => {
+          await goTo(6, 0.45)(p);
+          await p.waitForTimeout(1100);
+          const toned = await p.evaluate(() => document.querySelector('.stick-field').classList.contains('is-toned'));
+          ctx.check('scrolling back above the end mark un-tones the plate', !toned, { toned });
+        },
+      },
+      {
+        name: 'plate-6-small',
+        run: async (p, ctx) => {
+          await p.evaluate(() => window.__atlas.setVariant('small'));
+          await goTo(6, 0.95)(p);
+          await p.waitForTimeout(ctx.motion === 'reduce' ? 300 : 4000);
+          const result = await p.evaluate(() => ({
+            answer: document.querySelector('.stick__answer').textContent,
+            sorts: document.querySelectorAll('.stick .sort').length,
+            ids: [...document.querySelectorAll('[data-reply] td')].length,
+          }));
+          ctx.check('the variant takes one more loop and answers the suitcase', result.answer === 'The suitcase.' && result.sorts === 5 && result.ids === 5, result);
+        },
+        after: (p) => p.evaluate(() => window.__atlas.setVariant('big')),
+      },
+      {
+        name: 'plate-6-machine-view',
+        run: async (p) => {
+          await goTo(6, 0.95)(p);
+          await p.waitForTimeout(300);
+          await p.locator('.stick-field .loupe-toggle').click();
+        },
+        after: (p) => p.locator('.stick-field .loupe-toggle').click(),
+      },
+      {
+        // The index carries the reader to a plate as the list of plates does, keeping #small.
+        name: 'index-travel',
+        run: async (p, ctx) => {
+          await p.evaluate(() => window.__atlas.setVariant('small'));
+          await goTo('index')(p);
+          await p.locator('.index a', { hasText: 'temperature' }).click();
+          await p.waitForTimeout(ctx.motion === 'reduce' ? 300 : 2200);
+          const result = await p.evaluate(() => ({ focused: document.activeElement?.id, hash: location.hash }));
+          ctx.check('an index term carries the reader to its plate and keeps #small', result.focused === 'plate-5-title' && result.hash === '#small', result);
+        },
+        after: (p) => p.evaluate(() => window.__atlas.setVariant('big')),
+      },
       {
         name: 'endmatter',
         run: async (p, ctx) => {
@@ -512,6 +687,23 @@ const PAGES = [
     ],
   },
 ];
+
+/** On a phone Plate V's dial and lever sit below the card: go to them first. */
+async function toControls5(page, ctx) {
+  if (!ctx?.touch) return;
+  await scrollToSelector(page, '.weigh-instruments', -200);
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+}
+
+/** Set the temperature through its real input, as a keyboard or screen reader would. */
+async function toTemperature(page, ctx, value) {
+  await page.evaluate((v) => {
+    const input = document.querySelector('#temperature');
+    input.value = v;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }, value);
+  await page.waitForTimeout(ctx?.motion === 'reduce' ? 100 : 400);
+}
 
 /** On a phone Plate IV's switch and readers follow the pinned figure: go to them first. */
 async function toControls(page, ctx) {

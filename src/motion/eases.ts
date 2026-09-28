@@ -289,6 +289,55 @@ export const PLATE4 = {
   readerDraw: 0.35,           // …and the next reader's are drawn, with a fast pen
 } as const;
 
+/**
+ * Plate V. Approach values are fractions of the approach; pin values are vh within the
+ * 150vh pin, scaled with the pin on phones. Answers to the reader are in seconds.
+ */
+export const PLATE5 = {
+  approach: {
+    brush: [0, 0.5],
+    exposure: [0.3, 1],
+  },
+  pin: {
+    set: [0, 20],          // "The" is set into the first slot
+    rules: [10, 35],       // the card's rules and names, row by row
+    bars: [35, 105],       // each bar exposes to its length, its ticker fed out as it ends
+    note: [90, 110],
+    caption: [105, 120],
+  },
+  reweigh: 0.24,           // bars find their new lengths when the temperature moves
+  reset: 0.12,             // ticker numbers re-set, with no counting
+  needle: 0.18,            // the dial's needle follows the input
+  pull: 0.18,              // the lever is pulled…
+  release: 0.42,           // …and returns
+  drawnPin: 0.38,          // "Drawn: trophy" is pinned
+  tallyFade: 0.15,         // the oldest stroke goes when an eleventh draw arrives
+} as const;
+
+/**
+ * Plate VI. Pin values are vh within the 250vh pin (scaled on phones); each loop's beats
+ * are shares of that loop. Toning is time-based: a bath takes the time it takes.
+ */
+export const PLATE6 = {
+  approach: {
+    brush: [0, 0.5],
+    exposure: [0.3, 1],
+  },
+  pin: {
+    loops: [10, 160],      // the reply's pieces, one reading each
+    end: [160, 180],       // the fleuron drops in; no loop follows
+    toneAt: 180,           // crossing this tones the plate
+  },
+  loop: {
+    drop: [0, 0.25],       // the sort drops into the stick
+    arrow: [0.25, 0.6],    // the loop arrow draws back to the end of the sentence
+    append: [0.6, 0.7],    // a new slip joins the miniature row
+    rethread: [0.7, 0.95], // its threads run again in one quick sweep
+  },
+  untone: 0.8,             // s: scrolling back above the end un-tones
+  answerAt: 0.7,           // share of the toning at which the answer is printed
+} as const;
+
 /** The scale a pin starts from as it is pressed into the paper. */
 export const PIN_DROP = 1.6;
 

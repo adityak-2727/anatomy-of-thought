@@ -1047,6 +1047,337 @@ html:not(.js) .chart-field {
   font-size: var(--type-machine);
 }
 
+/* ─── Plate V: the weighing ──────────────────────────────────────────────────
+   A paper card of likelihoods lies on the field; its tickers hang off its right edge
+   onto the blue. Beside it, the temperature dial and the lever, both sensitised. */
+.weigh-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "reply reply"
+    "card instruments";
+  gap: var(--s-5) var(--s-6);
+  align-items: start;
+  padding: var(--s-6) var(--s-6) calc(var(--toggle-room) + var(--s-6));
+}
+
+.weigh-reply {
+  grid-area: reply;
+  display: flex;
+  gap: var(--s-2);
+  align-items: center;
+  margin: 0;
+  font-size: var(--type-slip);
+}
+
+.weigh-reply__set {
+  padding: 0.16em 0.3em 0.22em;
+}
+
+.weigh-reply__slot {
+  display: inline-block;
+  inline-size: 3.4em;
+  block-size: 1.5em;
+  border: var(--hairline) dashed var(--silhouette);
+}
+
+.weigh-card {
+  grid-area: card;
+  margin-inline-end: var(--ticker-hang);
+  padding: var(--s-3) var(--s-4) var(--s-4);
+  background: var(--paper);
+  color: var(--ink);
+  rotate: -0.3deg;
+}
+
+.weigh-table {
+  inline-size: 100%;
+  /* The names and the tally keep their widths; the bars take the rest. */
+  table-layout: fixed;
+  border-collapse: collapse;
+  border-block-start: 3px double var(--ink);
+}
+
+.weigh-row {
+  border-block-end: var(--hairline) solid var(--rule);
+}
+
+.weigh-col--name {
+  inline-size: 5.2em;
+}
+
+.weigh-col--tally {
+  inline-size: calc(var(--tally-w) + var(--s-2));
+}
+
+.weigh-name {
+  padding: var(--s-2) var(--s-3) var(--s-2) 0;
+  font-size: var(--type-slip);
+  font-weight: 400;
+  text-align: start;
+}
+
+.weigh-bar {
+  position: relative;
+  padding: 0 var(--s-2) 0 0;
+}
+
+.weigh-bar__strip {
+  display: block;
+  block-size: var(--bar-h);
+  background: var(--prussian);
+  transform-origin: left center;
+  /* A strip exposed with a brush: its far end is not quite square. */
+  clip-path: polygon(0 0, 98% 0, 100% 30%, 98.6% 58%, 100% 100%, 0 100%);
+}
+
+.weigh-tally {
+  padding-inline-start: var(--s-2);
+}
+
+.tally {
+  display: block;
+  inline-size: var(--tally-w);
+  block-size: 14px;
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: var(--hairline);
+  stroke-linecap: round;
+}
+
+.js .weigh-likelihood {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: calc(100% + var(--tally-w) + var(--s-4) + var(--s-4) + var(--s-2));
+  translate: 0 -50%;
+  padding: 1px 7px 2px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-numbers);
+  font-size: var(--type-machine);
+  line-height: 1;
+  clip-path: polygon(0 8%, 100% 0, 97% 50%, 100% 100%, 0 94%, 2.5% 50%);
+}
+
+.weigh-instruments {
+  grid-area: instruments;
+  display: grid;
+  justify-items: center;
+  gap: var(--s-4);
+}
+
+.dial {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: var(--s-1);
+}
+
+.dial__label {
+  font-size: var(--type-field-label);
+  font-style: italic;
+}
+
+.dial__input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dial__face {
+  inline-size: var(--dial-size);
+  block-size: var(--dial-size);
+  border-radius: 50%;
+  touch-action: none;
+}
+
+.dial__input:focus-visible ~ .dial__face {
+  outline: var(--line-strong) solid var(--focus);
+  outline-offset: 3px;
+}
+
+.dial__art {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: visible;
+}
+
+.dial__rim {
+  fill: var(--sensitiser-deep);
+}
+
+.dial__face-disc {
+  fill: var(--sensitiser);
+}
+
+.dial__ticks {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: var(--hairline);
+}
+
+.dial__needle path,
+.dial__needle circle {
+  fill: var(--ink);
+}
+
+
+
+/* On the sensitised face, not on the blue; read at the dial's own scale. */
+.dial__end {
+  fill: var(--ink);
+  font-family: var(--font-words);
+  font-size: var(--type-dial);
+  font-style: italic;
+}
+
+.dial__value {
+  font-size: var(--type-machine);
+}
+
+.lever {
+  gap: var(--s-2);
+}
+
+.lever__art {
+  display: inline-flex;
+  flex: none;
+}
+
+.lever__mark {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: var(--line-strong);
+  stroke-linecap: round;
+  overflow: visible;
+}
+
+.lever__handle circle,
+.lever__pivot {
+  fill: var(--ink);
+  stroke: none;
+}
+
+.drawn {
+  margin: 0;
+  font-size: var(--type-slip);
+}
+
+.drawn__slip {
+  position: relative;
+  padding: 0.2em 0.5em 0.24em;
+}
+
+.drawn__slip .pin {
+  position: absolute;
+  inset-block-start: 3px;
+  inset-inline-start: 3px;
+}
+
+.weigh-field .loupe-toggle {
+  position: absolute;
+  inset-inline-end: var(--s-5);
+  inset-block-end: var(--s-5);
+}
+
+.machine__score {
+  position: absolute;
+  font-size: var(--type-machine);
+}
+
+.machine__weigh-note {
+  position: absolute;
+  inset-inline-start: calc(var(--field-bleed) + var(--s-6));
+  inset-block-end: calc(var(--field-bleed) + var(--s-5));
+  margin: 0;
+}
+
+html:not(.js) .weigh-instruments,
+html:not(.js) .weigh-bar__strip,
+html:not(.js) .weigh-reply__slot {
+  display: none;
+}
+
+/* ─── Plate VI: the composing stick ──────────────────────────────────────────
+   The stick in elevation, in paper line; the sorts are paper blocks with the piece in ink.
+   Toned, paper becomes cream and the field umber; the answer is printed in cream. */
+.stick-field {
+  padding: var(--s-5) var(--s-5) calc(var(--toggle-room) + var(--s-6));
+}
+
+.stick {
+  position: relative;
+  block-size: clamp(280px, 40svh, 360px);
+}
+
+.stick__art {
+  display: block;
+  overflow: visible;
+}
+
+.mini-slip {
+  fill: var(--silhouette);
+}
+
+.mini-thread,
+.stick__arrow,
+.stick__line {
+  fill: none;
+  stroke: var(--silhouette);
+  stroke-width: var(--hairline);
+  stroke-linecap: round;
+}
+
+.stick__line {
+  stroke-width: var(--line-strong);
+}
+
+.sort__body {
+  fill: var(--silhouette);
+  stroke: var(--silhouette);
+  stroke-width: var(--hairline);
+}
+
+.sort__shoulder,
+.sort__nick,
+.sort__blank {
+  fill: none;
+  stroke: var(--rule);
+  stroke-width: var(--hairline);
+}
+
+.sort__face {
+  fill: var(--ink);
+  font-family: var(--font-words);
+  font-size: var(--type-slip);
+}
+
+.sort__fleuron {
+  fill: var(--ink);
+  stroke: var(--ink);
+  stroke-width: var(--hairline);
+}
+
+.stick__answer {
+  margin: var(--s-4) 0 0;
+  color: var(--tone-cream);
+  font-size: var(--type-plate-title);
+  line-height: var(--lh-plate-title);
+  text-align: center;
+}
+
+html:not(.js) .stick__answer {
+  color: var(--ink);
+}
+
+.stick-field .loupe-toggle {
+  position: absolute;
+  inset-inline-end: var(--s-5);
+  inset-block-end: var(--s-5);
+}
+
 /* ─── The colophon and the index ──────────────────────────────────────────── */
 
 .endmatter {
@@ -1206,5 +1537,37 @@ html:not(.js) .chart-field {
 @media (min-width: 1100px) and (min-height: 700px) {
   .threads__captions {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* On a phone the card takes the width, and the dial and lever sit side by side beneath it. */
+@media (max-width: 767px) {
+  .weigh-field {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "reply"
+      "card"
+      "instruments";
+    padding-inline: var(--s-4);
+  }
+
+  .weigh-card {
+    padding-inline: var(--s-3);
+  }
+
+  /* The dial on the left; the lever, and what it drew, stacked beside it. */
+  .weigh-instruments {
+    grid-template-columns: auto 1fr;
+    justify-items: start;
+    align-items: center;
+    column-gap: var(--s-5);
+  }
+
+  .weigh-instruments .dial {
+    grid-row: 1 / span 2;
+  }
+
+  .weigh-col--name {
+    inline-size: 4em;
   }
 }

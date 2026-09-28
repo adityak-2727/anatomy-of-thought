@@ -15,6 +15,8 @@ const LOADERS: Record<number, () => Promise<PlateModule>> = {
   2: () => import('./plate2-dissection'),
   3: () => import('./plate3-chart'),
   4: () => import('./plate4-threads'),
+  5: () => import('./plate5-weighing'),
+  6: () => import('./plate6-composing'),
 };
 
 const loaded = new Map<number, PlateModule>();

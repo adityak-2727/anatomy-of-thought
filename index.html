@@ -352,22 +352,98 @@
       </div>
     </section>
 
-    <section class="page plate plate--odd" id="plate-5" aria-labelledby="plate-5-title">
+    <section class="page plate plate--odd plate--five" id="plate-5" aria-labelledby="plate-5-title">
       <div class="grid plate__frame">
         <div class="plate__text">
           <h2 id="plate-5-title" class="plate__title" tabindex="-1"><span class="plate__number">Plate V</span> The weighing</h2>
           <p class="plate__intro">Now the machine must answer, one piece at a time. It gives every piece it knows a score, turns the scores into likelihoods, and chooses.</p>
           <p class="plate__note">Turn it down and the machine always takes the favourite. Turn it up and it grows adventurous, and sometimes wrong.</p>
+          <p class="plate__note weigh-variant-note" hidden>Here the favourite is suit, half a word. The machine is content to build a word in pieces; case comes next.</p>
+        </div>
+        <div class="plate__figure">
+          <figure class="plate__pinned">
+            <div class="field plate__field weigh-field" data-loupe data-field-name="Plate V">
+              <p class="weigh-reply"><span class="visually-hidden">The reply so far: </span><span class="slip weigh-reply__set">The</span><span class="weigh-reply__slot" aria-hidden="true"></span></p>
+              <div class="weigh-card">
+                <table class="weigh-table">
+                  <caption class="visually-hidden">What might follow “The”: the seven likeliest pieces, their likelihoods, and the last ten draws</caption>
+                  <colgroup><col class="weigh-col weigh-col--name"><col class="weigh-col"><col class="weigh-col weigh-col--tally"></colgroup>
+                  <thead class="visually-hidden"><tr><th scope="col">Piece</th><th scope="col">Likelihood</th><th scope="col">Last ten draws</th></tr></thead>
+                  <tbody>
+                  <tr class="weigh-row"><th scope="row" class="weigh-name">trophy</th><td class="weigh-bar"><span class="weigh-bar__strip" aria-hidden="true"></span><span class="weigh-likelihood" data-likelihood>92.5%</span></td><td class="weigh-tally"></td></tr>
+                  <tr class="weigh-row"><th scope="row" class="weigh-name">suit</th><td class="weigh-bar"><span class="weigh-bar__strip" aria-hidden="true"></span><span class="weigh-likelihood" data-likelihood>5.1%</span></td><td class="weigh-tally"></td></tr>
+                  <tr class="weigh-row"><th scope="row" class="weigh-name">cup</th><td class="weigh-bar"><span class="weigh-bar__strip" aria-hidden="true"></span><span class="weigh-likelihood" data-likelihood>0.8%</span></td><td class="weigh-tally"></td></tr>
+                  <tr class="weigh-row"><th scope="row" class="weigh-name">prize</th><td class="weigh-bar"><span class="weigh-bar__strip" aria-hidden="true"></span><span class="weigh-likelihood" data-likelihood>0.6%</span></td><td class="weigh-tally"></td></tr>
+                  <tr class="weigh-row"><th scope="row" class="weigh-name">bag</th><td class="weigh-bar"><span class="weigh-bar__strip" aria-hidden="true"></span><span class="weigh-likelihood" data-likelihood>0.4%</span></td><td class="weigh-tally"></td></tr>
+                  <tr class="weigh-row"><th scope="row" class="weigh-name">box</th><td class="weigh-bar"><span class="weigh-bar__strip" aria-hidden="true"></span><span class="weigh-likelihood" data-likelihood>0.3%</span></td><td class="weigh-tally"></td></tr>
+                  <tr class="weigh-row"><th scope="row" class="weigh-name">medal</th><td class="weigh-bar"><span class="weigh-bar__strip" aria-hidden="true"></span><span class="weigh-likelihood" data-likelihood>0.3%</span></td><td class="weigh-tally"></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="weigh-instruments">
+                <div class="dial">
+                  <label class="dial__label" for="temperature">Temperature</label>
+                  <input class="dial__input" type="range" id="temperature" min="0" max="2" step="0.05" value="1">
+                  <div class="dial__face" aria-hidden="true"></div>
+                  <output class="dial__value t-machine" for="temperature">1.00</output>
+                </div>
+                <button type="button" class="sens lever"><span class="lever__art" aria-hidden="true"></span><span class="sens__label">Draw a piece</span></button>
+                <p class="drawn" hidden><span class="slip drawn__slip">Drawn: <span data-drawn>trophy</span></span></p>
+              </div>
+              <button type="button" class="sens loupe-toggle" data-show="Show the machine’s view" data-hide="Hide the machine’s view"><span class="sens__label">Show the machine’s view</span></button>
+              <div class="machine" aria-hidden="true"></div>
+            </div>
+            <figcaption class="plate__caption">Fig. 5. The seven likeliest next pieces. Scores illustrative; a real model scores every piece it knows.</figcaption>
+          </figure>
+          <div class="visually-hidden">
+            <table class="machine-text">
+              <caption>The machine’s view of Fig. 5: the scores before weighing</caption>
+              <thead><tr><th scope="col">Piece</th><th scope="col">Score</th></tr></thead>
+              <tbody data-scores>
+                <tr><th scope="row">trophy</th><td data-score>6.1</td></tr>
+                <tr><th scope="row">suit</th><td data-score>3.2</td></tr>
+                <tr><th scope="row">cup</th><td data-score>1.4</td></tr>
+                <tr><th scope="row">prize</th><td data-score>1.0</td></tr>
+                <tr><th scope="row">bag</th><td data-score>0.6</td></tr>
+                <tr><th scope="row">box</th><td data-score>0.5</td></tr>
+                <tr><th scope="row">medal</th><td data-score>0.4</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="visually-hidden draw-status" role="status" aria-live="polite"></p>
         </div>
       </div>
     </section>
 
-    <section class="page plate plate--even" id="plate-6" aria-labelledby="plate-6-title">
+    <section class="page plate plate--even plate--six" id="plate-6" aria-labelledby="plate-6-title">
       <div class="grid plate__frame">
         <div class="plate__text">
           <h2 id="plate-6-title" class="plate__title" tabindex="-1"><span class="plate__number">Plate VI</span> The composing stick</h2>
           <p class="plate__intro">Each chosen piece is added to the end, and the whole reading runs again to choose the next. It stops when the likeliest next piece is the end.</p>
           <p class="plate__note">Four pieces, four full readings. Five for suitcase.</p>
+        </div>
+        <div class="plate__figure">
+          <figure class="plate__pinned">
+            <div class="field plate__field stick-field" data-loupe data-field-name="Plate VI">
+              <div class="stick" role="img" aria-label="A composing stick holding the reply: The, trophy, a full stop, and the end mark."></div>
+              <p class="stick__answer" data-big="The trophy." data-small="The suitcase.">The trophy.</p>
+              <button type="button" class="sens loupe-toggle" data-show="Show the machine’s view" data-hide="Hide the machine’s view"><span class="sens__label">Show the machine’s view</span></button>
+              <div class="machine" aria-hidden="true"></div>
+            </div>
+            <figcaption class="plate__caption">Fig. 6. The reply, set one piece at a time.</figcaption>
+          </figure>
+          <div class="visually-hidden">
+            <table class="machine-text">
+              <caption>The machine’s view of Fig. 6: the reply’s pieces and their numbers</caption>
+              <thead><tr><th scope="col">Piece</th><th scope="col">ID</th></tr></thead>
+              <tbody data-reply>
+                <tr><th scope="row">The</th><td data-reply-id>24236</td></tr>
+                <tr><th scope="row">space, trophy</th><td data-reply-id>11909</td></tr>
+                <tr><th scope="row">full stop</th><td data-reply-id>68873</td></tr>
+                <tr><th scope="row">the end mark</th><td data-reply-id>77126</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>

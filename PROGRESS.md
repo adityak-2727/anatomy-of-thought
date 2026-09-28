@@ -1,5 +1,59 @@
 # Progress
 
+## Phase 6: Plates V and VI, the colophon and the index (28 September 2026)
+
+### Done
+- **The answer's scores and the softmax** (`src/data/specimen.ts`, `src/lib/softmax.ts`): the brief's seven candidates for each variant; a real softmax with the largest score subtracted first, the favourite alone at T ≤ 0.05, sampling by the cumulative likelihoods, and percentages to one place. At T = 1 trophy comes out at 92.5%; in the variant, suit at 91.7%.
+- **Tests (13 new, 106 in all):** the softmax sums to 1 at every temperature; trophy at 92.5%; one-hot at 0.05 and below; warmer is more adventurous; finite with huge scores; suit the favourite in the variant; sampling by cumulative likelihood and always the favourite when cold. The page: the likelihoods written for readers without JavaScript match the softmax at T = 1; the scores and the reply's IDs in the machine's tables match the data; every candidate is a piece the chart knows.
+- **Plate V, The weighing** (`plate5-weighing.ts`, `weighing/dial.ts`), a 6.5 KB gzipped chunk, pinned for 150vh (90vh on a phone):
+  - “The” is set into the reply's first slot, with a blank slot beside it. The ruled card's rows are set one by one; each bar exposes to its likelihood, taking time in proportion to its length, and its number feeds out on a ticker hanging off the card's edge.
+  - The temperature is a real range input (0 to 2 in steps of 0.05, “cool” and “hot” on the dial, its value written beside it and announced with a word). The drawn dial mirrors it and can be turned by hand, carried a little way by inertia and snapped to a step. The bars re-weigh from the live softmax, the tickers re-set, the needle follows.
+  - “Draw a piece”: the lever is pulled and returns, the piece drawn from the likelihoods as they stand is pinned on a slip (“Drawn: trophy”), one tally stroke is drawn in its row (the last ten draws; the oldest goes), and a polite live region says, for example, “Drawn: trophy. In the last 10 draws: trophy 9, suit 1.”
+  - Under the loupe, the raw scores, with “Under the loupe, the scores before weighing.”
+  - In the variant the rows re-set with suit first, and the variant note appears.
+- **Plate VI, The composing stick** (`plate6-composing.ts`, `composing/stick.ts`), a 3.7 KB gzipped chunk, pinned for 250vh (150vh on a phone):
+  - The stick in elevation, in paper line; above it, the specimen as a miniature row of slips.
+  - One loop per chosen piece: its sort drops into the stick (pressed, with the 1px recoil); a loop arrow draws back to the end of the row; a new slip joins the row; the reading's threads run over it once, quickly.
+  - After “The”, “trophy” and the full stop, the fleuron end mark drops in and no loop follows. The variant takes one more loop (The, suit, case, full stop).
+  - Once the end mark is set, the plate tones in time (3.2s): the field's bath turns the blue umber from the centre out, paper turns cream in step, and the answer is printed large in cream, “The trophy.” or “The suitcase.”. Scrolling back above the end mark un-tones it in 0.8s.
+  - Under the loupe, each sort's piece and its number; the same, end mark included, as a table after the figure.
+- **The index** now carries the reader to a plate as the list of plates does, focusing its heading and leaving `#small` in the address.
+- **Shots:** checkpoints for both plates (approach, weighing, rest, cool and hot, twelve draws, the dial by hand, the loupe, the variant, the machine's view; the loops, the end, the toning, un-toning, the variant's extra loop) and the index, each with a behaviour check.
+
+### Verification (run at the end of this phase)
+- `npm run build`: zero TypeScript errors. The first-screen JS is 72.6 KB gzipped (budget about 180); Plate V is 6.5 KB and Plate VI 3.7 KB gzipped.
+- `npm test`: 106 of 106 pass.
+- `npm run shots`: 356 screenshots, 0 axe violations, 0 console errors or warnings, and 152 of 152 behaviour checks, across both viewports and the normal, reduced-motion and no-WebGL passes. One change followed (the still Plate VI no longer shows the readings' sweeps); Plate VI was re-shot under reduced motion on both viewports, clean.
+
+### Decisions and why
+- **The dial is turned by pointer events, with InertiaPlugin for the throw, not by Draggable.** I measured it: inside ScrollTrigger's pin (position: fixed), Draggable's rotation mode takes its origin in viewport coordinates and the pointer in page coordinates, so a 60° turn registered as −0.12°; released from the pin, the same turn read 60°. The dial now measures the turn against its own centre on screen; InertiaPlugin still carries it a little way and snaps it to a step.
+- **The real control is the range input,** visually hidden but focused like any slider, its focus ring drawn round the dial; its value is written beside the dial and announced with a word (“1.00, neutral”).
+- **The likelihoods are real table cells in the page,** tested against the softmax, so the plate reads without JavaScript; with it, they become tickers.
+- **Toning is in time; the story is in scroll.** The bath begins when the end mark is set and takes its 3.2 seconds; scrolling back above the end mark un-tones it in 0.8s.
+- **Paper becomes cream and ink stays ink.** The sorts' faces and the fleuron keep their colour in the bath; the stick, the slips, the arrows and the threads tone with the field, from the centre out.
+- **The index travels** like the list of plates rather than following its anchors, so `#small` survives it.
+- **The Plate VI checkpoint before the end mark** is taken just before the note and caption begin to develop; axe caught them half-developed at the moment of the end mark. Nothing is exempted from axe.
+
+### Screenshot critique
+
+**What works**
+1. **Plate V reads like an instrument panel on a specimen table:** a ruled card, exposed bars, tickers off its edge, a sensitised dial and lever, and a hand tally that makes the randomness visible.
+2. **The temperature does what the note says:** cool, trophy takes 100.0%; hot, it falls to 62.9% and suit, cup and prize rise.
+3. **Plate VI ends the atlas as a print:** the reply set in metal, one loop arrow per reading, and the whole plate toned to umber and cream around “The trophy.”.
+
+**What looked off (fixed, then re-shot)**
+1. **Plate VI's sorts sat by the miniature row, not in the stick:** GSAP's `y` on an SVG group replaces the group's own `translate`. *Fixed:* an outer group holds each sort's place.
+2. **The dial could not be turned while the plate was pinned** (above). *Fixed.* Its throw then carried it all the way to hot; *fixed* with resistance, so it carries a little.
+3. **On a phone:** “Drawn: trophy” ran off the field, the bars had 42px to grow in, and the lever's drawing shrank to a sliver. *Fixed:* the lever and its slip stack beside the dial; the card's columns have set widths and the field's padding narrows; the lever keeps its size. On desktop, “hot” was crossed by the needle at full heat; *fixed:* “cool” and “hot” sit either side of the bottom of the face.
+
+Also caught under reduced motion: the still Plate VI showed every reading's sweep at once. Fixed: it now shows what the sequence leaves behind.
+
+### Known issues and watch list
+- **The phone's likelihood bars are narrow** (about 88px for the whole range), so the smallest bars are ticks; the tickers carry the numbers.
+- **The miniature row's threads are illustrative sweeps,** not the attention rows of the reply's pieces.
+- **Real GPU cost is still unmeasured** on real hardware (see earlier phases).
+- **The harness's `goTo` can land before a plate has settled** when a checkpoint runs alone (Phase 5); left for Phase 7.
+
 ## Phase 5: Plate IV, The threads of attention (28 September 2026)
 
 ### Done

@@ -46,6 +46,8 @@
   /* Seen only through the loupe, which magnifies 1.4×: 13px reads as 18px, 16px as 22px. */
   --type-lens: 0.8125rem;
   --type-lens-numbers: 1rem;
+  /* On the temperature dial's face, drawn at 1.25× its viewBox on a wide screen: 13 units read as 16px. */
+  --type-dial: 13px;
 
   --lh-title: 1;
   --lh-subtitle: 1.35;
@@ -118,6 +120,17 @@
   --inset-w: 250px;          /* Fig. 4b, inside the field */
   --inset-h: 140px;
 
+  /* Plate V: the weighing. */
+  --bar-h: 11px;             /* an exposed likelihood strip */
+  --ticker-hang: 76px;       /* room past the card's edge for the tickers */
+  --tally-w: 56px;           /* the last ten draws, in strokes */
+  --dial-size: 150px;
+
+  /* Plate VI: the composing stick. */
+  --sort-h: 46px;            /* a metal sort, in elevation */
+  --sort-drop: 70px;         /* how far a sort falls into the stick */
+  --mini-slip: 11px;         /* a slip in the miniature row */
+
   /* CSS timings for small responses. Story motion lives in eases.ts. */
   --dur-respond-fast: 120ms;
   --dur-respond: 160ms;
@@ -151,5 +164,7 @@
     --chart-band: 104px;       /* The Uncharted above the toggle, not beside it */
     --inset-w: 150px;
     --inset-h: 112px;
+    --dial-size: 124px;
+    --ticker-hang: 60px;
   }
 }

@@ -594,6 +594,8 @@ Desktop (odd plate: text left):
 
 Phone: the card is full width. The dial and lever sit side by side under the card, and the tally stays on the card.
 
+**As built (Phase 6).** As drawn. The likelihoods are written into the card's table (the no-JS form, tested against the softmax); with JavaScript the numbers become tickers hanging off the card's edge. The lever is a sensitiser control with a small drawn lever in it; “Drawn: trophy” is a pinned slip beneath it. The variant note appears only when the variant is small.
+
 ### Plate VI. The composing stick
 
 Desktop (even plate: field left):
@@ -625,6 +627,8 @@ Desktop (even plate: field left):
 ```
 
 Phone: the stick spans the field width, the mini row sits above it, and the answer below.
+
+**As built (Phase 6).** Each sort sits in an outer group that holds its place in the stick, so the sort itself can fall into it (GSAP's `y` on an SVG group replaces that group's own `translate`). The end mark's sort carries a drawn fleuron. The answer is real text in the page (the no-JS form), printed in cream once the plate tones. The reply's pieces and IDs are a table after the figure.
 
 ### Colophon and index
 
@@ -804,6 +808,8 @@ For big, four loops of about 50vh. For small, five loops, compressed to about 40
 | Pin 200–250vh | Rest | — | — |
 
 **Toning is time-based.** A bath takes the time it takes, and the reader has reached the end. Scrolling back above the trigger un-tones in 0.8s, because toning belongs to the story state (the end mark). Field exposure, by contrast, only ever increases (§8.4).
+
+*As built (Phase 6):* toning tweens the field's `tone` uniform (the shader's radial bath) and, on the SVG, paper fills and strokes to cream with delays in proportion to each element's distance from the centre; ink (the sorts' faces, the fleuron) stays ink. The answer is printed at 70% of the bath.
 
 ### Colophon and index
 
@@ -1079,6 +1085,7 @@ Measured cost is not yet known on real hardware. The software renderer used for 
 **Plate V**
 - Bars are SVG paths with a seeded brushed end. Their extent is an SVG attribute animated by GSAP.
 - The dial is SVG with Draggable (`type: 'rotation'`, bounds −135° to +135° mapped to T 0 to 2, inertia). It writes to a real `<input type="range" min="0" max="2" step="0.05">` and dispatches `input`.
+  - *As built (Phase 6):* the turn is measured from pointer events against the dial's centre on screen, and InertiaPlugin carries the throw and snaps it to a 0.05 step. Draggable's rotation mode was tried and measured: inside ScrollTrigger's pin (position: fixed) it takes its rotation origin in viewport coordinates and the pointer in page coordinates, so a 60° turn registered as −0.12°; released from the pin, the same turn read 60°. Plate V therefore loads InertiaPlugin but not Draggable.
   - The input is visually hidden but focusable, and its focus ring is drawn around the dial through `:focus-visible` on a sibling.
   - Input changes rotate the dial unless a drag is in progress; a flag prevents feedback loops.
 - Sampling uses the cumulative distribution with `Math.random`, or with the seeded PRNG under `?shots`.
@@ -1235,6 +1242,8 @@ Every line of copy in the brief was checked against BRIEF §8’s list of safe c
   - “Show the machine’s view”, which becomes “Hide the machine’s view”.
   - “List the stars”, “yours” and “Skip to the plates”.
   - In the list of the stars: “An edge region, for pieces the chart doesn’t know.” under The Uncharted, then “Yours here: …” and “Your pieces on this chart: …” once the reader has a sentence. Punctuation is named in running text (full stop, comma, question mark).
+- **Plate V.** The dial's value is written beside it in League Gothic (“1.00”), and its input announces the value with a word (“1.00, neutral”; “0.30, cool”; “2.00, hottest”). The draw announcement follows the plan's form: “Drawn: trophy. In the last 10 draws: trophy 9, suit 1.”
+- **Plate VI’s table** names the end mark “the end mark”, with its own number, as the brief gives the reply an end mark.
 - **Plate V tally.** Hand tally strokes per row, counting the last ten draws. The brief’s “tally” is taken literally; this puts observed counts beside expected likelihoods on the same row.
 - **Plate IV in the variant.** Note 2 becomes “When small arrives, it looks back and ties it to suitcase.” and Fig. 4b’s “trophy” becomes “suitcase”, as §13 already says for the caption. The machine-text table follows the variant.
 - **Plate IV’s table** names each piece by its letter (a to t, as on Plate II), so the two “’s”, “too” and “big” pieces stay distinct: “n, big | b, trophy | 0.37”.

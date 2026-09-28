@@ -113,7 +113,8 @@ function dots(leader: Leader, width: number, gap: number, r: number, row: number
  * stretch, where it stands composed; in one column the pin begins with the figure
  * centred, below the heading, so the reader lands with the heading in view instead.
  */
-async function travel(target: HTMLElement): Promise<void> {
+/** Carry the reader to a plate and hand its heading focus. The index uses it too. */
+export async function travel(target: HTMLElement): Promise<void> {
   await loadAllPlates();
   const n = /^plate-(\d)$/.exec(target.id)?.[1];
   const range = n ? plate(Number(n))?.range() : null;

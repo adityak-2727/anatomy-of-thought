@@ -216,3 +216,117 @@ export function needleMark(seed: number, length = 44): SVGSVGElement {
   svgEl('path', { d: `M${lean.toFixed(2)},${-length + 3} L${(lean * 0.9).toFixed(2)},${-length + 10}`, class: 'needle__eye' }, svg);
   return svg;
 }
+
+/** The dial's sweep: from cool (T = 0) at −135° to hot (T = 2) at +135°, 0° pointing up. */
+export const DIAL_SWEEP = 135;
+
+/**
+ * The temperature dial, drawn as an instrument: a sensitised face, a ruled scale with
+ * longer ticks at 0, 1 and 2, "cool" and "hot" at its ends, and a needle about the centre.
+ * The needle is returned so it can be turned; it points up at T = 1.
+ */
+export function dialMark(seed: number, radius = 52): { svg: SVGSVGElement; needle: SVGGElement } {
+  const r = rngFor(seed, 'dial');
+  const size = radius * 2 + 16;
+  const svg = svgEl('svg', { class: 'dial__art', viewBox: `${-size / 2} ${-size / 2} ${size} ${size}`, width: size, height: size, 'aria-hidden': 'true', focusable: 'false' });
+  svgEl('circle', { r: radius, class: 'dial__rim' }, svg);
+  svgEl('circle', { r: radius - 3, class: 'dial__face-disc' }, svg);
+  let d = '';
+  for (let k = 0; k <= 20; k++) {
+    const a = ((-DIAL_SWEEP + (k / 20) * DIAL_SWEEP * 2) * Math.PI) / 180;
+    const long = k % 10 === 0;
+    const r1 = radius - 7;
+    const r0 = r1 - (long ? 9 : 4.5) - r() * 0.6;
+    d += `M${(Math.sin(a) * r0).toFixed(2)},${(-Math.cos(a) * r0).toFixed(2)} L${(Math.sin(a) * r1).toFixed(2)},${(-Math.cos(a) * r1).toFixed(2)} `;
+  }
+  svgEl('path', { d, class: 'dial__ticks' }, svg);
+  const end = (deg: number, text: string, anchor: string) => {
+    const a = (deg * Math.PI) / 180;
+    const t = svgEl('text', { x: (Math.sin(a) * (radius - 22)).toFixed(1), y: (-Math.cos(a) * (radius - 22) + 5).toFixed(1), class: 'dial__end', 'text-anchor': anchor }, svg);
+    t.textContent = text;
+  };
+  // "cool" and "hot" sit either side of the bottom of the face, below where the needle reaches.
+  end(-170, 'cool', 'end');
+  end(170, 'hot', 'start');
+  const needle = svgEl('g', { class: 'dial__needle' }, svg);
+  svgEl('path', { d: `M-1.6,6 L-0.5,${-(radius - 12)} L0.5,${-(radius - 12)} L1.6,6 Z` }, needle);
+  svgEl('circle', { r: 4.2 }, needle);
+  return { svg, needle };
+}
+
+/** A small lever on its pivot, drawn in ink; the handle is returned so it can be pulled. */
+export function leverMark(seed: number): { svg: SVGSVGElement; handle: SVGGElement } {
+  const r = rngFor(seed, 'lever');
+  const svg = svgEl('svg', { class: 'lever__mark', viewBox: '-14 -26 28 32', width: 22, height: 26, 'aria-hidden': 'true', focusable: 'false' });
+  svgEl('path', { d: 'M-10,4 L10,4', class: 'lever__base' }, svg);
+  const handle = svgEl('g', { class: 'lever__handle' }, svg);
+  const lean = 6 + r() * 2;
+  svgEl('path', { d: `M0,0 L${lean.toFixed(1)},-19` }, handle);
+  svgEl('circle', { cx: lean.toFixed(1), cy: -20, r: 3.2 }, handle);
+  svgEl('circle', { r: 2.2, class: 'lever__pivot' }, svg);
+  return { svg, handle };
+}
+
+/** Hand tally strokes for a count: fours bound by a diagonal fifth, each stroke a little off true. */
+export function tallyPaths(count: number, seed: number, height = 14, step = 5): string[] {
+  const r = rngFor(seed, `tally-${count}`);
+  const paths: string[] = [];
+  for (let k = 0; k < count; k++) {
+    const group = Math.floor(k / 5);
+    const within = k % 5;
+    const x0 = group * (step * 4 + 7);
+    const j = () => (r() - 0.5) * 0.9;
+    if (within < 4) {
+      const x = x0 + within * step;
+      paths.push(`M${(x + j()).toFixed(2)},${(1 + j()).toFixed(2)} L${(x + j()).toFixed(2)},${(height - 1 + j()).toFixed(2)}`);
+    } else {
+      paths.push(`M${(x0 - 2 + j()).toFixed(2)},${(height - 3 + j()).toFixed(2)} L${(x0 + step * 3 + 2 + j()).toFixed(2)},${(3 + j()).toFixed(2)}`);
+    }
+  }
+  return paths;
+}
+
+/**
+ * A metal sort in elevation: its body, the shoulder near the top, a nick on its front,
+ * and the piece in ink on its face. A piece that carries a leading space has a blank
+ * shoulder at its left, as the cut on Plate II left the space with the piece.
+ */
+export function sortMark(text: string, width: number, height: number, spaced: boolean, seed: number): SVGGElement {
+  const r = rngFor(seed, 'sort');
+  const g = svgEl('g', { class: 'sort' });
+  const lean = (r() - 0.5) * 0.6;
+  svgEl('path', { d: `M0,0 L${width},${lean.toFixed(2)} L${width},${height} L0,${height} Z`, class: 'sort__body' }, g);
+  svgEl('path', { d: `M1.5,${(height * 0.22).toFixed(1)} L${width - 1.5},${(height * 0.22 + lean).toFixed(1)}`, class: 'sort__shoulder' }, g);
+  svgEl('path', { d: `M1.5,${(height * 0.8).toFixed(1)} L${width - 1.5},${(height * 0.8).toFixed(1)}`, class: 'sort__nick' }, g);
+  const blank = spaced ? Math.min(12, width * 0.25) : 0;
+  if (blank) svgEl('path', { d: `M${blank.toFixed(1)},${(height * 0.22).toFixed(1)} L${blank.toFixed(1)},${(height * 0.8).toFixed(1)}`, class: 'sort__blank' }, g);
+  const t = svgEl('text', { x: (blank + (width - blank) / 2).toFixed(1), y: (height * 0.53).toFixed(1), class: 'sort__face', 'text-anchor': 'middle', 'dominant-baseline': 'central' }, g);
+  t.textContent = text;
+  return g;
+}
+
+/** The end mark: a small fleuron, a printer's leaf on its stem, set on its own sort. */
+export function fleuronPath(size: number): string {
+  const s = size / 20;
+  const p = (x: number, y: number) => `${(x * s).toFixed(2)},${(y * s).toFixed(2)}`;
+  return [
+    // The leaf: two curves meeting at the tip, with a vein.
+    `M${p(-7, 4)} C${p(-6, -6)} ${p(2, -9)} ${p(8, -8)} C${p(6, -2)} ${p(1, 5)} ${p(-7, 4)} Z`,
+    `M${p(-5, 2)} C${p(-1, -2)} ${p(3, -5)} ${p(6, -6.5)}`,
+    // The stem, curling back under the leaf.
+    `M${p(-7, 4)} C${p(-9, 7)} ${p(-5, 10)} ${p(-2, 8)}`,
+  ].join(' ');
+}
+
+/** The loop arrow: a curve from (x1, y1) up and back to (x2, y2), with a drawn head at its end. */
+export function loopArrow(x1: number, y1: number, x2: number, y2: number, lift: number): { line: string; head: string } {
+  const c1 = { x: x1 + lift * 0.35, y: Math.min(y1, y2) - lift };
+  const c2 = { x: x2 + lift * 0.5, y: y2 - lift * 0.2 };
+  const line = `M${x1.toFixed(1)},${y1.toFixed(1)} C${c1.x.toFixed(1)},${c1.y.toFixed(1)} ${c2.x.toFixed(1)},${c2.y.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}`;
+  // The head points along the last stretch of the curve.
+  const a = Math.atan2(y2 - c2.y, x2 - c2.x);
+  const h = 7;
+  const w = 0.45;
+  const head = `M${(x2 - Math.cos(a - w) * h).toFixed(1)},${(y2 - Math.sin(a - w) * h).toFixed(1)} L${x2.toFixed(1)},${y2.toFixed(1)} L${(x2 - Math.cos(a + w) * h).toFixed(1)},${(y2 - Math.sin(a + w) * h).toFixed(1)}`;
+  return { line, head };
+}
