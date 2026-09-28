@@ -15,7 +15,8 @@
     "keyboard": "node scripts/keyboard.mjs",
     "perf": "node scripts/perf.mjs",
     "proof": "node scripts/proof.mjs",
-    "lighthouse": "node scripts/lighthouse.mjs"
+    "lighthouse": "node scripts/lighthouse.mjs",
+    "readme-images": "node scripts/readme-images.mjs"
   },
   "dependencies": {
     "@fontsource/league-gothic": "5.3.0",

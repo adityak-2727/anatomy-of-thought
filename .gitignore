@@ -14,3 +14,4 @@ Thumbs.db
 
 # project notes and docs (kept locally, not in the repository)
 *.md
+!README.md
