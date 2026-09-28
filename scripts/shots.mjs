@@ -296,7 +296,133 @@ const PAGES = [
         },
         after: (p) => p.locator('.star-list__summary').click(),
       },
-      { name: 'endmatter', run: goTo('colophon') },
+      { name: 'plate-4-approach', motion: 'normal', gl: true, run: goTo(4, -0.4) },
+      { name: 'plate-4-reading', motion: 'normal', gl: true, run: goTo(4, 0.2) },
+      { name: 'plate-4-it', motion: 'normal', run: goTo(4, 0.45) },
+      { name: 'plate-4-big', motion: 'normal', run: goTo(4, 0.604) },
+      {
+        name: 'plate-4',
+        run: async (p, ctx) => {
+          await goTo(4, 0.95)(p);
+          const result = await p.evaluate(() => {
+            const shown = [...document.querySelectorAll('.thread-note')].filter((n) => Number(getComputedStyle(n).opacity) > 0.9).length;
+            const laid = [...document.querySelectorAll('.read-piece .slip')].filter((s) => Number(getComputedStyle(s).opacity) > 0.9).length;
+            const threads = document.querySelectorAll('.threads-field .threads:not(.threads--ghosts) .thread').length;
+            return { shown, laid, threads };
+          });
+          const notes = ctx.motion === 'reduce' ? result.shown === 3 : result.shown === 1;
+          ctx.check('the reading ends on the question mark, every piece laid and its threads drawn', notes && result.laid === 20 && result.threads > 0, result);
+        },
+      },
+      {
+        // Change big to small: the words, the threads, the inset, the caption, the address and the announcement.
+        name: 'plate-4-small',
+        run: async (p, ctx) => {
+          await goTo(4, 0.95)(p);
+          await toControls(p, ctx);
+          await p.locator('.variant-switch').click();
+          await p.waitForTimeout(ctx.motion === 'reduce' ? 300 : 900);
+          const result = await p.evaluate(() => ({
+            variant: window.__atlas.state().variant,
+            hash: location.hash,
+            label: document.querySelector('.variant-switch').textContent.trim(),
+            said: document.querySelector('.variant-status').textContent,
+            piece: document.querySelectorAll('.read-piece .slip')[13].textContent,
+            answer: document.querySelector('[data-answer]').textContent,
+            note: document.querySelectorAll('.thread-note')[1].textContent,
+            table: document.querySelectorAll('[data-strongest] tr')[13].children[1].textContent,
+          }));
+          await goTo(4, 0.95)(p);
+          const ok = result.variant === 'small' && result.hash === '#small' && result.label === 'Change small to big' &&
+            result.said === 'Now the suitcase is too small. The threads lead to suitcase.' && result.piece === 'small' &&
+            result.answer === 'suitcase' && result.note.includes('suitcase') && /suit|case/.test(result.table);
+          ctx.check('Change big to small re-sets the words, the threads, the inset and the address, and says so', ok, result);
+        },
+        after: async (p, ctx) => {
+          await toControls(p, ctx);
+          await p.locator('.variant-switch').click();
+          await goTo(4, 0.95)(p);
+        },
+      },
+      {
+        name: 'plate-4-back',
+        run: async (p, ctx) => {
+          await p.waitForTimeout(ctx.motion === 'reduce' ? 200 : 1900);
+          const result = await p.evaluate(() => ({
+            variant: window.__atlas.state().variant,
+            hash: location.hash,
+            said: document.querySelector('.variant-status').textContent,
+            ghosts: document.querySelectorAll('.threads--ghosts g').length,
+          }));
+          ctx.check('changing back leaves the address clean and says so', result.variant === 'big' && result.hash === '' && result.said === 'Now the trophy is too big. The threads lead to trophy.', result);
+        },
+      },
+      {
+        name: 'plate-4-reader-two',
+        run: async (p, ctx) => {
+          await goTo(4, 0.95)(p);
+          const before = await p.evaluate(() => [...document.querySelectorAll('.threads:not(.threads--ghosts) .thread')].map((t) => t.getAttribute('stroke-width')).join());
+          await toControls(p, ctx);
+          await p.locator('.readers input[value="1"]').check();
+          await p.waitForTimeout(700);
+          await goTo(4, 0.95)(p);
+          const after = await p.evaluate(() => [...document.querySelectorAll('.threads:not(.threads--ghosts) .thread')].map((t) => t.getAttribute('stroke-width')).join());
+          ctx.check('choosing a reader shows that reader’s threads', before !== after && after.length > 0, { changed: before !== after });
+        },
+        after: async (p, ctx) => {
+          await toControls(p, ctx);
+          await p.locator('.readers input[value="all"]').check();
+        },
+      },
+      {
+        name: 'plate-4-loupe',
+        only: 'desktop',
+        run: async (p, ctx) => {
+          await goTo(4, 0.95)(p);
+          const box = await p.locator('.threads__stage').boundingBox();
+          if (!box) return;
+          await p.mouse.move(box.x + box.width * 0.72, box.y + box.height * 0.45);
+          await p.mouse.move(box.x + box.width * 0.78, box.y + box.height * 0.52, { steps: 8 });
+          await p.waitForTimeout(450);
+          const weights = await p.evaluate(() => [...document.querySelectorAll('.threads-field .machine__weight')].map((w) => w.textContent));
+          ctx.check('under the loupe, the threads carry their weights as numbers', weights.length > 2 && weights.every((w) => /^\d\.\d\d$/.test(w)), { weights });
+        },
+        after: (p) => p.mouse.move(5, 5),
+      },
+      {
+        name: 'plate-4-machine-view',
+        run: async (p) => {
+          await goTo(4, 0.95)(p);
+          await p.locator('.threads-field .loupe-toggle').click();
+        },
+        after: (p) => p.locator('.threads-field .loupe-toggle').click(),
+      },
+      {
+        // #small in the address sets the variant, whether typed in or there on arrival.
+        name: 'plate-4-hash',
+        run: async (p, ctx) => {
+          const url = new URL(p.url());
+          url.hash = 'small';
+          await p.goto(url.toString());
+          const typed = await p.evaluate(() => window.__atlas.state().variant);
+          await p.reload();
+          await p.evaluate(() => window.__atlas.ready);
+          await goTo(4, 0.95)(p);
+          const loaded = await p.evaluate(() => ({ variant: window.__atlas.state().variant, label: document.querySelector('.variant-switch').textContent.trim(), piece: document.querySelectorAll('.read-piece .slip')[18].textContent }));
+          ctx.check('#small in the address sets the variant, typed in or on arrival', typed === 'small' && loaded.variant === 'small' && loaded.label === 'Change small to big' && loaded.piece === 'small', { typed, ...loaded });
+        },
+        after: (p) => p.evaluate(() => window.__atlas.setVariant('big')),
+      },
+      {
+        name: 'endmatter',
+        run: async (p, ctx) => {
+          await goTo('colophon')(p);
+          // Nothing may widen the page: on a phone that means sideways scrolling and a zoomed-out layout.
+          const result = await p.evaluate(() => ({ inner: innerWidth, scroll: document.documentElement.scrollWidth }));
+          const width = ctx.touch ? 390 : 1440;
+          ctx.check('nothing makes the page wider than the screen', result.inner === width && result.scroll <= width, result);
+        },
+      },
       {
         // A list entry carries the reader to the plate and hands its heading focus.
         name: 'list-travel',
@@ -386,6 +512,13 @@ const PAGES = [
     ],
   },
 ];
+
+/** On a phone Plate IV's switch and readers follow the pinned figure: go to them first. */
+async function toControls(page, ctx) {
+  if (!ctx?.touch) return;
+  await scrollToSelector(page, '.threads-controls', -160);
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+}
 
 /** Plate III, once its drawing (three.js or SVG) is in place. */
 function chartAt(progress) {
@@ -496,7 +629,7 @@ async function run() {
         // Frames caught mid-sequence skip axe (it takes a second, and the page is moving);
         // the same page is checked once it has settled.
         if (cp.noAxe) {
-          if (cp.after) await cp.after(page);
+          if (cp.after) await cp.after(page, ctx);
           continue;
         }
         const axe = new AxeBuilder({ page }).withTags(AXE_TAGS);
@@ -506,7 +639,7 @@ async function run() {
           report.violations.push({ shot: file, id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.map((n) => n.target.join(' ')).slice(0, 5) });
         }
         if (ctx.release) await ctx.release();
-        if (cp.after) await cp.after(page);
+        if (cp.after) await cp.after(page, ctx);
       }
       await context.close();
     }

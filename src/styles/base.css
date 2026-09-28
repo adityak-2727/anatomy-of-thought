@@ -19,6 +19,15 @@ body {
   margin: 0;
   min-block-size: 100vh;
   background: transparent;
+}
+
+/* Fields bleed past the page's edges. The page's sections clip that sideways, not the body:
+   a body's overflow passes to the viewport, and a phone would still zoom out to fit the bleed.
+   (Pinned plates and the lens are fixed, so no section clips them.) */
+.frontispiece,
+.contents,
+main,
+.endmatter {
   overflow-x: clip;
 }
 

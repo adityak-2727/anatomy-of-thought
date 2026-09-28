@@ -110,6 +110,14 @@
   --chart-ring: 1.2px;       /* a ring drawn round one of the reader's own pieces */
   --star-line: 0.8px;        /* the rays and rings of an engraved star symbol */
 
+  /* Plate IV: the reading row. */
+  --read-gap: 6px;           /* between pieces in the row */
+  --read-smile: 18px;        /* how far the row's ends rise above its middle */
+  --read-pitch: 28px;        /* between pieces when the row stands on end (a phone) */
+  --read-headroom: 170px;    /* above the row, for the longest thread's arc */
+  --inset-w: 250px;          /* Fig. 4b, inside the field */
+  --inset-h: 140px;
+
   /* CSS timings for small responses. Story motion lives in eases.ts. */
   --dur-respond-fast: 120ms;
   --dur-respond: 160ms;
@@ -141,5 +149,7 @@
     --cut-row-gap: 6px;
     --cut-strip-gap: 14px;
     --chart-band: 104px;       /* The Uncharted above the toggle, not beside it */
+    --inset-w: 150px;
+    --inset-h: 112px;
   }
 }

@@ -1,6 +1,6 @@
 // The atlas's shared state (BRIEF §7): the variant, and the reader's own sentence.
-// Tiny subscribe and notify; Plates III–VI read it. (The #small hash is read here;
-// Phase 5 adds the switch that writes it.)
+// Tiny subscribe and notify; Plates III–VI read it. The variant lives in the address bar
+// as #small, written with replaceState so the page never jumps.
 
 import type { Variant } from './data/specimen';
 
@@ -34,4 +34,16 @@ export function setState(patch: Partial<AtlasState>): void {
 export function subscribe(listener: Listener): () => void {
   listeners.add(listener);
   return () => listeners.delete(listener);
+}
+
+const readHash = (): Variant => (location.hash === '#small' ? 'small' : 'big');
+
+/** Keep #small in the address bar in step with the variant, and follow it if the reader edits it. */
+export function syncVariantWithAddress(): void {
+  subscribe((s, changed) => {
+    if (!changed.includes('variant') || readHash() === s.variant) return;
+    const url = s.variant === 'small' ? '#small' : location.pathname + location.search;
+    history.replaceState(history.state, '', url);
+  });
+  window.addEventListener('hashchange', () => setState({ variant: readHash() }));
 }

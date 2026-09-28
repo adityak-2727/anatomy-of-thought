@@ -10,9 +10,10 @@ import { loadAllPlates, plate } from './plates/registry';
 import { FRONT } from './motion/eases';
 import { prefersReduced } from './motion/reduced-motion';
 import { jumpToY } from './motion/scroll';
-import { getState } from './state';
+import { getState, setState, syncVariantWithAddress } from './state';
 
 const f = boot();
+syncVariantWithAddress();
 
 frontispiece.init(document.querySelector<HTMLElement>('.frontispiece')!);
 listOfPlates.init(document.querySelector<HTMLElement>('.contents')!);
@@ -60,6 +61,7 @@ if (import.meta.env.DEV || f.shots) {
     __atlas: {
       ready,
       state: getState,
+      setVariant: (variant: 'big' | 'small') => setState({ variant }),
       frontispiece: () => frontispiece.progress(),
       /**
        * Jump to a checkpoint. For a plate, progress runs 0–1 over its pinned stretch;

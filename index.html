@@ -55,16 +55,16 @@
           <p class="plate__intro">Here is our specimen, a small riddle. You probably solved it without noticing. The plates that follow show how a machine arrives at the same answer.</p>
           <p class="plate__note">It could mean the trophy or the suitcase. One word near the end decides which.</p>
         </div>
-        <figure class="plate__figure">
-          <div class="plate__pinned">
+        <div class="plate__figure">
+          <figure class="plate__pinned">
             <div class="field plate__field specimen-field" data-field-name="Plate I">
               <div class="specimen-slip">
                 <p class="slip slip--specimen">The trophy doesn’t fit in the suitcase because it’s too big. What’s too big?</p>
               </div>
             </div>
             <figcaption class="plate__caption">Fig. 1. The specimen, a riddle of the kind called a Winograd schema.</figcaption>
-          </div>
-        </figure>
+          </figure>
+        </div>
       </div>
     </section>
 
@@ -80,8 +80,8 @@
             <span data-hint-text>Hold the loupe over a figure to see what the machine sees.</span>
           </p>
         </div>
-        <figure class="plate__figure">
-          <div class="plate__pinned">
+        <div class="plate__figure">
+          <figure class="plate__pinned">
             <div class="field plate__field dissection-field" data-loupe data-field-name="Plate II">
               <div class="dissection__stage">
                 <ol class="dissection__pieces" aria-label="The specimen, in twenty pieces">
@@ -111,34 +111,36 @@
               <div class="machine" aria-hidden="true"></div>
             </div>
             <figcaption class="plate__caption">Fig. 2. The specimen divided into twenty pieces. Illustrative: every model cuts a little differently.</figcaption>
+          </figure>
+          <div class="visually-hidden">
+            <table class="machine-text">
+              <caption>The machine’s view of Fig. 2: each piece and its number</caption>
+              <thead><tr><th scope="col">Letter</th><th scope="col">Piece</th><th scope="col">ID</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">a</th><td>The</td><td data-id>24236</td></tr>
+                <tr><th scope="row">b</th><td>space, trophy</td><td data-id>11909</td></tr>
+                <tr><th scope="row">c</th><td>space, doesn</td><td data-id>38700</td></tr>
+                <tr><th scope="row">d</th><td>’t</td><td data-id>37210</td></tr>
+                <tr><th scope="row">e</th><td>space, fit</td><td data-id>16598</td></tr>
+                <tr><th scope="row">f</th><td>space, in</td><td data-id>7988</td></tr>
+                <tr><th scope="row">g</th><td>space, the</td><td data-id>67726</td></tr>
+                <tr><th scope="row">h</th><td>space, suit</td><td data-id>19110</td></tr>
+                <tr><th scope="row">i</th><td>case</td><td data-id>13425</td></tr>
+                <tr><th scope="row">j</th><td>space, because</td><td data-id>82569</td></tr>
+                <tr><th scope="row">k</th><td>space, it</td><td data-id>52078</td></tr>
+                <tr><th scope="row">l</th><td>’s</td><td data-id>20467</td></tr>
+                <tr><th scope="row">m</th><td>space, too</td><td data-id>63079</td></tr>
+                <tr><th scope="row">n</th><td>space, big</td><td data-id>94711</td></tr>
+                <tr><th scope="row">o</th><td>.</td><td data-id>68873</td></tr>
+                <tr><th scope="row">p</th><td>space, What</td><td data-id>58565</td></tr>
+                <tr><th scope="row">q</th><td>’s</td><td data-id>20467</td></tr>
+                <tr><th scope="row">r</th><td>space, too</td><td data-id>63079</td></tr>
+                <tr><th scope="row">s</th><td>space, big</td><td data-id>94711</td></tr>
+                <tr><th scope="row">t</th><td>?</td><td data-id>85058</td></tr>
+              </tbody>
+            </table>
           </div>
-          <table class="machine-text visually-hidden">
-            <caption>The machine’s view of Fig. 2: each piece and its number</caption>
-            <thead><tr><th scope="col">Letter</th><th scope="col">Piece</th><th scope="col">ID</th></tr></thead>
-            <tbody>
-              <tr><th scope="row">a</th><td>The</td><td data-id>24236</td></tr>
-              <tr><th scope="row">b</th><td>space, trophy</td><td data-id>11909</td></tr>
-              <tr><th scope="row">c</th><td>space, doesn</td><td data-id>38700</td></tr>
-              <tr><th scope="row">d</th><td>’t</td><td data-id>37210</td></tr>
-              <tr><th scope="row">e</th><td>space, fit</td><td data-id>16598</td></tr>
-              <tr><th scope="row">f</th><td>space, in</td><td data-id>7988</td></tr>
-              <tr><th scope="row">g</th><td>space, the</td><td data-id>67726</td></tr>
-              <tr><th scope="row">h</th><td>space, suit</td><td data-id>19110</td></tr>
-              <tr><th scope="row">i</th><td>case</td><td data-id>13425</td></tr>
-              <tr><th scope="row">j</th><td>space, because</td><td data-id>82569</td></tr>
-              <tr><th scope="row">k</th><td>space, it</td><td data-id>52078</td></tr>
-              <tr><th scope="row">l</th><td>’s</td><td data-id>20467</td></tr>
-              <tr><th scope="row">m</th><td>space, too</td><td data-id>63079</td></tr>
-              <tr><th scope="row">n</th><td>space, big</td><td data-id>94711</td></tr>
-              <tr><th scope="row">o</th><td>.</td><td data-id>68873</td></tr>
-              <tr><th scope="row">p</th><td>space, What</td><td data-id>58565</td></tr>
-              <tr><th scope="row">q</th><td>’s</td><td data-id>20467</td></tr>
-              <tr><th scope="row">r</th><td>space, too</td><td data-id>63079</td></tr>
-              <tr><th scope="row">s</th><td>space, big</td><td data-id>94711</td></tr>
-              <tr><th scope="row">t</th><td>?</td><td data-id>85058</td></tr>
-            </tbody>
-          </table>
-        </figure>
+        </div>
       </div>
 
       <div class="grid reader-bench">
@@ -169,8 +171,8 @@
           <p class="plate__intro">Each piece is given a place on a vast chart. Pieces that are used in similar ways end up close together.</p>
           <p class="plate__note chart-uncharted" hidden>Not on this chart. A real model has a place for every piece; this hand-drawn chart has a few hundred.</p>
         </div>
-        <figure class="plate__figure">
-          <div class="plate__pinned">
+        <div class="plate__figure">
+          <figure class="plate__pinned">
             <div class="field plate__field chart-field" data-loupe data-field-name="Plate III">
               <div class="chart" data-label="A chart of meaning: several hundred pieces drawn as stars in fifteen constellations." data-description="Pieces used in similar ways sit close together. The list of the stars, after this plate, gives every constellation and its words."></div>
               <div class="chart__stage" aria-hidden="true"><ol class="chart__pieces"></ol></div>
@@ -186,31 +188,33 @@
               <p class="chart-stop" data-stop="centre">It lives here among the small words, meaning almost nothing yet. It is waiting for a clue.</p>
             </div>
             <figcaption class="plate__caption">Fig. 3. A hand-drawn chart of a few hundred pieces in three dimensions. A real model’s chart has thousands of dimensions and no pictures.</figcaption>
+          </figure>
+          <div class="visually-hidden">
+            <table class="machine-text">
+              <caption>The machine’s view of Fig. 3: where each piece of the specimen sits, in three of its coordinates</caption>
+              <thead><tr><th scope="col">Piece</th><th scope="col">First</th><th scope="col">Second</th><th scope="col">Third</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">The</th><td data-at>0.063</td><td data-at>0.006</td><td data-at>0.028</td></tr>
+                <tr><th scope="row">trophy</th><td data-at>−0.483</td><td data-at>0.267</td><td data-at>0.067</td></tr>
+                <tr><th scope="row">doesn</th><td data-at>0.082</td><td data-at>−0.023</td><td data-at>0.006</td></tr>
+                <tr><th scope="row">’t</th><td data-at>0.067</td><td data-at>−0.036</td><td data-at>0.034</td></tr>
+                <tr><th scope="row">fit</th><td data-at>−0.183</td><td data-at>−0.343</td><td data-at>0.092</td></tr>
+                <tr><th scope="row">in</th><td data-at>0.032</td><td data-at>0.014</td><td data-at>−0.006</td></tr>
+                <tr><th scope="row">the</th><td data-at>0.053</td><td data-at>−0.006</td><td data-at>0.023</td></tr>
+                <tr><th scope="row">suit</th><td data-at>0.517</td><td data-at>−0.133</td><td data-at>0.050</td></tr>
+                <tr><th scope="row">case</th><td data-at>0.367</td><td data-at>0.217</td><td data-at>−0.100</td></tr>
+                <tr><th scope="row">because</th><td data-at>−0.035</td><td data-at>−0.014</td><td data-at>−0.008</td></tr>
+                <tr><th scope="row">it</th><td data-at>0.020</td><td data-at>−0.026</td><td data-at>0.014</td></tr>
+                <tr><th scope="row">’s</th><td data-at>−0.020</td><td data-at>−0.034</td><td data-at>0.031</td></tr>
+                <tr><th scope="row">too</th><td data-at>0.045</td><td data-at>−0.056</td><td data-at>0.004</td></tr>
+                <tr><th scope="row">big</th><td data-at>−0.196</td><td data-at>−0.383</td><td data-at>0.117</td></tr>
+                <tr><th scope="row">full stop</th><td data-at>0.092</td><td data-at>−0.058</td><td data-at>0.019</td></tr>
+                <tr><th scope="row">What</th><td data-at>0.028</td><td data-at>−0.089</td><td data-at>0.008</td></tr>
+                <tr><th scope="row">question mark</th><td data-at>−0.050</td><td data-at>−0.063</td><td data-at>0.024</td></tr>
+              </tbody>
+            </table>
           </div>
-          <table class="machine-text visually-hidden">
-            <caption>The machine’s view of Fig. 3: where each piece of the specimen sits, in three of its coordinates</caption>
-            <thead><tr><th scope="col">Piece</th><th scope="col">First</th><th scope="col">Second</th><th scope="col">Third</th></tr></thead>
-            <tbody>
-              <tr><th scope="row">The</th><td data-at>0.063</td><td data-at>0.006</td><td data-at>0.028</td></tr>
-              <tr><th scope="row">trophy</th><td data-at>−0.483</td><td data-at>0.267</td><td data-at>0.067</td></tr>
-              <tr><th scope="row">doesn</th><td data-at>0.082</td><td data-at>−0.023</td><td data-at>0.006</td></tr>
-              <tr><th scope="row">’t</th><td data-at>0.067</td><td data-at>−0.036</td><td data-at>0.034</td></tr>
-              <tr><th scope="row">fit</th><td data-at>−0.183</td><td data-at>−0.343</td><td data-at>0.092</td></tr>
-              <tr><th scope="row">in</th><td data-at>0.032</td><td data-at>0.014</td><td data-at>−0.006</td></tr>
-              <tr><th scope="row">the</th><td data-at>0.053</td><td data-at>−0.006</td><td data-at>0.023</td></tr>
-              <tr><th scope="row">suit</th><td data-at>0.517</td><td data-at>−0.133</td><td data-at>0.050</td></tr>
-              <tr><th scope="row">case</th><td data-at>0.367</td><td data-at>0.217</td><td data-at>−0.100</td></tr>
-              <tr><th scope="row">because</th><td data-at>−0.035</td><td data-at>−0.014</td><td data-at>−0.008</td></tr>
-              <tr><th scope="row">it</th><td data-at>0.020</td><td data-at>−0.026</td><td data-at>0.014</td></tr>
-              <tr><th scope="row">’s</th><td data-at>−0.020</td><td data-at>−0.034</td><td data-at>0.031</td></tr>
-              <tr><th scope="row">too</th><td data-at>0.045</td><td data-at>−0.056</td><td data-at>0.004</td></tr>
-              <tr><th scope="row">big</th><td data-at>−0.196</td><td data-at>−0.383</td><td data-at>0.117</td></tr>
-              <tr><th scope="row">full stop</th><td data-at>0.092</td><td data-at>−0.058</td><td data-at>0.019</td></tr>
-              <tr><th scope="row">What</th><td data-at>0.028</td><td data-at>−0.089</td><td data-at>0.008</td></tr>
-              <tr><th scope="row">question mark</th><td data-at>−0.050</td><td data-at>−0.063</td><td data-at>0.024</td></tr>
-            </tbody>
-          </table>
-        </figure>
+        </div>
       </div>
 
       <div class="grid star-bench">
@@ -255,14 +259,95 @@
       </div>
     </section>
 
-    <section class="page plate plate--even" id="plate-4" aria-labelledby="plate-4-title">
+    <section class="page plate plate--even plate--wide" id="plate-4" aria-labelledby="plate-4-title">
       <div class="grid plate__frame">
         <div class="plate__text">
           <h2 id="plate-4-title" class="plate__title" tabindex="-1"><span class="plate__number">Plate IV</span> The threads of attention</h2>
           <p class="plate__intro">To understand a piece, the machine lets it look back at every piece before it and weigh which ones matter. Never ahead: a piece can only see what has already been read.</p>
-          <p class="plate__note">When it first appears, it can’t know what it means. The clue hasn’t arrived yet.</p>
-          <p class="plate__note">When big arrives, it looks back and ties it to trophy.</p>
-          <p class="plate__note">This looking happens many times over, layer after layer, each round refining the last. Between rounds, each piece is also worked on by itself.</p>
+        </div>
+        <div class="plate__aside threads-controls">
+          <button type="button" class="sens variant-switch" data-big="Change big to small" data-small="Change small to big"><span class="sens__label">Change big to small</span></button>
+          <fieldset class="readers">
+            <legend class="visually-hidden">Readers</legend>
+            <label class="readers__choice"><input type="radio" name="readers" value="all" checked><span>All readers</span></label>
+            <label class="readers__choice"><input type="radio" name="readers" value="0"><span>Reader one</span></label>
+            <label class="readers__choice"><input type="radio" name="readers" value="1"><span>Reader two</span></label>
+            <label class="readers__choice"><input type="radio" name="readers" value="2"><span>Reader three</span></label>
+          </fieldset>
+          <p class="plate__note readers__note">Several readers look at once, each drawn to different things. Their jobs here are illustrative; real ones are rarely so tidy.</p>
+        </div>
+        <div class="plate__figure">
+          <figure class="plate__pinned">
+            <div class="threads__pin">
+              <div class="field plate__field threads-field" data-loupe data-field-name="Plate IV">
+                <div class="threads__stage">
+                  <ol class="threads__row" aria-label="The specimen, read piece by piece">
+                    <li class="read-piece" data-piece="The"><span class="slip">The</span></li>
+                    <li class="read-piece" data-piece=" trophy"><span class="slip">trophy</span></li>
+                    <li class="read-piece" data-piece=" doesn"><span class="slip">doesn</span></li>
+                    <li class="read-piece" data-piece="'t"><span class="slip">’t</span></li>
+                    <li class="read-piece" data-piece=" fit"><span class="slip">fit</span></li>
+                    <li class="read-piece" data-piece=" in"><span class="slip">in</span></li>
+                    <li class="read-piece" data-piece=" the"><span class="slip">the</span></li>
+                    <li class="read-piece" data-piece=" suit"><span class="slip">suit</span></li>
+                    <li class="read-piece" data-piece="case"><span class="slip">case</span></li>
+                    <li class="read-piece" data-piece=" because"><span class="slip">because</span></li>
+                    <li class="read-piece" data-piece=" it"><span class="slip">it</span></li>
+                    <li class="read-piece" data-piece="'s"><span class="slip">’s</span></li>
+                    <li class="read-piece" data-piece=" too"><span class="slip">too</span></li>
+                    <li class="read-piece" data-piece=" big"><span class="slip">big</span></li>
+                    <li class="read-piece" data-piece="."><span class="slip">.</span></li>
+                    <li class="read-piece" data-piece=" What"><span class="slip">What</span></li>
+                    <li class="read-piece" data-piece="'s"><span class="slip">’s</span></li>
+                    <li class="read-piece" data-piece=" too"><span class="slip">too</span></li>
+                    <li class="read-piece" data-piece=" big"><span class="slip">big</span></li>
+                    <li class="read-piece" data-piece="?"><span class="slip">?</span></li>
+                  </ol>
+                </div>
+                <div class="inset" role="img" aria-labelledby="fig-4b"></div>
+                <button type="button" class="sens loupe-toggle" data-show="Show the machine’s view" data-hide="Hide the machine’s view"><span class="sens__label">Show the machine’s view</span></button>
+                <div class="machine" aria-hidden="true"></div>
+              </div>
+              <div class="thread-notes">
+                <p class="plate__note thread-note">When it first appears, it can’t know what it means. The clue hasn’t arrived yet.</p>
+                <p class="plate__note thread-note" data-big="When big arrives, it looks back and ties it to trophy." data-small="When small arrives, it looks back and ties it to suitcase.">When big arrives, it looks back and ties it to trophy.</p>
+                <p class="plate__note thread-note">This looking happens many times over, layer after layer, each round refining the last. Between rounds, each piece is also worked on by itself.</p>
+              </div>
+            </div>
+            <figcaption class="plate__caption threads__captions">
+              <span class="threads__caption">Fig. 4. Where each piece looks while reading. Weights illustrative.</span>
+              <span class="threads__caption" id="fig-4b">Fig. 4b. By the question mark, the machine’s sense of it sits close to <span data-answer data-big="trophy" data-small="suitcase">trophy</span>. The first it stays put; it cannot see ahead.</span>
+            </figcaption>
+          </figure>
+          <div class="visually-hidden">
+            <table class="machine-text">
+              <caption>The machine’s view of Fig. 4: where each piece looks hardest among the pieces before it, all readers together</caption>
+              <thead><tr><th scope="col">Piece</th><th scope="col">Looks hardest at</th><th scope="col">Weight</th></tr></thead>
+              <tbody data-strongest>
+                <tr><th scope="row">a, The</th><td>only itself</td><td data-weight>1.00</td></tr>
+                <tr><th scope="row">b, trophy</th><td>a, The</td><td data-weight>0.58</td></tr>
+                <tr><th scope="row">c, doesn</th><td>b, trophy</td><td data-weight>0.47</td></tr>
+                <tr><th scope="row">d, ’t</th><td>c, doesn</td><td data-weight>0.50</td></tr>
+                <tr><th scope="row">e, fit</th><td>d, ’t</td><td data-weight>0.33</td></tr>
+                <tr><th scope="row">f, in</th><td>e, fit</td><td data-weight>0.40</td></tr>
+                <tr><th scope="row">g, the</th><td>f, in</td><td data-weight>0.35</td></tr>
+                <tr><th scope="row">h, suit</th><td>g, the</td><td data-weight>0.28</td></tr>
+                <tr><th scope="row">i, case</th><td>h, suit</td><td data-weight>0.42</td></tr>
+                <tr><th scope="row">j, because</th><td>i, case</td><td data-weight>0.28</td></tr>
+                <tr><th scope="row">k, it</th><td>j, because</td><td data-weight>0.22</td></tr>
+                <tr><th scope="row">l, ’s</th><td>k, it</td><td data-weight>0.42</td></tr>
+                <tr><th scope="row">m, too</th><td>l, ’s</td><td data-weight>0.32</td></tr>
+                <tr><th scope="row">n, big</th><td>b, trophy</td><td data-weight>0.37</td></tr>
+                <tr><th scope="row">o, full stop</th><td>n, big</td><td data-weight>0.33</td></tr>
+                <tr><th scope="row">p, What</th><td>o, full stop</td><td data-weight>0.43</td></tr>
+                <tr><th scope="row">q, ’s</th><td>p, What</td><td data-weight>0.42</td></tr>
+                <tr><th scope="row">r, too</th><td>q, ’s</td><td data-weight>0.32</td></tr>
+                <tr><th scope="row">s, big</th><td>b, trophy</td><td data-weight>0.28</td></tr>
+                <tr><th scope="row">t, question mark</th><td>b, trophy</td><td data-weight>0.28</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="visually-hidden variant-status" role="status" aria-live="polite"></p>
         </div>
       </div>
     </section>

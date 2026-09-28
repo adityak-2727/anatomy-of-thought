@@ -259,6 +259,36 @@ export const PLATE3 = {
   lensRadius: 60,       // px about the lens centre in which the machine finds a star
 } as const;
 
+/**
+ * Plate IV. Approach values are fractions of the approach; pin values are vh within the
+ * 300vh pin, scaled with the pin on phones. The reading takes twenty steps, one per
+ * piece; `stepRoom` gives each its share, with more at it and at the first big.
+ */
+export const PLATE4 = {
+  approach: {
+    brush: [0, 0.5],
+    exposure: [0.3, 1],
+    lettering: [0.45, 0.95],
+  },
+  pin: {
+    reading: [0, 255],
+    rest: 255,
+  },
+  stepRoom: { default: 11, first: 15, 11: 14, 14: 18 } as Record<string, number>,
+  // Within a step: the needle moves and the piece is laid, its threads draw, then a hold.
+  step: { moved: 0.25, laid: [0.15, 0.25], drawn: 0.85 },
+  notesAt: [11, 14, 18],      // the step at which each note takes the slot
+  drift: [14, 20],            // Fig. 4b's mark leaves at the first big and settles by the question mark
+  noteDevelop: 0.9,           // s
+  // Answers to the reader, in seconds (DESIGN-PLAN §7).
+  reset: 0.22,                // the words re-set on a switch
+  swing: 0.7,                 // the strongest threads swing to their new pieces
+  ghostFall: 1.8,             // the old threads fall to a ghost
+  inset: 0.9,                 // Fig. 4b's mark drifts to its new place
+  readerFade: 0.15,           // a reader's threads go…
+  readerDraw: 0.35,           // …and the next reader's are drawn, with a fast pen
+} as const;
+
 /** The scale a pin starts from as it is pressed into the paper. */
 export const PIN_DROP = 1.6;
 

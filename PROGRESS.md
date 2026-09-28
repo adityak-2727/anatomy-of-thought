@@ -1,5 +1,65 @@
 # Progress
 
+## Phase 5: Plate IV, The threads of attention (28 September 2026)
+
+### Done
+- **Attention data** (`src/data/attention.ts`): three illustrative readers, twenty rows each, for both variants; the default view is their mean.
+  - Reader one follows the story and is written out row by row. Reader two mostly looks at the piece before; reader three at “because” and the marks. Both are written out where the story needs them (it, the two bigs, the question mark) and otherwise follow their habit.
+  - Every row is normalised; a row that looked ahead would throw.
+  - The averaged story: at the first big, trophy 0.367 and it 0.183; in the variant, suit and case together 0.360, with it (0.183) the largest other piece; at it, nothing above 0.22; at the question mark, the answer 0.283.
+- **Tests (13 new, 93 in all):** twenty by twenty; causal for every reader, variant and the mean; every row sums to 1; nothing below zero; the brief's story targets; the readers keep to their jobs; only the story rows differ between variants; the second big reaches back to trophy; and the table written into the page matches the data.
+- **Shared state and the address** (`src/state.ts`): the variant is kept as `#small` with `replaceState` (the page never jumps), and editing the address changes it.
+- **Plate IV** (`plate4-threads.ts`, `threads/*`), its own 6.8 KB gzipped chunk, pinned for 300vh (180vh on a phone):
+  - The twenty pieces lie on a shallow smile. Pieces not yet read are lettered faintly in prussian-wash; a needle moves along the row, and each piece it reaches is laid as a white slip.
+  - At each piece, threads draw back to the earlier pieces it weighs, at pen speed, so long threads take longer. Width follows the weight (0.5 + 1.5√w px), a second ply from 0.3, stray fibres for cotton. The previous piece's threads fall to a ghost, then go.
+  - The notes replace one another at it, at the first big, and at step 18. The first big ties it to trophy with the heaviest thread yet; the reading ends on the question mark reaching back to the answer.
+  - Fig. 4b, in the field's corner: Plate III's stars, through the same camera maths. A faint ring where the first it stays; a mark that leaves at the first big and settles close to trophy by the question mark.
+  - “Change big to small”: the words are re-set, the old threads fall to a ghost, the new ones swing to suit and case, Fig. 4b's mark moves, the label, note 2, Fig. 4b's caption and the machine's table change, `#small` goes into the address, and a polite live region says “Now the suitcase is too small. The threads lead to suitcase.” (and back: “Now the trophy is too big. The threads lead to trophy.”).
+  - Readers: a radio group of italic words (All readers, Reader one, Reader two, Reader three); choosing one fades the threads and draws that reader's with a quick pen.
+  - The loupe writes each thread's weight on it, and the piece's weight on itself beneath it. “Show the machine's view” shows the whole of it; a real table after the figure gives, for each piece, where it looks hardest.
+  - On a phone the row stands on end, pieces top to bottom, threads bowing out to the right from one line beside the widest slip; Fig. 4b sits in the top corner; the switch and readers follow the figure.
+  - Reduced motion: the whole reading at its end, all three notes, and the switch and readers answer with crossfades.
+- **Shots:** Plate IV checkpoints for approach, reading, it, big, the end, the switch and back, reader two, the loupe, the machine's view, and `#small` typed in and on arrival, each with a behaviour check. A new check on every pass: nothing makes the page wider than the screen.
+- **Fixed along the way, on every plate:**
+  - **Figures and their captions.** Each figcaption sat inside a `div` within its `figure`, so it did not caption the figure. The pinned wrapper is now the `figure` itself (Plates I–IV).
+  - **Pages were wider than a phone.** The visually hidden tables of the machine's view (since Plate II) kept their full table width, as tables ignore a 1px width, and the fields' brushed bleed was clipped on `body`, whose overflow passes to the viewport. A phone saw an 866px page and zoomed out to fit it. The tables are now wrapped in a visually hidden `div`, and the page's sections clip the bleed. The new check confirms 390px on a phone and 1440px on desktop, in every pass.
+
+### Verification (run at the end of this phase)
+- `npm run build`: zero TypeScript errors. The first-screen JS is 71.2 KB gzipped (budget about 180); Plate IV is a 6.8 KB gzipped chunk.
+- `npm test`: 93 of 93 pass.
+- `npm run shots`: 275 screenshots, 0 axe violations, 0 console errors or warnings, and 101 of 101 behaviour checks across both viewports and the normal, reduced-motion and no-WebGL passes. Plate IV's machine's-view labels were then moved (see the critique), and Plate IV was re-shot in all six passes on its own, clean.
+
+### Decisions and why
+- **The attention rows are written out, with the readers' habits as rules where the story doesn't reach.** Reader one is the story and is written out in full; readers two and three are written out at it, the two bigs and the question mark, where the averaged story is decided, and elsewhere follow their stated habits. The tests pin the brief's targets on the average the reader sees.
+- **The reading is one number** (0 to 20) tweened step by step, each step given its share of the pin (more at it and at the first big). Every frame is drawn from that number, so the switch and the readers need no rebuilt timeline: the threads on show are copied to a ghost layer, and the new ones draw in time.
+- **The switch and readers sit beside the title, not in the field.** On a phone only the field and its notes pin, and the controls must be reachable on a still page in every layout; on a wide screen they stay in view through the whole pin.
+- **The notes sit under the field,** as Plate III's stop captions do, for the same reason.
+- **Unread pieces are drawn, not set as text:** faint SVG lettering, a picture of the sentence not yet read. The pieces themselves are the slips, in the page from the start; the machine's table gives the whole reading.
+- **On a phone, threads meet the pieces along one line** just right of the widest slip, so no thread crosses a slip.
+- **Note 2 and Fig. 4b follow the variant** (“When small arrives, it looks back and ties it to suitcase.”; “…sits close to suitcase.”). The brief gives only the big wording; a note that said trophy while the threads led to suitcase would contradict the figure.
+- **The machine's table names pieces by their letters** (a to t, as on Plate II), so the repeated ’s, too and big stay distinct.
+- **The switch has no `aria-pressed`:** its label already says what it will do, and a pressed state would contradict it.
+
+### Screenshot critique
+
+**What works**
+1. **The clue arriving is visible from across the room:** at the first big, one heavy doubled thread arcs back over the whole row to trophy while the rest stay hairlines; the unread words wait, faint, to its right.
+2. **The switch reads as a re-exposure:** the old threads stay as a ghost, the new ones land on suit and case, and Fig. 4b's mark crosses to sit between them.
+3. **The phone's upright row** keeps the same grammar in a narrow space: threads bow out to the right from one line, and the reading still ends on the question mark reaching back to trophy.
+
+**What looked off (fixed, then re-shot)**
+1. **On a phone the switch and readers sat in the desktop grid,** half off the screen. *Fixed:* the full-width layout is scoped to wide screens.
+2. **On a phone the pinned figure was taller than the screen,** so the first pieces were cut off. *Fixed:* only the field and its notes pin; the captions follow.
+3. **Threads on the upright row crossed the wider slips above,** and the machine's weights piled on each other where short threads meet. *Fixed:* threads meet the row along one line, and each weight is written near the piece its thread reaches, stepping aside when it would touch another.
+
+Also caught: after a switch the ghost vanished at once (the relayout reset the step), and the needle was too thin to read. Both fixed.
+
+### Known issues and watch list
+- **A checkpoint run on its own can catch Plate IV early** (a jump made before the page has settled lands on an earlier step). In the full run and a plate's own sequence the pictures are right; the harness's `goTo` may want a settle step in Phase 7.
+- **Fig. 4b is small on a phone** (150 × 112px): four labels at 18px just fit.
+- **Readers two and three are rules outside the story rows,** so their other rows are tidier than a real head's would be; the reader note says as much.
+- **Real GPU cost is still unmeasured** on real hardware (see Phases 2 and 4).
+
 ## Phase 4: Plate III, A chart of meaning (27 September 2026)
 
 ### Done

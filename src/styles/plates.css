@@ -770,6 +770,283 @@ html:not(.js) .chart-field {
   display: none;
 }
 
+/* ─── Plate IV: the threads of attention ─────────────────────────────────────
+   A full-width break: the title and intro, with the switch and readers beside them,
+   over a field the width of the page. The row lies on a shallow smile; threads arc
+   above it. Fig. 4b sits in the field's corner; its caption is on paper below. */
+@media (min-width: 1100px) and (min-height: 700px) {
+  .plate.plate--wide .plate__text {
+    grid-column: 1 / span 6;
+    grid-row: 1;
+  }
+
+  .plate.plate--wide .plate__aside {
+    grid-column: 8 / span 5;
+    grid-row: 1;
+  }
+
+  .plate.plate--wide .plate__figure {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+.threads-controls {
+  display: grid;
+  justify-items: start;
+  gap: var(--s-4);
+  align-content: start;
+}
+
+.readers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-5);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.readers__choice {
+  position: relative;
+  font-size: var(--type-body);
+  line-height: var(--lh-body);
+  font-style: italic;
+}
+
+.readers__choice input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+}
+
+.readers__choice input:checked + span {
+  text-decoration-line: underline;
+  text-decoration-thickness: var(--hairline);
+  text-underline-offset: 0.2em;
+}
+
+.readers__choice input:focus-visible + span {
+  outline: var(--line-strong) solid var(--focus);
+  outline-offset: 3px;
+}
+
+.readers__note {
+  margin-block-start: 0;
+}
+
+.threads-field {
+  padding: var(--s-5) var(--s-6) calc(var(--inset-h) + var(--s-6));
+}
+
+.threads__stage {
+  position: relative;
+}
+
+.threads__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-4) var(--s-2);
+}
+
+.threads__stage.is-laid .threads__row {
+  display: block;
+}
+
+.threads__stage.is-laid .read-piece {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+}
+
+.read-piece .slip {
+  padding: 0.16em 0.14em 0.22em;
+}
+
+.read-piece[data-piece^=' '] .slip {
+  padding-inline-start: var(--cut-space);
+}
+
+.threads__faint,
+.threads__stage .threads {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.threads__faint-text {
+  fill: var(--prussian-wash);
+  font-family: var(--font-words);
+  font-size: var(--type-slip);
+}
+
+.threads__needle {
+  position: absolute;
+  inset-block-start: -46px;
+  inset-inline-start: -6px;
+  z-index: 3;
+  transform-origin: 6px 46px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.needle__shaft {
+  fill: var(--silhouette);
+}
+
+.needle__eye {
+  stroke: var(--prussian);
+  stroke-width: var(--hairline);
+  stroke-linecap: round;
+}
+
+.inset {
+  position: absolute;
+  inset-inline-end: var(--s-5);
+  inset-block-end: var(--s-5);
+  inline-size: var(--inset-w);
+  block-size: var(--inset-h);
+}
+
+.inset__chart {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: visible;
+}
+
+.inset__frame,
+.inset__ring,
+.inset__trail,
+.inset__mark-ring {
+  fill: none;
+  stroke: var(--silhouette);
+  stroke-width: var(--hairline);
+}
+
+.inset__frame {
+  stroke-opacity: var(--o-constellation);
+}
+
+.inset__ring {
+  stroke-opacity: var(--o-constellation);
+  stroke-dasharray: 2 2;
+}
+
+.inset__trail {
+  stroke-opacity: var(--o-constellation);
+  stroke-dasharray: 1 3;
+}
+
+.inset__dot {
+  fill: var(--silhouette);
+  fill-opacity: var(--o-constellation);
+}
+
+.inset__star,
+.inset__mark circle:first-child {
+  fill: var(--silhouette);
+}
+
+.inset__label {
+  fill: var(--silhouette);
+  font-family: var(--font-words);
+  font-size: var(--type-field-label);
+  font-style: italic;
+}
+
+.threads-field .loupe-toggle {
+  position: absolute;
+  inset-inline-start: var(--s-5);
+  inset-block-end: var(--s-5);
+}
+
+/* On end: the row down the left, threads bowing right, Fig. 4b in the top corner. */
+.threads-field.is-vertical {
+  padding-block-end: calc(var(--toggle-room) + var(--s-6));
+}
+
+.threads-field.is-vertical .inset {
+  inset-block-start: var(--s-5);
+  inset-block-end: auto;
+}
+
+.threads-field.is-vertical .loupe-toggle {
+  inset-inline-start: auto;
+  inset-inline-end: var(--s-5);
+}
+
+/* The notes take one place and replace one another in the sequence; otherwise all three are read. */
+.thread-notes {
+  margin-block-start: var(--s-5);
+  max-inline-size: 40em;
+}
+
+.thread-notes .plate__note:first-child {
+  margin-block-start: 0;
+}
+
+.thread-notes.is-live {
+  display: grid;
+}
+
+.thread-notes.is-live > .thread-note {
+  grid-area: 1 / 1;
+  margin: 0;
+}
+
+.threads__captions {
+  display: grid;
+  gap: var(--s-2) var(--gutter);
+  max-inline-size: none;
+}
+
+.threads__caption {
+  display: block;
+  max-inline-size: 36em;
+}
+
+/* The machine's view of the threads: outlines, plain lines, weights. */
+.machine__threads {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: visible;
+}
+
+.machine__slot {
+  fill: none;
+  stroke: var(--rule);
+  stroke-width: var(--hairline);
+}
+
+.machine__slot--now {
+  stroke: var(--ink);
+}
+
+.machine__slot-text {
+  fill: var(--ink);
+  font-family: var(--font-words);
+  font-size: var(--type-slip);
+}
+
+.machine__thread {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: var(--hairline);
+  stroke-opacity: var(--o-constellation);
+}
+
+.machine__weight {
+  fill: var(--ink);
+  font-family: var(--font-numbers);
+  font-size: var(--type-machine);
+}
+
 /* ─── The colophon and the index ──────────────────────────────────────────── */
 
 .endmatter {
@@ -853,8 +1130,13 @@ html:not(.js) .chart-field {
     margin-block-start: var(--s-5);
   }
 
-  .plate__note {
+  .plate__note,
+  .plate__aside {
     order: 3;
+  }
+
+  .plate__aside {
+    margin-block-start: var(--s-6);
   }
 
   .plate__frame {
@@ -918,5 +1200,11 @@ html:not(.js) .chart-field {
   .machine__row {
     grid-template-columns: 5.5em repeat(3, 3em);
     column-gap: var(--s-2);
+  }
+}
+
+@media (min-width: 1100px) and (min-height: 700px) {
+  .threads__captions {
+    grid-template-columns: 1fr 1fr;
   }
 }

@@ -123,7 +123,11 @@ function polyline(pts: Point[]): string {
   return `M${pts.map((p) => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' L')}`;
 }
 
-export function threadPaths(from: Point, to: Point, seed: number, plies = 1): string[] {
+/**
+ * `out` maps each drawn point, so a thread worked out lying above a row can be turned
+ * to bow out beside a column (Plate IV on a phone).
+ */
+export function threadPaths(from: Point, to: Point, seed: number, plies = 1, out: (p: Point) => Point = (p) => p): string[] {
   const noise = createNoise2D(rngFor(seed, 'thread'));
   const curve = threadCurve(from, to);
   const steps = Math.max(24, Math.round(Math.abs(to.x - from.x) / 6));
@@ -138,7 +142,7 @@ export function threadPaths(from: Point, to: Point, seed: number, plies = 1): st
       const slow = noise(t * 3.1, ply * 5.3) * 0.8;
       const quick = noise(t * 23, ply * 7.7 + 11) * 0.3;
       const offset = (ply - (plies - 1) / 2) * 1.2 * envelope;
-      pts.push({ x: p.x + slow * 0.4, y: p.y + (slow + quick) * envelope + offset });
+      pts.push(out({ x: p.x + slow * 0.4, y: p.y + (slow + quick) * envelope + offset }));
     }
     paths.push(polyline(pts));
   }
@@ -146,11 +150,11 @@ export function threadPaths(from: Point, to: Point, seed: number, plies = 1): st
 }
 
 /** Stray fibres: short, very fine strands that leave the thread and rejoin it. */
-export function threadFibres(from: Point, to: Point, seed: number, count = 2): string[] {
+export function threadFibres(from: Point, to: Point, seed: number, count = 2, out: (p: Point) => Point = (p) => p): string[] {
   const r = rngFor(seed, 'fibres');
   const noise = createNoise2D(r);
   const curve = threadCurve(from, to);
-  const out: string[] = [];
+  const paths: string[] = [];
   for (let f = 0; f < count; f++) {
     const start = 0.08 + r() * 0.5;
     const end = Math.min(0.95, start + 0.18 + r() * 0.3);
@@ -160,11 +164,11 @@ export function threadFibres(from: Point, to: Point, seed: number, count = 2): s
       const t = start + ((end - start) * i) / 16;
       const p = curve(t);
       const away = Math.sin((Math.PI * i) / 16) * (0.8 + r() * 0.4) * side + noise(t * 17, f) * 0.35;
-      pts.push({ x: p.x, y: p.y + away });
+      pts.push(out({ x: p.x, y: p.y + away }));
     }
-    out.push(polyline(pts));
+    paths.push(polyline(pts));
   }
-  return out;
+  return paths;
 }
 
 /** A leader line: a short hairline from a label to the thing it names, drawn by hand. */
@@ -196,5 +200,19 @@ export function lensRim(size: number, rim: number): SVGSVGElement {
     svgEl('line', { x1: i, y1: 0, x2: i + size, y2: size }, hatch);
   }
   svgEl('circle', { cx: r, cy: r, r: r - rim / 2, class: 'lens__line' }, svg);
+  return svg;
+}
+
+/**
+ * The reading mark: a sewing needle, point down, its eye at the top. Drawn about its
+ * point at (0, 0) so it can be set directly above a piece.
+ */
+export function needleMark(seed: number, length = 44): SVGSVGElement {
+  const r = rngFor(seed, 'needle');
+  const lean = (r() - 0.5) * 1.2;
+  const svg = svgEl('svg', { class: 'needle', viewBox: `-6 ${-length - 2} 12 ${length + 4}`, width: 12, height: length + 4, 'aria-hidden': 'true', focusable: 'false' });
+  // The shaft tapers to its point; the eye is a slot near the head.
+  svgEl('path', { d: `M${(lean - 1.8).toFixed(2)},${-length} L${(lean + 1.8).toFixed(2)},${-length} L0.5,-3 L0,0 L-0.5,-3 Z`, class: 'needle__shaft' }, svg);
+  svgEl('path', { d: `M${lean.toFixed(2)},${-length + 3} L${(lean * 0.9).toFixed(2)},${-length + 10}`, class: 'needle__eye' }, svg);
   return svg;
 }

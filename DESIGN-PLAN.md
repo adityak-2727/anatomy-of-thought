@@ -553,6 +553,13 @@ Phone and Folio (when the row doesn’t fit):
  survives the iOS toolbars.
 ```
 
+**As built (Phase 5).**
+- The switch and the readers sit in the band above the field, beside the title (on a phone, after the figure), so they are reachable in every layout; the field keeps only the reading, Fig. 4b and the machine's-view toggle.
+- The notes sit under the field, in one place, as Plate III's stop captions do: on a phone only the field and its notes pin, and they must be read together. Fig. 4 and Fig. 4b share the figcaption, side by side on wide screens.
+- Fig. 4b is inside the field: bottom right on a wide field, top right when the row stands on end. Its caption is on paper, in the figcaption; the inset is `role="img"` labelled by it.
+- The row stands on end whenever it doesn't fit the field (measured), not by width alone. On end, every thread meets the pieces along one line just right of the widest slip, so no thread crosses a slip.
+- Pieces not yet read are lettered in prussian-wash as SVG, a picture of the unread sentence; the pieces themselves are the slips, in the page from the start, laid (opacity) as the needle reaches them.
+
 ### Plate V. The weighing
 
 Desktop (odd plate: text left):
@@ -883,7 +890,7 @@ As in BRIEF §10, plus three small additions (marked *):
   - `display` uses the curly `’`, with the leading space implicit in layout.
 - `pieceId(text)` = `100 + fnv1a32(utf8(text)) % 99900`, giving 100–99,999, stable forever.
 - `REPLY.big`: `The`, ` trophy`, `.`, END. `REPLY.small`: `The`, ` suit`, `case`, `.`, END.
-- `READERS.big` and `READERS.small`: three 20×20 lower-triangular matrices, written out literally. `ALL` is their mean, computed.
+- `READERS.big` and `READERS.small`: three 20×20 lower-triangular matrices, written out literally. `ALL` is their mean, computed. *As built (Phase 5), in `src/data/attention.ts`:* reader one is written out row by row; readers two and three are written out where the story needs them (it, the two bigs, the question mark) and otherwise follow their stated habit (the piece before; because and the marks). Every row is normalised, and a row that looked ahead would throw. The averaged story: at the first big, trophy 0.367 and it 0.183; in the variant, suit and case 0.360 together with it 0.183 the largest other; at it, nothing above 0.22; at the question mark, the answer 0.283.
 - `SCORES.big` and `SCORES.small`, as in the brief.
 
 **The story targets apply to the averaged view,** because that is the default the reader sees. Reader one alone must therefore over-state the story, since readers two and three dilute it. Sketch for row 14 (big):
@@ -1067,6 +1074,7 @@ Measured cost is not yet known on real hardware. The software renderer used for 
 - One thread set per step per view (All readers, and readers one to three) per variant is built lazily.
 - `setVariant` rebuilds the current step’s set and keeps the old set as a ghost.
 - The vertical layout is chosen by measuring whether the row fits the field, not by width alone.
+- *As built (Phase 5):* `src/plates/threads/` holds `layout.ts` (the smile, or the row on end), `weave.ts` (one piece's threads, plies and fibres from `marks.ts`, turned to bow sideways on end), `inset.ts` (Fig. 4b) and `machine.ts` (the loupe's weights). The reading is a single number (0–20) tweened step by step, each step given its share of the pin; every frame is drawn from that number. Changing variant or reader therefore needs no rebuilt timeline: the current threads are copied to a ghost layer, and the new set draws in time.
 
 **Plate V**
 - Bars are SVG paths with a seeded brushed end. Their extent is an SVG attribute animated by GSAP.
@@ -1127,6 +1135,7 @@ Measured cost is not yet known on real hardware. The software renderer used for 
   - runs every rule **except** `color-contrast` in the WebGL render.
 
   This is recorded here so it never looks like a hidden exemption.
+- **Plate IV’s unread pieces** are drawn faintly in prussian-wash as SVG lettering, which axe does not measure. They are a picture of the sentence not yet read (WCAG’s exception for text that is part of a picture); the sentence itself is always present as the slips and in the table after the figure.
 
 ### 8.10 Performance budget
 
@@ -1227,6 +1236,8 @@ Every line of copy in the brief was checked against BRIEF §8’s list of safe c
   - “List the stars”, “yours” and “Skip to the plates”.
   - In the list of the stars: “An edge region, for pieces the chart doesn’t know.” under The Uncharted, then “Yours here: …” and “Your pieces on this chart: …” once the reader has a sentence. Punctuation is named in running text (full stop, comma, question mark).
 - **Plate V tally.** Hand tally strokes per row, counting the last ten draws. The brief’s “tally” is taken literally; this puts observed counts beside expected likelihoods on the same row.
+- **Plate IV in the variant.** Note 2 becomes “When small arrives, it looks back and ties it to suitcase.” and Fig. 4b’s “trophy” becomes “suitcase”, as §13 already says for the caption. The machine-text table follows the variant.
+- **Plate IV’s table** names each piece by its letter (a to t, as on Plate II), so the two “’s”, “too” and “big” pieces stay distinct: “n, big | b, trophy | 0.37”.
 - **Plate VI.** The mini row carries no letters (it is a row of small slip shapes), so the 18px rule on blue holds.
 - **Reader’s sentence.** It is not stored across visits. The brief asks for none, and the restrained choice is to keep nothing.
 
