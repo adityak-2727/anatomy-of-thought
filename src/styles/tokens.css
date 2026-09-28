@@ -48,6 +48,7 @@
   --type-lens-numbers: 1rem;
   /* On the temperature dial's face, drawn at 1.25× its viewBox on a wide screen: 13 units read as 16px. */
   --type-dial: 13px;
+  --codes-scale: 0.46;        /* Plate I's character numbers, as a fraction of the slip's type */
 
   --lh-title: 1;
   --lh-subtitle: 1.35;

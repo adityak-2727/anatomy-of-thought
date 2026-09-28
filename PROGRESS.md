@@ -1,5 +1,50 @@
 # Progress
 
+## Phase 7: The whole (28 September 2026)
+
+### Done
+- **The loupe on every plate.** Plate I was the only plate without one, and the brief gives it no machine's view, so I chose one that is literally true: the sentence as the machine receives it before it is cut, one number per character (T is 84, the space 32, the straight apostrophe 39). The numbers are set in the slip's own type, width and turn, each in its letter's place, alternately a little high and low so narrow letters' numbers do not run together. Plate I now has “Show the machine's view”, and the numbers follow the figure as text for screen readers (tested against the sentence's character codes).
+- **The plate indicator** (`src/components/plate-indicator.ts`): a small paper slip at the bottom left, “Plate III of VI”, following the plate that crosses the middle of the screen. It crossfades in 150ms and is hidden over the frontispiece, the list of plates, the colophon and the index. It repeats the headings, so it is hidden from screen readers. On a phone it is not shown (see below).
+- **A filmstrip of the whole atlas** (`scripts/film.mjs`): it scrolls from top to bottom in half-screen steps at both viewports and lays the frames out as a contact sheet, labelled with each frame's depth and the part of the atlas in view. This is how I read the rhythm below. The sheets are in `/shots/film`.
+- **The harness:** `goTo` now jumps, lets the page settle, re-measures and jumps again until the target stops moving (the Phase 5 known issue), and its clean-up leaves the filmstrip's folder alone. New checks: Plate I's loupe (the numbers 84, 104, 101 under “The”) and the plate indicator (it names the plate in view and hides over the list).
+
+### The rhythm: what I changed, and why
+Read from the desktop and phone filmstrips (27 and 23 screens deep).
+- **Plate I pauses less.** Two frames in a row were identical: nearly two screens of stillness for a one-line riddle. The pin is now 130vh (78 on a phone), so the rest is 65vh rather than 85, still long enough to solve the riddle.
+- **Plate III breathes over the whole chart.** The chart was lettered and the camera left for The Laurel straight away, so the reader never saw it entire. It now waits 15vh over the lettered chart; each stop keeps a 25vh dwell.
+- **Plate IV hurries through the plain words and pauses on the clue.** The nine ordinary opening pieces (trophy to because) now take 8 units each instead of 11; it takes 16 and the first big 20, where the story turns; the question mark, which ends the reading, takes 14. The twenty steps still fill the same pin.
+- **Plate V exposes a little faster** (30–90vh rather than 35–105), leaving 40vh of still rest for the dial and the lever, which is where the plate is played with.
+- **Plate VI's first loop teaches and the later ones hurry** (weights 1.3, 1, 0.8, 0.7), so the reader learns the pattern once and then sees it run.
+- **Left as it was:** Plate II, which changes in every frame of the filmstrip, and the gaps between plates, 44vh of plain paper that let each plate breathe before the next field is brushed.
+
+### Transitions between plates
+Each plate hands over in the same way. Its pin releases, its figure scrolls away with its field fully developed (exposure never goes back), and plain paper follows. The next field is brushed on as its plate rises and develops as it arrives, while the indicator crossfades to the next plate's number. The story carries across as well: Plate III opens on Plate II's pieces, Plate IV's inset is Plate III's chart, Plate V begins where the reply begins, and Plate VI ends the atlas by toning. I added no transition effects of my own: the brief asks for one signature sequence per plate, and the pages of a book simply turn.
+
+### Verification (run at the end of this phase)
+- `npm run build`: zero TypeScript errors. The first-screen JS is 73.0 KB gzipped (budget about 180).
+- `npm test`: 107 of 107 pass.
+- `npm run shots`, the whole suite: 371 screenshots, 0 axe violations, 0 console errors or warnings, and 160 of 161 behaviour checks, across both viewports and the normal, reduced-motion and no-WebGL passes. The one failure was the harness's: it read Plate VI's answer 4 seconds after the end mark, while the answer was still printing (opacity 0.84) on a busy software renderer. It now waits for the answer to be printed; Plate VI re-shot on every pass, 16 of 16.
+- After the three fixes below, Plate I and the indicator were re-shot on every pass: 0 axe violations, 0 console problems, and 15 of 15 checks, including the new one for the machine's lines.
+- A run before that one lost its page halfway (“`__atlas` is undefined” at Plate III): the filmstrip had written its contact sheets into `/shots` and the dev server reloaded the page it was photographing. The dev server now ignores `/shots`.
+
+### Screenshot critique
+
+**What works**
+1. **The filmstrip reads as a book.** Twenty-seven screens on a desktop, 23 on a phone; each plate's field is brushed, develops and is left behind, and nothing but paper sits between one plate and the next. After the tuning no two frames in a row are the same picture, except where a plate is meant to rest.
+2. **Plate I's machine view is literally what the machine receives,** and it lines up with the sentence it replaces: “The” is 84 104 101, every space is 32, and the question mark is 63.
+3. **The plate indicator is a quiet running head:** one slip, one line, the same italic as the captions, and gone over the list, the colophon and the index.
+
+**What looked off (fixed, then re-shot)**
+1. **Plate I's numbers piled up.** A number at the end of each line was printed in the middle of the line, over the others. The letter before a line break had been given an empty second box at the start of the next line, and its number was centred across both. *Fixed:* each letter and each word is now an inline block, so none can split across lines. The spaces stay real spaces, and each space's number is printed by the word before it. The numbers' size is now a token (`--codes-scale`) rather than a figure in the stylesheet.
+2. **On a phone, the machine's view broke into more lines than the slip** (five against three), so the numbers were not over their letters. The machine layer kept the desktop padding when the field's narrowed. *Fixed:* both read the same two custom properties. A new check measures it: at ten widths from 320 to 1920 pixels the numbers break into the slip's own lines, and at least 4.5px separates any two numbers on a tier.
+3. **On a phone, the indicator covered what it labelled.** At 390 pixels the slip took a third of the width at the foot of the screen. It sat over each plate's heading as it came up and over the machine's-view toggles while plates were pinned. *Fixed, restrained:* it is not shown below 768 pixels. There, each plate's heading and its figure's number (“Fig. 3.”) say where the reader is.
+
+### Known issues and watch list
+- **On a desktop, the indicator passes over the left column's text** for a moment as it scrolls by (paper over paper). It never covers a pinned plate's text, which sits higher.
+- **The phone has no plate indicator.** If a running head is wanted there, it needs its own place (a thumb index in the margin, say), not the desktop's slip.
+- **Real GPU cost is still unmeasured** on real hardware (see earlier phases).
+- **Resolved:** the harness's `goTo` settling (Phase 5 and 6).
+
 ## Phase 6: Plates V and VI, the colophon and the index (28 September 2026)
 
 ### Done

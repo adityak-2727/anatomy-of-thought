@@ -64,6 +64,9 @@ export default defineConfig({
     warmup: {
       clientFiles: ['./src/main.ts', './src/plates/*.ts', './src/styleguide/main.ts', './src/styles/index.css'],
     },
+    // The screenshot harness and the filmstrip write into /shots (the filmstrip writes HTML
+    // contact sheets); the dev server must not reload the page it is photographing.
+    watch: { ignored: ['**/shots/**'] },
   },
   build: {
     target: 'es2022',

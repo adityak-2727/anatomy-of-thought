@@ -665,7 +665,7 @@ Phone: a single column for both.
 
 ### Fixed furniture
 
-- **Plate indicator:** a small paper slip at the bottom left (inside the margin), 16px italic ink, turned 0.4°. A slip stays legible over paper and over blue, so no colour switching is needed.
+- **Plate indicator:** a small paper slip at the bottom left (inside the margin), 16px italic ink, turned 0.4°. A slip stays legible over paper and over blue, so no colour switching is needed. *As built (Phase 7):* it follows the plate that crosses the middle of the screen (an IntersectionObserver on the line through the middle), crossfades between two faces in 150ms, and is hidden when no plate crosses that line (the frontispiece, the list, the end matter). *Phone (Phase 7):* not shown below 768px. There the slip took a third of the width at the foot of the screen, covering each heading as it came up and the machine's-view toggles on pinned plates; the headings and figure numbers already say where the reader is.
 - **Loupe:** a 168px lens replacing the cursor over `[data-loupe]` figures. The rim is a 1.5px paper line with a crescent of fine engraved hatching inside the upper-left edge.
 
 ---
@@ -715,6 +715,10 @@ Static. Printed ink on paper does not animate on arrival. Only the reader’s re
 
 The long rest is deliberate: this is where the reader solves the riddle. It will be tuned in Phase 7.
 
+*Tuned in Phase 7:* the pin is 130vh (78 on a phone), so the rest is 65vh rather than 85: the filmstrip showed two identical screens of stillness for a one-line riddle.
+
+*Plate I's loupe (Phase 7):* the brief gives none, but the loupe belongs on every plate. The machine's view of the specimen is the sentence as the machine receives it, before it is cut: one number per character (T is 84, the space 32, the straight apostrophe 39). It is set in the slip's own type, width and turn with each letter made transparent, so the numbers sit exactly where the letters are; they alternate a little high and low along the sentence so narrow letters' numbers do not run together. Each word and each letter is an inline block, so no letter's box can split across a line break and carry its number with it; the spaces stay real spaces, so the lines break exactly where the slip's do, and each space's number is printed by the word before it. The layer shares the field's padding through two custom properties, and a harness check measures that the lines match and no two numbers touch. The numbers are `--codes-scale` (0.46) of the slip's type. The same numbers follow the figure as text.
+
 ### Plate II. Dissection (pin 250vh)
 
 | Range | Beat | Verb | Ease |
@@ -757,6 +761,7 @@ three.js starts importing one screen before the plate (IntersectionObserver, `ro
 
 - The camera moves along a Catmull-Rom path through the stop poses. It only moves when the reader scrolls, and it never drifts on its own.
 - Each stop’s dwell is a still page for reading.
+- *Tuned in Phase 7:* the camera waits over the whole lettered chart for 15vh before it sets off (the stops are now 105–130, 155–180, 205–230, 255–280, 305–325), so the reader sees the chart entire; each stop keeps a 25vh dwell.
 - Captions replace each other: the old one fades in 150ms and the new one develops.
 - As built: between stops the camera stands back a little (`PLATE3.cameraLift`, 30% of the distance between the two targets), so the reader sees where it is going. The pieces arrive pinned, without their tickers or letters: their numbers stay behind on Plate II, and here each is given a place instead. Each pin comes out (the press reversed) before its piece lifts. The caption swap is time-based, triggered when the camera arrives, so a caption is never left half-developed under a slow scroll.
 
@@ -774,6 +779,8 @@ three.js starts importing one screen before the plate (IntersectionObserver, `ro
 | Step 20 (?) | The threads reach back to the answer noun; the inset’s mark settles near trophy | thread | `hand` |
 | Pin 255–300vh | Rest: the switch and readers are live | — | — |
 
+*Tuned in Phase 7:* steps now have unequal room. The nine plain opening pieces (trophy to because) hurry at 8 units; it pauses at 16 and the first big at 20; the question mark breathes at 14; the rest take 9. The twenty steps still fill 0–255vh.
+
 Thread widths:
 - Line work stays within hairline to 2px: width = 0.5 + 1.5 × √w px, and threads below w = 0.03 are not drawn.
 - Weights of 0.3 or more get a second ply, a parallel strand 1.2px away, so dominance reads at a glance without breaking the 2px rule.
@@ -789,6 +796,8 @@ Thread widths:
 | Pin 90–110vh | The note develops (plus the variant note when small) | expose | `develop` |
 | Pin 105–120vh | The caption develops | expose | `develop` |
 | Pin 120–150vh | Rest: the dial and lever are live | — | — |
+
+*Tuned in Phase 7:* the bars expose over 30–90vh, the note over 80–100 and the caption over 95–110, leaving 40vh of still rest for the dial and the lever.
 
 ### Plate VI. The composing stick (pin 250vh)
 
@@ -806,6 +815,8 @@ For big, four loops of about 50vh. For small, five loops, compressed to about 40
 | Crossing 180vh | Toning is triggered and plays in time: 3.2s, radial from the centre, with a slightly noisy edge | tone | `tone` |
 | Tone at ~70% | The answer is printed large in cream: “The trophy.” | set | `press` |
 | Pin 200–250vh | Rest | — | — |
+
+*Tuned in Phase 7:* the loops no longer share the span equally. The first teaches the pattern and takes its time; the later ones hurry (weights 1.3, 1, 0.8, 0.7).
 
 **Toning is time-based.** A bath takes the time it takes, and the reader has reached the end. Scrolling back above the trigger un-tones in 0.8s, because toning belongs to the story state (the end mark). Field exposure, by contrast, only ever increases (§8.4).
 
@@ -1196,6 +1207,8 @@ Loaded later:
 | Plate V | 0, 0.5, 1; T = 0; T = 2; after five draws |
 | Plate VI | 0, loop 1, end mark, toned (big), toned (small) |
 | Colophon and index | At rest |
+
+*Phase 7:* `scripts/film.mjs` scrolls the whole atlas in half-screen steps at both viewports and lays the frames out as a contact sheet (`/shots/film`), to read the rhythm at a glance. The harness's `goTo` now jumps, waits two frames, re-measures and jumps again until the target stops moving, so a checkpoint run on its own lands where it means to.
 
 ### 8.12 Debug (`?debug`)
 

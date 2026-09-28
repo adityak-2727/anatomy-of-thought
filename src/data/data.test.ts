@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CONSTELLATIONS, VOCAB_WORDS } from './vocab';
 import { COMMON_WORDS } from './common-words';
-import { END, LETTERS, PIECES, REPLY, SCORES, ids } from './specimen';
+import { END, LETTERS, PIECES, REPLY, SCORES, SENTENCE, ids } from './specimen';
 import { percent, softmax } from '../lib/softmax';
 import { pieceId } from '../lib/hash';
 import html from '../../index.html?raw';
@@ -105,5 +105,12 @@ describe('the answer', () => {
       expect(SCORES[v]).toHaveLength(7);
       for (const c of SCORES[v]) expect(VOCAB_WORDS.has(c.piece.trim())).toBe(true);
     }
+  });
+});
+
+describe('the specimen as the machine receives it', () => {
+  it('writes one number per character, straight apostrophes and all', () => {
+    const written = /data-codes>[^:]+:[^:]+: ([\d, ]+)\.<\/p>/.exec(html)?.[1].split(', ').map(Number);
+    expect(written).toEqual([...SENTENCE.big].map((c) => c.charCodeAt(0)));
   });
 });

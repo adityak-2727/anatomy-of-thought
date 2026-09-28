@@ -265,16 +265,78 @@ html:not(.js) .contents__leader {
 
 /* Plate I: the specimen slip, set large and pinned at both ends. */
 .specimen-field {
+  /* Shared with the machine layer below, so the two sentences break into the same lines. */
+  --specimen-pad-block: var(--s-8);
+  --specimen-pad-inline: var(--s-7);
   display: grid;
   place-items: center;
   min-block-size: clamp(340px, 56svh, 540px);
-  padding: var(--s-8) var(--s-7);
+  padding: var(--specimen-pad-block) var(--specimen-pad-inline);
 }
 
 .specimen-slip {
   position: relative;
   max-inline-size: 34em;
   rotate: var(--specimen-turn);
+}
+
+/* Plate I's machine layer: the sentence set again in the slip's own type and turn, each
+   letter hidden and its number printed in its place, alternately a little high and low
+   along the sentence so narrow letters' numbers do not run together. Words and letters
+   are inline blocks (see writeMachine); the spaces between words are real spaces, and
+   each space's number is printed by the word before it, in the middle of the space. */
+.specimen-field .machine {
+  display: grid;
+  place-items: center;
+  padding: calc(var(--field-bleed) + var(--specimen-pad-block)) calc(var(--field-bleed) + var(--specimen-pad-inline));
+}
+
+.specimen-field .loupe-toggle {
+  position: absolute;
+  inset-inline-end: var(--s-5);
+  inset-block-end: var(--s-5);
+}
+
+.machine__specimen {
+  max-inline-size: 34em;
+  rotate: var(--specimen-turn);
+}
+
+.machine__letters {
+  margin: 0;
+  color: transparent;
+}
+
+.machine__word,
+.machine__char {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.machine__char::after,
+.machine__word[data-space]::after {
+  content: attr(data-code);
+  position: absolute;
+  inset-block-start: 34%;
+  inset-inline-start: 50%;
+  translate: -50% -50%;
+  color: var(--ink);
+  font-family: var(--font-numbers);
+  font-size: calc(var(--codes-scale) * 1em);
+  line-height: 1;
+}
+
+.machine__word[data-space]::after {
+  content: attr(data-space);
+  inset-inline-start: 100%;
+  /* Half of Old Standard's space (0.29em), in the numbers' own ems. */
+  margin-inline-start: calc(0.145em / var(--codes-scale));
+}
+
+.machine__char.is-low::after,
+.machine__word.is-space-low::after {
+  inset-block-start: 70%;
 }
 
 /* Plate II: the dissection. Without JavaScript the pieces sit in a readable row;
@@ -1496,7 +1558,8 @@ html:not(.js) .stick__answer {
   }
 
   .specimen-field {
-    padding: var(--s-7) var(--s-5);
+    --specimen-pad-block: var(--s-7);
+    --specimen-pad-inline: var(--s-5);
   }
 
   .dissection-field {

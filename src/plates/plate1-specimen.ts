@@ -10,6 +10,8 @@ import { PINS, PIN_DROP, PLATE1, SEEDS } from '../motion/eases';
 import { COMPACT, REDUCED, WIDE, isPhone } from '../motion/media';
 import { scrubFor } from '../motion/scroll';
 import { developOnArrival, pressInto } from '../motion/verbs';
+import { initLoupe } from '../components/loupe';
+import { DISPLAY, SENTENCE } from '../data/specimen';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -31,6 +33,8 @@ export function init(root: HTMLElement): void {
   const seed = SEEDS.plates[0];
 
   const f: FieldHandle = createField(fieldEl, { seed, angle: -3, strokes: 3, overshoot: 14, bias: 0.6 });
+  writeMachine(fieldEl.querySelector<HTMLElement>('.machine'));
+  initLoupe(fieldEl);
   const pins = pinSlipEnds(wrap, slip, seed);
   resizer = new ResizeObserver(() => refitSlipEnds(slip, pins));
   resizer.observe(slip);
@@ -97,6 +101,53 @@ export function init(root: HTMLElement): void {
       held = null;
     };
   });
+}
+
+/**
+ * The machine's view: the same sentence, set in the same type at the same width and turn,
+ * so its lines break exactly where the slip's do; but each letter is replaced by the
+ * number the machine receives for it (the apostrophes are the straight ones it is given).
+ *
+ * Each word is kept whole and each of its letters is its own inline block: a plain inline
+ * letter that ended a line was given an empty second fragment at the start of the next,
+ * and its number was centred between the two, across the line. The spaces stay real
+ * spaces, so they hang at the ends of lines as the slip's do; each space's number is
+ * printed by the word before it. The numbers alternate high and low along the sentence.
+ */
+function writeMachine(machine: HTMLElement | null): void {
+  if (!machine) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'machine__specimen';
+  const text = document.createElement('p');
+  text.className = 'slip--specimen machine__letters';
+  const shown = DISPLAY.big;
+  let word: HTMLElement | null = null;
+  for (let i = 0; i < shown.length; i++) {
+    const code = String(SENTENCE.big.charCodeAt(i));
+    const low = i % 2 === 1;
+    if (shown[i] === ' ') {
+      if (word) {
+        word.dataset.space = code;
+        word.classList.toggle('is-space-low', low);
+      }
+      text.append(' ');
+      word = null;
+      continue;
+    }
+    if (!word) {
+      word = document.createElement('span');
+      word.className = 'machine__word';
+      text.append(word);
+    }
+    const char = document.createElement('span');
+    char.className = 'machine__char';
+    char.classList.toggle('is-low', low);
+    char.dataset.code = code;
+    char.textContent = shown[i];
+    word.append(char);
+  }
+  wrap.append(text);
+  machine.replaceChildren(wrap);
 }
 
 export function destroy(): void {

@@ -57,13 +57,16 @@
         </div>
         <div class="plate__figure">
           <figure class="plate__pinned">
-            <div class="field plate__field specimen-field" data-field-name="Plate I">
+            <div class="field plate__field specimen-field" data-loupe data-field-name="Plate I">
               <div class="specimen-slip">
                 <p class="slip slip--specimen">The trophy doesn’t fit in the suitcase because it’s too big. What’s too big?</p>
               </div>
+              <button type="button" class="sens loupe-toggle" data-show="Show the machine’s view" data-hide="Hide the machine’s view"><span class="sens__label">Show the machine’s view</span></button>
+              <div class="machine" aria-hidden="true"></div>
             </div>
             <figcaption class="plate__caption">Fig. 1. The specimen, a riddle of the kind called a Winograd schema.</figcaption>
           </figure>
+          <p class="visually-hidden machine-text" data-codes>The machine’s view of Fig. 1: the specimen as the machine receives it, one number for each character: 84, 104, 101, 32, 116, 114, 111, 112, 104, 121, 32, 100, 111, 101, 115, 110, 39, 116, 32, 102, 105, 116, 32, 105, 110, 32, 116, 104, 101, 32, 115, 117, 105, 116, 99, 97, 115, 101, 32, 98, 101, 99, 97, 117, 115, 101, 32, 105, 116, 39, 115, 32, 116, 111, 111, 32, 98, 105, 103, 46, 32, 87, 104, 97, 116, 39, 115, 32, 116, 111, 111, 32, 98, 105, 103, 63.</p>
         </div>
       </div>
     </section>

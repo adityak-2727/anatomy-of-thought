@@ -370,3 +370,40 @@
   stroke: var(--ink);
   stroke-width: 1;
 }
+
+/* The plate indicator: a small paper slip at the bottom left, legible over paper and blue alike. */
+.plate-indicator {
+  position: fixed;
+  inset-block-end: var(--s-4);
+  inset-inline-start: var(--margin);
+  z-index: var(--z-indicator);
+  display: grid;
+  margin: 0;
+  padding: 0.18em 0.6em 0.24em;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: var(--type-small);
+  line-height: var(--lh-small);
+  font-style: italic;
+  rotate: 0.4deg;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.plate-indicator__face {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+}
+
+html:not(.js) .plate-indicator {
+  display: none;
+}
+
+/* On a phone the slip took a third of the width at the foot of the screen and sat over
+   the headings as they passed and over the machine's-view toggles while plates were
+   pinned; there the headings and the figures' numbers say which plate it is. */
+@media (max-width: 767px) {
+  .plate-indicator {
+    display: none;
+  }
+}

@@ -6,6 +6,7 @@ import { boot, fontsReady, startDebug, twoFrames } from './boot';
 import * as frontispiece from './plates/frontispiece';
 import * as listOfPlates from './plates/list-of-plates';
 import * as colophon from './plates/colophon';
+import * as plateIndicator from './components/plate-indicator';
 import { loadAllPlates, plate } from './plates/registry';
 import { FRONT } from './motion/eases';
 import { prefersReduced } from './motion/reduced-motion';
@@ -18,6 +19,7 @@ syncVariantWithAddress();
 frontispiece.init(document.querySelector<HTMLElement>('.frontispiece')!);
 listOfPlates.init(document.querySelector<HTMLElement>('.contents')!);
 colophon.init(document.querySelector<HTMLElement>('.colophon')!);
+plateIndicator.init();
 
 /** After the frontispiece has printed, when the browser has a moment to spare. */
 function afterFrontispiece(): Promise<void> {
@@ -72,18 +74,28 @@ if (import.meta.env.DEV || f.shots) {
         if (target === 'frontispiece') {
           jumpToY(0);
           if (!prefersReduced()) frontispiece.seek(progress);
-        } else if (typeof target === 'number') {
-          await loadAllPlates();
-          const r = plate(target)?.range();
-          const section = document.getElementById(`plate-${target}`);
-          const top = section ? section.getBoundingClientRect().top + window.scrollY : 0;
-          const y = r ? (progress >= 0 ? r.start + progress * (r.end - r.start) : r.start + progress * window.innerHeight) : top;
-          jumpToY(y);
-        } else {
-          const el = document.querySelector<HTMLElement>(SECTIONS[target] ?? '');
-          if (el) jumpToY(el.getBoundingClientRect().top + window.scrollY);
+          await twoFrames();
+          return;
         }
-        await twoFrames();
+        if (typeof target === 'number') await loadAllPlates();
+        const where = () => {
+          if (typeof target === 'number') {
+            const r = plate(target)?.range();
+            const section = document.getElementById(`plate-${target}`);
+            const top = section ? section.getBoundingClientRect().top + window.scrollY : 0;
+            return r ? (progress >= 0 ? r.start + progress * (r.end - r.start) : r.start + progress * window.innerHeight) : top;
+          }
+          const el = document.querySelector<HTMLElement>(SECTIONS[target] ?? '');
+          return el ? el.getBoundingClientRect().top + window.scrollY : window.scrollY;
+        };
+        // Jump, let the page settle, and jump again if the place has moved (a plate that
+        // measures itself after a jump can shift what follows it).
+        for (let i = 0; i < 4; i++) {
+          const y = where();
+          jumpToY(y);
+          await twoFrames();
+          if (Math.abs(where() - y) < 1) break;
+        }
       },
     },
   });

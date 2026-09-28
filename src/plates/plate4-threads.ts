@@ -362,7 +362,7 @@ export function init(root: HTMLElement): void {
       held = hold.scrollTrigger ?? null;
 
       // Twenty steps, each given its share of the reading; it and the first big get more room.
-      const room = Array.from({ length: STEPS }, (_, i) => PLATE4.stepRoom[i === 0 ? 'first' : String(i + 1)] ?? PLATE4.stepRoom.default);
+      const room = Array.from({ length: STEPS }, (_, i) => PLATE4.stepRoom[i === 0 ? 'first' : String(i + 1)] ?? (i < 10 ? PLATE4.stepRoom.early : PLATE4.stepRoom.default));
       const scale = at(span(PLATE4.pin.reading)) / room.reduce((sum, r) => sum + r, 0);
       let t = at(PLATE4.pin.reading[0]);
       room.forEach((r, i) => {

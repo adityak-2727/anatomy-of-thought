@@ -111,7 +111,7 @@ export const INTRO_ARRIVED = 'top 60%';
 
 /** Pin lengths in vh, desktop and phone (DESIGN-PLAN §2.4). */
 export const PINS = {
-  1: [150, 90],
+  1: [130, 78],        // Phase 7: the riddle's rest shortened from 85vh to 65vh
   2: [250, 150],
   3: [350, 210],
   4: [300, 180],
@@ -238,7 +238,8 @@ export const PLATE3 = {
     names: [70, 90],
     rings: [85, 95],
     // The camera travels to each stop, then dwells there while its caption is read.
-    stops: [[90, 120], [150, 180], [205, 235], [260, 285], [305, 325]],
+    // (Phase 7: it waits 15vh over the whole lettered chart before it sets off.)
+    stops: [[105, 130], [155, 180], [205, 230], [255, 280], [305, 325]],
   },
   pieceTravel: 24,      // vh one piece takes from its row to its star
   pinPull: 2,           // vh a pin takes to come out before the piece lifts
@@ -274,7 +275,8 @@ export const PLATE4 = {
     reading: [0, 255],
     rest: 255,
   },
-  stepRoom: { default: 11, first: 15, 11: 14, 14: 18 } as Record<string, number>,
+  // Phase 7: the plain opening words hurry; it and the first big pause; the question breathes.
+  stepRoom: { first: 15, early: 8, default: 9, 11: 16, 14: 20, 20: 14 } as Record<string, number>,
   // Within a step: the needle moves and the piece is laid, its threads draw, then a hold.
   step: { moved: 0.25, laid: [0.15, 0.25], drawn: 0.85 },
   notesAt: [11, 14, 18],      // the step at which each note takes the slot
@@ -301,9 +303,9 @@ export const PLATE5 = {
   pin: {
     set: [0, 20],          // "The" is set into the first slot
     rules: [10, 35],       // the card's rules and names, row by row
-    bars: [35, 105],       // each bar exposes to its length, its ticker fed out as it ends
-    note: [90, 110],
-    caption: [105, 120],
+    bars: [30, 90],        // each bar exposes to its length, its ticker fed out as it ends
+    note: [80, 100],
+    caption: [95, 110],
   },
   reweigh: 0.24,           // bars find their new lengths when the temperature moves
   reset: 0.12,             // ticker numbers re-set, with no counting
@@ -328,6 +330,8 @@ export const PLATE6 = {
     end: [160, 180],       // the fleuron drops in; no loop follows
     toneAt: 180,           // crossing this tones the plate
   },
+  // Phase 7: the first loop teaches the pattern and takes its time; the later ones hurry.
+  loopWeights: [1.3, 1, 0.8, 0.7],
   loop: {
     drop: [0, 0.25],       // the sort drops into the stick
     arrow: [0.25, 0.6],    // the loop arrow draws back to the end of the sentence

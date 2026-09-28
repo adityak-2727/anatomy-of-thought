@@ -99,6 +99,67 @@ const PAGES = [
       { name: 'plate-1-laid', motion: 'normal', run: goTo(1, 0) },
       { name: 'plate-1-exposing', motion: 'normal', gl: true, run: goTo(1, 0.18) },
       { name: 'plate-1', run: goTo(1, 0.75) },
+      {
+        name: 'plate-1-loupe',
+        only: 'desktop',
+        run: async (p, ctx) => {
+          await goTo(1, 0.75)(p);
+          const box = await p.locator('.slip--specimen').first().boundingBox();
+          if (!box) return;
+          await p.mouse.move(box.x + 60, box.y + 40);
+          await p.mouse.move(box.x + 110, box.y + box.height * 0.35, { steps: 8 });
+          await p.waitForTimeout(450);
+          const codes = await p.evaluate(() => [...document.querySelectorAll('.specimen-field .machine__char')].slice(0, 3).map((c) => c.dataset.code));
+          ctx.check('under the loupe, the specimen is a row of numbers, one per character', codes.join() === '84,104,101', { codes });
+        },
+        after: (p) => p.mouse.move(5, 5),
+      },
+      {
+        name: 'plate-1-machine-view',
+        run: async (p, ctx) => {
+          await goTo(1, 0.75)(p);
+          await p.locator('.specimen-field .loupe-toggle').click();
+          // The numbers must sit over the slip's own letters: the same lines, and no two numbers
+          // on a tier touching. Pseudo-elements cannot be measured, so each number is set in a probe.
+          const result = await p.evaluate(() => {
+            const text = document.querySelector('.machine__letters');
+            const fs = parseFloat(getComputedStyle(text).fontSize);
+            const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--codes-scale'));
+            const breaks = (tops) => tops.flatMap((t, i) => (i && t.top > tops[i - 1].top + 5 ? [t.at] : [])).join();
+            const slip = document.querySelector('.specimen-slip .slip').firstChild;
+            const range = document.createRange();
+            const letters = [...slip.textContent].map((_, i) => {
+              range.setStart(slip, i);
+              range.setEnd(slip, i + 1);
+              return { at: i, top: range.getBoundingClientRect().top };
+            });
+            const probe = document.createElement('span');
+            probe.style.cssText = `position:absolute;visibility:hidden;font-family:var(--font-numbers);font-size:${scale * fs}px`;
+            document.body.append(probe);
+            const width = (code) => ((probe.textContent = code), probe.getBoundingClientRect().width);
+            const marks = [];
+            const words = [];
+            for (const word of text.querySelectorAll('.machine__word')) {
+              const box = word.getBoundingClientRect();
+              words.push({ at: marks.length, top: box.top });
+              for (const c of word.children) {
+                const b = c.getBoundingClientRect();
+                marks.push({ x: b.left + b.width / 2, top: box.top, low: c.classList.contains('is-low'), w: width(c.dataset.code) });
+              }
+              if (word.dataset.space) marks.push({ x: box.right + 0.145 * fs, top: box.top, low: word.classList.contains('is-space-low'), w: width(word.dataset.space) });
+            }
+            probe.remove();
+            let closest = Infinity;
+            marks.forEach((m, i) => {
+              const n = marks.slice(i + 1).find((o) => o.low === m.low);
+              if (n && Math.abs(n.top - m.top) < 5) closest = Math.min(closest, n.x - m.x - (n.w + m.w) / 2);
+            });
+            return { slipLines: breaks(letters.filter((l) => slip.textContent[l.at] !== ' ')), machineLines: breaks(words), closest: Math.round(closest * 10) / 10 };
+          });
+          ctx.check('the machine’s numbers break into the slip’s lines, and no two touch', result.slipLines === result.machineLines && result.closest > 1, result);
+        },
+        after: (p) => p.locator('.specimen-field .loupe-toggle').click(),
+      },
       { name: 'plate-2-approach', motion: 'normal', gl: true, run: goTo(2, -0.4) },
       { name: 'plate-2-cutting', motion: 'normal', gl: true, run: goTo(2, 0.2) },
       { name: 'plate-2-parted', motion: 'normal', gl: true, run: goTo(2, 0.33) },
@@ -296,10 +357,31 @@ const PAGES = [
         },
         after: (p) => p.locator('.star-list__summary').click(),
       },
+      {
+        // The plate indicator names the plate in view, and is gone over the list of plates.
+        // A phone has no room for it (it would sit over the text), so there it is never shown.
+        name: 'indicator',
+        run: async (p, ctx) => {
+          await goTo(3, 0.5)(p);
+          await p.waitForTimeout(400);
+          const label = () => p.evaluate(() => {
+            const slip = document.querySelector('.plate-indicator');
+            if (!slip || getComputedStyle(slip).display === 'none' || getComputedStyle(slip).visibility === 'hidden') return null;
+            const face = [...slip.children].find((f) => getComputedStyle(f).visibility !== 'hidden');
+            return face?.textContent ?? null;
+          });
+          const inPlate = await label();
+          await goTo('list')(p);
+          await p.waitForTimeout(400);
+          const inList = await label();
+          await goTo(3, 0.5)(p);
+          ctx.check('the plate indicator names the plate in view, and hides over the list', inPlate === (ctx.touch ? null : 'Plate III of VI') && inList === null, { inPlate, inList });
+        },
+      },
       { name: 'plate-4-approach', motion: 'normal', gl: true, run: goTo(4, -0.4) },
       { name: 'plate-4-reading', motion: 'normal', gl: true, run: goTo(4, 0.2) },
-      { name: 'plate-4-it', motion: 'normal', run: goTo(4, 0.45) },
-      { name: 'plate-4-big', motion: 'normal', run: goTo(4, 0.604) },
+      { name: 'plate-4-it', motion: 'normal', run: goTo(4, 0.417) },
+      { name: 'plate-4-big', motion: 'normal', run: goTo(4, 0.591) },
       {
         name: 'plate-4',
         run: async (p, ctx) => {
@@ -531,7 +613,11 @@ const PAGES = [
         name: 'plate-6',
         run: async (p, ctx) => {
           await goTo(6, 0.95)(p);
-          await p.waitForTimeout(ctx.motion === 'reduce' ? 300 : 4000);
+          // The toning runs in time, not scroll, and on a loaded software renderer the ticker can
+          // fall behind the wall clock: wait for the answer to be printed rather than a fixed pause.
+          await p
+            .waitForFunction(() => Number(getComputedStyle(document.querySelector('.stick__answer')).opacity) > 0.99, null, { timeout: 10000 })
+            .catch(() => {});
           const result = await p.evaluate(() => ({
             toned: document.querySelector('.stick-field').classList.contains('is-toned'),
             answer: document.querySelector('.stick__answer').textContent,
@@ -556,7 +642,11 @@ const PAGES = [
         run: async (p, ctx) => {
           await p.evaluate(() => window.__atlas.setVariant('small'));
           await goTo(6, 0.95)(p);
-          await p.waitForTimeout(ctx.motion === 'reduce' ? 300 : 4000);
+          // The toning runs in time, not scroll, and on a loaded software renderer the ticker can
+          // fall behind the wall clock: wait for the answer to be printed rather than a fixed pause.
+          await p
+            .waitForFunction(() => Number(getComputedStyle(document.querySelector('.stick__answer')).opacity) > 0.99, null, { timeout: 10000 })
+            .catch(() => {});
           const result = await p.evaluate(() => ({
             answer: document.querySelector('.stick__answer').textContent,
             sorts: document.querySelectorAll('.stick .sort').length,
@@ -751,7 +841,10 @@ function loupeOver(selector) {
 async function run() {
   // A filtered run replaces only its own pictures; a full run starts clean.
   await fs.mkdir(OUT, { recursive: true });
-  for (const file of await fs.readdir(OUT)) {
+  for (const entry of await fs.readdir(OUT, { withFileTypes: true })) {
+    // Leave folders alone (the filmstrip keeps its own in /shots/film).
+    if (!entry.isFile()) continue;
+    const file = entry.name;
     const mine = (!filter || file.startsWith(filter)) && (!passFilter || file.includes(passFilter)) && (!cpFilter || file.includes(`-${cpFilter}`));
     if (mine) await fs.rm(path.join(OUT, file), { force: true });
   }

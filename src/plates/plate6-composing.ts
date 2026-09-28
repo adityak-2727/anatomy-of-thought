@@ -224,8 +224,11 @@ export function init(root: HTMLElement): void {
       held = hold.scrollTrigger ?? null;
 
       // One loop per chosen piece: it drops in, loops back, and the reading runs again.
-      const loopSpan = at(span(p.loops)) / s.loops.length;
+      // Each loop's share of the loops' span, by its weight: the first slowest.
+      const weights = s.loops.map((_, n) => PLATE6.loopWeights[Math.min(n, PLATE6.loopWeights.length - 1)]);
+      const unit = at(span(p.loops)) / weights.reduce((a, b) => a + b, 0);
       const L = PLATE6.loop;
+      let loopStart = at(p.loops[0]);
       // set: the sort falls into the stick, stops dead, and recoils exactly 1px.
       const drops = (el: SVGGElement, t: number, d: number) => {
         const r = d / DUR.press;
@@ -234,7 +237,9 @@ export function init(root: HTMLElement): void {
         hold.to(el, { y: 0, duration: DUR.recoilDown * r, ease: 'power1.in', immediateRender: false }, t + d + DUR.recoilUp * r);
       };
       s.loops.forEach((loop, n) => {
-        const t0 = at(p.loops[0]) + n * loopSpan;
+        const loopSpan = weights[n] * unit;
+        const t0 = loopStart;
+        loopStart += loopSpan;
         const beat = (r: readonly [number, number]) => [t0 + r[0] * loopSpan, (r[1] - r[0]) * loopSpan] as const;
         const [dropAt, dropFor] = beat(L.drop);
         drops(loop.sort, dropAt, dropFor);
