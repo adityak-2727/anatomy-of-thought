@@ -10,6 +10,8 @@ import { projector, pxPerUnit, type Vec3, type View } from '../../lib/projection
 import { rand, rngFor, signed } from '../../motion/random';
 import { symbolScale } from './renderer';
 
+const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), Math.max(lo, hi));
+
 export interface Frame {
   width: number;
   height: number;
@@ -413,14 +415,17 @@ export function createOverlay(root: HTMLElement, seed: number): Overlay {
         }
         if (show) taken.push(box);
         if (show && cand.edge) edges += 1;
-        const key = show ? `${cand.x.toFixed(1)},${cand.y.toFixed(1)},${cand.edge}` : 'off';
+        // A name with no room is not lettered, but it keeps a place on the chart and its turn
+        // in the Tab order: focused from the keyboard, it is shown there (Phase 8).
+        const at = show ? cand : { x: clamp(cand.x, inner.l + n.w / 2, inner.r - n.w / 2), y: clamp(cand.y, inner.t + n.top, inner.b - (n.h - n.top)) };
+        const key = `${at.x.toFixed(1)},${at.y.toFixed(1)},${cand.edge},${show}`;
         if (key !== n.placed) {
           n.placed = key;
-          n.button.style.visibility = show ? 'visible' : 'hidden';
-          const scale = cand.edge ? ` scale(${EDGE_SCALE})` : '';
-          if (show) n.button.style.transform = `translate(${(cand.x - n.w / 2).toFixed(1)}px, ${(cand.y - n.top).toFixed(1)}px) rotate(${n.tilt.toFixed(2)}deg)${scale}`;
+          n.button.classList.toggle('is-placed', show);
+          const scale = show && cand.edge ? ` scale(${EDGE_SCALE})` : '';
+          n.button.style.transform = `translate(${(at.x - n.w / 2).toFixed(1)}px, ${(at.y - n.top).toFixed(1)}px) rotate(${n.tilt.toFixed(2)}deg)${scale}`;
         }
-        n.art.style.opacity = lettered.toFixed(3);
+        n.button.style.setProperty('--lettered', lettered.toFixed(3));
         n.button.classList.toggle('is-edge', cand.edge);
       }
 

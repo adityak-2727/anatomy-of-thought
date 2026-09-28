@@ -123,14 +123,14 @@ p, li, figcaption, dd {
   font-size: var(--type-body);
   line-height: var(--lh-body);
   font-style: italic;
-  max-inline-size: var(--measure);
+  max-inline-size: var(--measure-italic);
 }
 
 .t-caption {
   font-size: var(--type-caption);
   line-height: var(--lh-caption);
   font-style: italic;
-  max-inline-size: 36em;
+  max-inline-size: var(--measure-italic);
 }
 
 .t-label {

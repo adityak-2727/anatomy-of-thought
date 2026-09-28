@@ -9,7 +9,7 @@ import { advanceField, createField } from '../gl/background';
 import { initLoupe, initLoupeHint } from '../components/loupe';
 import { LETTERS, SECOND_STRIP } from '../data/specimen';
 import { PINS, PLATE2, SEEDS } from '../motion/eases';
-import { COMPACT, REDUCED, WIDE, isPhone } from '../motion/media';
+import { COMPACT, STILL, WIDE, isPhone } from '../motion/media';
 import { scrubFor } from '../motion/scroll';
 import { addCuts, addFixing, addParting, addSeparating, lay, prepare, toFinal, toStrip, writeMachine } from './dissect';
 import { initReader } from './reader-sentence';
@@ -26,7 +26,6 @@ let resizeTimer = 0;
 
 export function init(root: HTMLElement): void {
   const frame = root.querySelector<HTMLElement>('.plate__frame')!;
-  const pinned = root.querySelector<HTMLElement>('.plate__pinned')!;
   const fieldEl = root.querySelector<HTMLElement>('.dissection-field')!;
   const stage = root.querySelector<HTMLElement>('.dissection__stage')!;
   const list = root.querySelector<HTMLElement>('.dissection__pieces')!;
@@ -50,7 +49,7 @@ export function init(root: HTMLElement): void {
   const build = () => {
     mm?.revert();
     mm = gsap.matchMedia();
-    mm.add({ wide: WIDE, compact: COMPACT, reduced: REDUCED }, (context) => {
+    mm.add({ wide: WIDE, compact: COMPACT, reduced: STILL }, (context) => {
       const { wide, reduced } = context.conditions as Record<string, boolean>;
       const d = lay(stage, list, pieces, seed, [SECOND_STRIP]);
       writeMachine(machine, stage, d);
@@ -64,7 +63,9 @@ export function init(root: HTMLElement): void {
       }
 
       toStrip(d);
-      const pinEl = wide ? frame : pinned;
+      // In one column only the field pins; the caption follows it, so the pin fits a
+      // phone's screen (Phase 8).
+      const pinEl = wide ? frame : fieldEl;
       const length = isPhone() ? PINS[2][1] : PINS[2][0];
       const k = length / PINS[2][0];
       const scrub = scrubFor('story');

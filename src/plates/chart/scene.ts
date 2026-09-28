@@ -160,25 +160,16 @@ export function createGlChart(host: HTMLElement, data: ChartData): ChartRenderer
 
   const ink = chartInk();
   const colour = new Vector3(...ink.paper);
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  // As the fields: 1.5 device pixels to the CSS pixel is fine enough for engraved stars, and
+  // at 2x the chart and the fields together left the GPU behind as the plate arrived.
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
   renderer.setPixelRatio(dpr);
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(28, 1, 1, 2000);
 
-  // The graticule, then the threads, then the stars over them.
-  const graticuleMat = new ShaderMaterial({
-    vertexShader: LINE_VERT,
-    fragmentShader: LINE_FRAG,
-    uniforms: { uColor: { value: colour }, uOpacity: { value: 0 }, uDraw: { value: 1 } },
-    transparent: true,
-    depthTest: false,
-    depthWrite: false,
-  });
-  const graticule = new LineSegments(segments(data.graticule.map((points) => ({ points }))), graticuleMat);
-  graticule.renderOrder = 0;
-  scene.add(graticule);
-
+  // The threads, then the stars over them. (The graticule behind them went in the Phase 8
+  // restraint pass: the ruled border already says this is a chart of the sky.)
   const lineMat = new ShaderMaterial({
     vertexShader: LINE_VERT,
     fragmentShader: LINE_FRAG,
@@ -220,9 +211,19 @@ export function createGlChart(host: HTMLElement, data: ChartData): ChartRenderer
 
   let width = 0;
   let height = 0;
+  // Compiled in the background where the browser can: asked for at the first render, the
+  // result held the page for about 90ms, mid-scroll, as the chart came near (Phase 8).
+  // (Where the browser cannot compile in the background, three.js would only warn and wait.)
+  const ready = renderer.extensions.has('KHR_parallel_shader_compile')
+    ? renderer.compileAsync(scene, camera).then(
+        () => undefined,
+        () => undefined,
+      )
+    : Promise.resolve();
 
   return {
     kind: 'gl',
+    ready,
     render(look: Look) {
       const { view } = look;
       if (view.width !== width || view.height !== height) {
@@ -242,11 +243,10 @@ export function createGlChart(host: HTMLElement, data: ChartData): ChartRenderer
       (own.array as Float32Array).set(look.own);
       own.needsUpdate = true;
       lineMat.uniforms.uDraw.value = look.draw;
-      graticuleMat.uniforms.uOpacity.value = ink.graticule * look.graticule;
       renderer.render(scene, camera);
     },
     destroy() {
-      for (const o of [graticule, lines, stars]) {
+      for (const o of [lines, stars]) {
         o.geometry.dispose();
         (o.material as ShaderMaterial).dispose();
       }

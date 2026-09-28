@@ -40,8 +40,6 @@ export function createSvgChart(host: HTMLElement, data: ChartData): ChartRendere
   const defs = svgEl('defs', {}, svg);
   for (let m = 1; m <= 6; m++) symbol(defs, m);
 
-  const graticule = svgEl('g', { class: 'chart-svg__graticule' }, svg);
-  const gratPaths = data.graticule.map(() => svgEl('path', {}, graticule));
   const lineGroup = svgEl('g', { class: 'chart-svg__lines' }, svg);
   const linePaths = data.lines.map(() => svgEl('path', { pathLength: 1 }, lineGroup));
   const starGroup = svgEl('g', { class: 'chart-svg__stars' }, svg);
@@ -67,6 +65,7 @@ export function createSvgChart(host: HTMLElement, data: ChartData): ChartRendere
   let lastPose = '';
   return {
     kind: 'svg',
+    ready: Promise.resolve(),
     render(look: Look) {
       const { view } = look;
       const project = projector(view);
@@ -74,9 +73,6 @@ export function createSvgChart(host: HTMLElement, data: ChartData): ChartRendere
       const moved = poseKey !== lastPose;
       lastPose = poseKey;
       if (moved) svg.setAttribute('viewBox', `0 0 ${view.width} ${view.height}`);
-
-      graticule.style.opacity = String(look.graticule);
-      if (moved) data.graticule.forEach((pts, i) => gratPaths[i].setAttribute('d', pathOf(pts, project)));
 
       data.lines.forEach((line, i) => {
         const path = linePaths[i];

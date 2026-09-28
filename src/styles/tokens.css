@@ -25,7 +25,6 @@
   /* Opacities that carry meaning. */
   --o-constellation: 0.4;
   --o-ghost: 0.16;
-  --o-graticule: 0.22;
   --o-disabled: 0.55;
 
   /* Type families. The fallbacks are metric-matched in type.css. */
@@ -60,7 +59,10 @@
   --lh-machine: 1;
   --lh-small: 1.4;
   --tracking-title: -0.01em;
-  --measure: 31em;
+  /* At most 62 characters a line (BRIEF §4). Old Standard sets about 0.43em a character
+     in roman and a little less in italic, measured in Phase 8 across the atlas's copy. */
+  --measure: 26em;
+  --measure-italic: 25em;
 
   /* Space: a 4px base. */
   --s-1: 4px;
@@ -99,7 +101,7 @@
   --paper-tile-size: 1024px; /* the baked paper repeats at this size */
 
   /* Plate II: how cut pieces are laid out. */
-  --cut-label-room: 34px;    /* above a piece, for its letter and leader */
+  --cut-label-room: 26px;    /* above a piece, for its letter */
   --cut-ticker-room: 38px;   /* below a piece, for its ticker strip */
   --cut-col-gap: 22px;
   --cut-row-gap: 14px;
@@ -117,9 +119,9 @@
   --read-gap: 6px;           /* between pieces in the row */
   --read-smile: 18px;        /* how far the row's ends rise above its middle */
   --read-pitch: 28px;        /* between pieces when the row stands on end (a phone) */
-  --read-headroom: 170px;    /* above the row, for the longest thread's arc */
-  --inset-w: 250px;          /* Fig. 4b, inside the field */
-  --inset-h: 140px;
+  --read-headroom: 132px;    /* above the row: the longest thread rises about 125px (Phase 8) */
+  --inset-w: 200px;          /* Fig. 4b, inside the field */
+  --inset-h: 112px;
 
   /* Plate V: the weighing. */
   --bar-h: 11px;             /* an exposed likelihood strip */
@@ -157,12 +159,13 @@
 /* On a phone, cut pieces are laid closer, so a pinned plate fits the screen. */
 @media (max-width: 767px) {
   :root {
-    --cut-label-room: 30px;
+    --cut-label-room: 22px;
     --cut-ticker-room: 34px;
     --cut-col-gap: 12px;
     --cut-row-gap: 6px;
     --cut-strip-gap: 14px;
     --chart-band: 104px;       /* The Uncharted above the toggle, not beside it */
+    --read-pitch: 25px;       /* the slips on end, stacked close (Phase 8) */
     --inset-w: 150px;
     --inset-h: 112px;
     --dial-size: 124px;

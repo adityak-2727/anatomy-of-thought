@@ -1,13 +1,13 @@
 #version 300 es
-// Paper and chemistry. One shader, two passes:
-//   uMode 0 bakes a seamless tile of paper, once, which becomes the page's background;
-//   uMode 1 draws one brushed cyanotype field, to be copied into that field's own canvas.
+// Paper and chemistry. One shader, built twice (background.ts adds the #define):
+//   PASS_PAPER bakes a seamless tile of paper, once, which becomes the page's background;
+//   PASS_FIELD draws one brushed cyanotype field, to be copied into that field's own canvas.
+// Each build holds only its own half, so each compiles quickly, and the two side by side.
 // All colours arrive from the CSS tokens through uPalette.
 
 precision highp float;
 precision highp int;
 
-uniform int uMode;
 uniform vec2 uResolution;   // device px of the region being drawn
 uniform float uScale;       // device px per CSS px
 uniform vec3 uPalette[9];   // paper, paper-shade, prussian-deep, prussian, wash, sensitiser, sensitiser-deep, umber, cream
@@ -237,11 +237,11 @@ vec4 field(vec2 p) {
 
 void main() {
   vec2 p = vec2(gl_FragCoord.x, uResolution.y - gl_FragCoord.y) / uScale;
-  if (uMode == 0) {
-    // Grain is per pixel, so it tiles as it is.
-    vec3 c = paperTile(p) + (rnd(ivec2(gl_FragCoord.xy), 5.0) - 0.5) * uPaperTune.z;
-    outColor = vec4(c, 1.0);
-  } else {
-    outColor = field(p);
-  }
+#ifdef PASS_PAPER
+  // Grain is per pixel, so it tiles as it is.
+  vec3 c = paperTile(p) + (rnd(ivec2(gl_FragCoord.xy), 5.0) - 0.5) * uPaperTune.z;
+  outColor = vec4(c, 1.0);
+#else
+  outColor = field(p);
+#endif
 }

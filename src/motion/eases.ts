@@ -65,9 +65,13 @@ export const DUR = {
   tone: 3.2,
   ticker: 0.38,             // 300–450ms with variation
   move: 0.6,
-  refine: 0.15,             // a field still this long is redrawn at full resolution
+  refine: 0.15,             // a field still this long is redrawn at full resolution…
+  refineIdle: 0.3,          // …once the page has also stopped scrolling this long
+  draftEvery: 1 / 30,       // a field that is changing is redrawn at most this often
   travel: [1.2, 1.6],       // list of plates to a plate: 1.2s near, up to 1.6s far
   travelPerScreen: 0.04,    // seconds added per screen of distance
+  keepPlace: 0.8,           // how long a resize holds the reader's place through re-measures
+  compileWait: 6,           // the longest the paper's shader may take before fields fall back to CSS
 } as const;
 
 /** Values that ?debug may change at runtime. */
@@ -233,7 +237,6 @@ export const PLATE3 = {
   pin: {
     handoff: [15, 70],
     reveal: [20, 60],
-    graticule: [20, 50],
     lines: [60, 85],
     names: [70, 90],
     rings: [85, 95],

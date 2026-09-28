@@ -3,6 +3,7 @@
 
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { boot, fontsReady, startDebug, twoFrames } from './boot';
+import { backgroundReady } from './gl/background';
 import * as frontispiece from './plates/frontispiece';
 import * as listOfPlates from './plates/list-of-plates';
 import * as colophon from './plates/colophon';
@@ -10,7 +11,7 @@ import * as plateIndicator from './components/plate-indicator';
 import { loadAllPlates, plate } from './plates/registry';
 import { FRONT } from './motion/eases';
 import { prefersReduced } from './motion/reduced-motion';
-import { jumpToY } from './motion/scroll';
+import { jumpToY, keepPlaceOnResize } from './motion/scroll';
 import { getState, setState, syncVariantWithAddress } from './state';
 
 const f = boot();
@@ -20,6 +21,7 @@ frontispiece.init(document.querySelector<HTMLElement>('.frontispiece')!);
 listOfPlates.init(document.querySelector<HTMLElement>('.contents')!);
 colophon.init(document.querySelector<HTMLElement>('.colophon')!);
 plateIndicator.init();
+keepPlaceOnResize([...document.querySelectorAll<HTMLElement>('header.frontispiece, nav.contents, section.plate, footer.endmatter')]);
 
 /** After the frontispiece has printed, when the browser has a moment to spare. */
 function afterFrontispiece(): Promise<void> {
@@ -42,7 +44,8 @@ if (plates) {
 }
 
 const ready = (async () => {
-  await fontsReady();
+  // Blank paper until the type and the chemistry are both ready.
+  await Promise.all([fontsReady(), backgroundReady()]);
   ScrollTrigger.refresh();
   if (prefersReduced()) frontispiece.developed();
   else frontispiece.begin({ play: !f.shots && window.scrollY < 4 });
@@ -89,12 +92,12 @@ if (import.meta.env.DEV || f.shots) {
           return el ? el.getBoundingClientRect().top + window.scrollY : window.scrollY;
         };
         // Jump, let the page settle, and jump again if the place has moved (a plate that
-        // measures itself after a jump can shift what follows it).
-        for (let i = 0; i < 4; i++) {
+        // measures itself after a jump can shift what follows it), until it holds twice.
+        for (let i = 0, held = 0; i < 8 && held < 2; i++) {
           const y = where();
           jumpToY(y);
           await twoFrames();
-          if (Math.abs(where() - y) < 1) break;
+          held = Math.abs(where() - y) < 1 ? held + 1 : 0;
         }
       },
     },

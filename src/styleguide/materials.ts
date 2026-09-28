@@ -79,7 +79,7 @@ export function initMaterials(section: HTMLElement, options: { shots: boolean })
       // A field that has been exposed stays exposed: the machine has processed it.
       const latch = () => advanceField(field, proxy);
       const pins = lettered.map((p) => p.pin!);
-      const letters = lettered.flatMap((p) => [p.letter!, p.leader!]);
+      const letters = lettered.map((p) => p.letter!);
       const paths = threadSvg.querySelectorAll<SVGPathElement>('path');
 
       if (reduced) {
@@ -162,8 +162,7 @@ function layThreads(row: HTMLElement, svg: SVGSVGElement, pieces: (Piece | null)
     const weight = WEIGHTS[p.text] ?? 0;
     if (weight < MIN_WEIGHT) return;
     const to = anchors[i]!;
-    const plies = weight >= PLY_AT ? 2 : 1;
-    const ds = threadPaths(from, to, p.seed, plies);
+    const ds = threadPaths(from, to, p.seed, 1);
     for (const d of ds) {
       svgEl('path', { d, class: 'thread', 'stroke-width': threadWidth(weight).toFixed(2) }, svg);
     }

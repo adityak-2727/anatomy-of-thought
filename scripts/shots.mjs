@@ -8,7 +8,7 @@
 // axe cannot see colours drawn by WebGL; the ?nogl render (fields as real CSS colours,
 // same tokens) runs every rule including colour contrast. See DESIGN-PLAN §8.9.
 
-import { createServer } from 'vite';
+import { createServer, createLogger } from 'vite';
 import { chromium } from 'playwright';
 import { AxeBuilder } from '@axe-core/playwright';
 import fs from 'node:fs/promises';
@@ -246,7 +246,7 @@ const PAGES = [
             const shown = [...document.querySelectorAll('.chart-stop')].filter((c) => Number(getComputedStyle(c).opacity) > 0.9).map((c) => c.dataset.stop);
             return {
               drawing: document.getElementById('plate-3').dataset.chart,
-              names: [...document.querySelectorAll('.chart-name')].filter((b) => getComputedStyle(b).visibility === 'visible').length,
+              names: [...document.querySelectorAll('.chart-name')].filter((b) => b.classList.contains('is-placed')).length,
               shown,
             };
           });
@@ -285,18 +285,20 @@ const PAGES = [
           await chartAt(0.97)(p);
           // Whichever name points the way from the border, take it.
           const id = await p.evaluate(() => {
-            const shown = [...document.querySelectorAll('.chart-name')].filter((b) => getComputedStyle(b).visibility === 'visible' && b.dataset.constellation !== 'centre');
+            const shown = [...document.querySelectorAll('.chart-name')].filter((b) => b.classList.contains('is-placed') && b.dataset.constellation !== 'centre');
             const stop = shown.find((b) => ['laurel', 'chest', 'wardrobe', 'rule'].includes(b.dataset.constellation));
             return (stop ?? shown[0])?.dataset.constellation ?? null;
           });
-          if (id) await p.locator(`.chart-name[data-constellation="${id}"]`).click();
+          // Dispatched to the button itself: Playwright's click first scrolls the name "into
+          // view", which can carry the page past the plate's rest and under Plate IV.
+          if (id) await p.locator(`.chart-name[data-constellation="${id}"]`).dispatchEvent('click');
           await p.waitForTimeout(400);
           const result = await p.evaluate((target) => {
             const caption = document.querySelector(`.chart-stop[data-stop="${target}"]`);
             return {
               target,
               caption: caption ? Number(getComputedStyle(caption).opacity) : null,
-              arrived: [...document.querySelectorAll('.chart-name')].some((b) => b.dataset.constellation === target && getComputedStyle(b).visibility === 'visible' && !b.classList.contains('is-edge')),
+              arrived: [...document.querySelectorAll('.chart-name')].some((b) => b.dataset.constellation === target && b.classList.contains('is-placed') && !b.classList.contains('is-edge')),
             };
           }, id);
           const ok = !!id && result.arrived && (ctx.motion === 'reduce' || result.caption === null || result.caption > 0.9);
@@ -354,6 +356,16 @@ const PAGES = [
           await p.locator('.star-list__summary').click();
           const text = await p.textContent('.star-list__body');
           ctx.check('the list of the stars gives every constellation and its words', text.includes('The Crowded Centre') && text.includes('trophy, medal'), { length: text.length });
+          // The open list pushes the plates below it down the page; their pins must follow. A jump
+          // to Plate IV goes by its pin's measured place, so a stale one lands a list's length early.
+          await p.waitForTimeout(300);
+          await goTo(4, 0.5)(p);
+          const where = await p.evaluate(() => {
+            const r = document.getElementById('plate-4').getBoundingClientRect();
+            return { inPlate: r.top < innerHeight / 2 && r.bottom > innerHeight / 2, top: Math.round(r.top) };
+          });
+          ctx.check('with the list open, the plates below still pin where they now lie', where.inPlate, where);
+          await scrollToSelector(p, '.star-bench', -60);
         },
         after: (p) => p.locator('.star-list__summary').click(),
       },
@@ -482,6 +494,8 @@ const PAGES = [
       {
         // #small in the address sets the variant, whether typed in or there on arrival.
         name: 'plate-4-hash',
+        // Arrives with #small in the address, so it reloads the page on purpose.
+        reloads: true,
         run: async (p, ctx) => {
           const url = new URL(p.url());
           url.hash = 'small';
@@ -849,7 +863,14 @@ async function run() {
     if (mine) await fs.rm(path.join(OUT, file), { force: true });
   }
 
-  const server = await createServer({ logLevel: 'error', server: { port: 5199, strictPort: false } });
+  // Quiet, except for what would disturb the pages being photographed: a reload, or a
+  // re-optimisation of dependencies (which reloads every open page).
+  const logger = createLogger('info');
+  const info = logger.info;
+  logger.info = (msg, options) => {
+    if (/reload|optimi[sz]ed/i.test(msg)) info(`vite: ${msg}`, options);
+  };
+  const server = await createServer({ customLogger: logger, server: { port: 5199, strictPort: false } });
   await server.listen();
   const base = server.resolvedUrls.local[0].replace(/\/$/, '');
 
@@ -885,6 +906,14 @@ async function run() {
         else report.consoleProblems.push(entry);
       });
       page.on('pageerror', (err) => report.consoleProblems.push({ tag, type: 'pageerror', text: String(err) }));
+      // A page that reloads or crashes mid-pass is a problem in itself, and names where it happened.
+      let at = 'load';
+      // (A load event, not every navigation: #small changes the address without reloading.)
+      let reloads = false;
+      page.on('load', () => {
+        if (at !== 'load' && !reloads) report.consoleProblems.push({ tag, type: 'reload', text: `the page reloaded during ${at}` });
+      });
+      page.on('crash', () => report.consoleProblems.push({ tag, type: 'crash', text: `the page crashed during ${at}` }));
 
       const query = [def.shots === false ? '' : 'shots', pass.gl ? '' : 'nogl'].filter(Boolean).join('&');
       await page.goto(`${base}${def.url}${query ? `?${query}` : ''}`, { waitUntil: def.waitUntil ?? 'load' });
@@ -904,27 +933,40 @@ async function run() {
           check: (what, ok, detail) => report.checks.push({ tag, what, ok, detail }),
         };
         const started = Date.now();
+        at = cp.name;
+        reloads = !!cp.reloads;
         process.stdout.write(`  ${tag} ${cp.name} `);
-        await cp.run(page, ctx);
-        await settle(page, cp.settle ?? 350);
-        const file = `${tag}-${cp.name}.png`;
-        await page.screenshot({ path: path.join(OUT, file), timeout: SCREENSHOT_TIMEOUT });
-        process.stdout.write(`${((Date.now() - started) / 1000).toFixed(1)}s\n`);
+        try {
+          await cp.run(page, ctx);
+          await settle(page, cp.settle ?? 350);
+          const file = `${tag}-${cp.name}.png`;
+          await page.screenshot({ path: path.join(OUT, file), timeout: SCREENSHOT_TIMEOUT });
+          process.stdout.write(`${((Date.now() - started) / 1000).toFixed(1)}s\n`);
 
-        // Frames caught mid-sequence skip axe (it takes a second, and the page is moving);
-        // the same page is checked once it has settled.
-        if (cp.noAxe) {
+          // Frames caught mid-sequence skip axe (it takes a second, and the page is moving);
+          // the same page is checked once it has settled.
+          if (cp.noAxe) {
+            if (cp.after) await cp.after(page, ctx);
+            continue;
+          }
+          const axe = new AxeBuilder({ page }).withTags(AXE_TAGS);
+          if (pass.gl) axe.disableRules(['color-contrast']);
+          const result = await axe.analyze();
+          for (const v of result.violations) {
+            report.violations.push({ shot: file, id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.map((n) => n.target.join(' ')).slice(0, 5) });
+          }
+          if (ctx.release) await ctx.release();
           if (cp.after) await cp.after(page, ctx);
-          continue;
+        } catch (error) {
+          // A checkpoint that fails outright is recorded, and the pass goes on from a fresh page
+          // rather than losing the whole run's report.
+          const text = String(error).split('\n')[0];
+          process.stdout.write(`FAILED: ${text}\n`);
+          report.consoleProblems.push({ tag, type: 'checkpoint', text: `${cp.name}: ${text}` });
+          at = 'load';
+          await page.goto(`${base}${def.url}${query ? `?${query}` : ''}`, { waitUntil: def.waitUntil ?? 'load' }).catch(() => {});
+          await page.evaluate(def.ready).catch(() => {});
         }
-        const axe = new AxeBuilder({ page }).withTags(AXE_TAGS);
-        if (pass.gl) axe.disableRules(['color-contrast']);
-        const result = await axe.analyze();
-        for (const v of result.violations) {
-          report.violations.push({ shot: file, id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.map((n) => n.target.join(' ')).slice(0, 5) });
-        }
-        if (ctx.release) await ctx.release();
-        if (cp.after) await cp.after(page, ctx);
       }
       await context.close();
     }

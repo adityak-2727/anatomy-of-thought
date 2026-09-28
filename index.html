@@ -5,7 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Anatomy of a Thought</title>
   <meta name="description" content="An illustrated atlas that follows one sentence through a language model: tokens, meaning, attention and the answer.">
+  <!-- Meta cannot read the tokens: paper is --paper (#EDEFE8). -->
+  <meta name="theme-color" content="#EDEFE8">
+  <meta name="color-scheme" content="light">
+  <link rel="canonical" href="%SITE_URL%">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="%SITE_URL%">
+  <meta property="og:title" content="Anatomy of a Thought">
+  <meta property="og:description" content="An illustrated atlas that follows one sentence through a language model: tokens, meaning, attention and the answer.">
+  <meta property="og:image" content="./og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="The title page of the atlas: “Anatomy of a Thought” in white on a brushed Prussian-blue field, with a pinned paper slip.">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
   <link rel="stylesheet" href="/src/styles/index.css">
   <script>
     document.documentElement.classList.add('js');
@@ -176,19 +190,21 @@
         </div>
         <div class="plate__figure">
           <figure class="plate__pinned">
-            <div class="field plate__field chart-field" data-loupe data-field-name="Plate III">
-              <div class="chart" data-label="A chart of meaning: several hundred pieces drawn as stars in fifteen constellations." data-description="Pieces used in similar ways sit close together. The list of the stars, after this plate, gives every constellation and its words."></div>
-              <div class="chart__stage" aria-hidden="true"><ol class="chart__pieces"></ol></div>
-              <div class="chart__overlay"></div>
-              <button type="button" class="sens loupe-toggle" data-show="Show the machine’s view" data-hide="Hide the machine’s view"><span class="sens__label">Show the machine’s view</span></button>
-              <div class="machine" aria-hidden="true"></div>
-            </div>
-            <div class="chart-stops">
-              <p class="chart-stop" data-stop="laurel">Trophy lives among medal, cup and prize.</p>
-              <p class="chart-stop" data-stop="chest">Case lives among box, bag and trunk.</p>
-              <p class="chart-stop" data-stop="wardrobe">On its own, suit lives among the clothes. It becomes luggage only once case arrives and the reading begins.</p>
-              <p class="chart-stop" data-stop="rule">Big and small sit side by side. They mean opposite things, but they turn up in the same places, and that is what this chart records.</p>
-              <p class="chart-stop" data-stop="centre">It lives here among the small words, meaning almost nothing yet. It is waiting for a clue.</p>
+            <div class="chart__pin">
+              <div class="field plate__field chart-field" data-loupe data-field-name="Plate III">
+                <div class="chart" data-label="A chart of meaning: several hundred pieces drawn as stars in fifteen constellations." data-description="Pieces used in similar ways sit close together. The list of the stars, after this plate, gives every constellation and its words."></div>
+                <div class="chart__stage" aria-hidden="true"><ol class="chart__pieces"></ol></div>
+                <div class="chart__overlay"></div>
+                <button type="button" class="sens loupe-toggle" data-show="Show the machine’s view" data-hide="Hide the machine’s view"><span class="sens__label">Show the machine’s view</span></button>
+                <div class="machine" aria-hidden="true"></div>
+              </div>
+              <div class="chart-stops">
+                <p class="chart-stop" data-stop="laurel">Trophy lives among medal, cup and prize.</p>
+                <p class="chart-stop" data-stop="chest">Case lives among box, bag and trunk.</p>
+                <p class="chart-stop" data-stop="wardrobe">On its own, suit lives among the clothes. It becomes luggage only once case arrives and the reading begins.</p>
+                <p class="chart-stop" data-stop="rule">Big and small sit side by side. They mean opposite things, but they turn up in the same places, and that is what this chart records.</p>
+                <p class="chart-stop" data-stop="centre">It lives here among the small words, meaning almost nothing yet. It is waiting for a clue.</p>
+              </div>
             </div>
             <figcaption class="plate__caption">Fig. 3. A hand-drawn chart of a few hundred pieces in three dimensions. A real model’s chart has thousands of dimensions and no pictures.</figcaption>
           </figure>
@@ -388,7 +404,7 @@
                   <label class="dial__label" for="temperature">Temperature</label>
                   <input class="dial__input" type="range" id="temperature" min="0" max="2" step="0.05" value="1">
                   <div class="dial__face" aria-hidden="true"></div>
-                  <output class="dial__value t-machine" for="temperature">1.00</output>
+                  <output class="dial__value t-machine" for="temperature" aria-hidden="true">1.00</output>
                 </div>
                 <button type="button" class="sens lever"><span class="lever__art" aria-hidden="true"></span><span class="sens__label">Draw a piece</span></button>
                 <p class="drawn" hidden><span class="slip drawn__slip">Drawn: <span data-drawn>trophy</span></span></p>
@@ -421,7 +437,7 @@
     <section class="page plate plate--even plate--six" id="plate-6" aria-labelledby="plate-6-title">
       <div class="grid plate__frame">
         <div class="plate__text">
-          <h2 id="plate-6-title" class="plate__title" tabindex="-1"><span class="plate__number">Plate VI</span> The composing stick</h2>
+          <h2 id="plate-6-title" class="plate__title" tabindex="-1"><span class="plate__number">Plate VI</span> The <span class="nowrap">composing stick</span></h2>
           <p class="plate__intro">Each chosen piece is added to the end, and the whole reading runs again to choose the next. It stops when the likeliest next piece is the end.</p>
           <p class="plate__note">Four pieces, four full readings. Five for suitcase.</p>
         </div>

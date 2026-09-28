@@ -8,6 +8,13 @@
 //   scrolling). A field is redrawn only when its state changes: a quick draft while it
 //   animates, then one sharp pass once it has been still for a moment.
 // Without WebGL2, fields fall back to plain CSS driven by the same variables.
+//
+// The shader is built twice, once for each pass (the paper, the fields), so that each is only
+// the half it needs, and the two are compiled side by side in the background where the browser
+// can (KHR_parallel_shader_compile). On Windows, Direct3D took three seconds over the whole
+// shader on a first visit, and asking for the result at once froze the page for all of that
+// time (Phase 8). Until the fields' pass is ready they wait, blank, and the page scrolls;
+// `backgroundReady()` says when. The paper's tile is baked whenever its own pass is ready.
 
 import { gsap } from 'gsap';
 import vertSource from './background.vert.glsl?raw';
@@ -70,6 +77,8 @@ interface FieldRecord extends FieldHandle {
   /** The last draw was at full resolution. */
   sharp: boolean;
   lastChange: number;
+  /** When the field was last drawn, on the ticker's clock. */
+  lastDraw: number;
 }
 
 type Mode = 'gl' | 'css';
@@ -77,8 +86,22 @@ type Mode = 'gl' | 'css';
 let mode: Mode = 'css';
 let gl: WebGL2RenderingContext | null = null;
 let scratch: HTMLCanvasElement | null = null;
-let program: WebGLProgram | null = null;
-const uniforms = new Map<string, WebGLUniformLocation | null>();
+
+/** One compiled pass of the shader: the paper's, or the fields'. */
+interface Pass {
+  program: WebGLProgram;
+  shaders: WebGLShader[];
+  uniforms: Map<string, WebGLUniformLocation | null>;
+  /** Linked and ready to draw with. */
+  linked: boolean;
+}
+
+const UNIFORMS = ['uResolution', 'uScale', 'uPalette', 'uPaperTune', 'uRect', 'uState', 'uStyle', 'uTune', 'uStrokeT', 'uExplicit'];
+let paperPass: Pass | null = null;
+let fieldPass: Pass | null = null;
+let current: Pass | null = null;
+let settle: () => void = () => {};
+const ready = new Promise<void>((resolve) => (settle = resolve));
 const fields = new Set<FieldRecord>();
 const palette = new Float32Array(27);
 let bleed = 56;
@@ -86,15 +109,26 @@ let tileSize = 1024;
 let tileUrl = '';
 let observer: IntersectionObserver | null = null;
 let resizer: ResizeObserver | null = null;
+/** When the page last scrolled, on the ticker's clock. */
+let lastScroll = 0;
 
+/**
+ * The density fields are drawn at. A brushed field is a soft texture, and the text on it is
+ * real text, so 1.5 device pixels to the CSS pixel is as fine as it needs: at 2x the shader
+ * had four times the pixels to fill, and plates stuttered as they arrived (Phase 8).
+ */
 function dpr(): number {
-  const coarse = window.matchMedia('(pointer: coarse)').matches;
-  return Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2);
+  return Math.min(window.devicePixelRatio || 1, 1.5);
 }
 
-/** While a field animates it is drawn at one device pixel per CSS pixel at most. */
+/**
+ * While a field changes it is drawn as a draft: at 60% of a CSS pixel, and at most thirty
+ * times a second. Plate IV's field is some 900,000 pixels at full size, and the shader works
+ * about fifty noise values for each; drawn so every frame, it held the GPU for up to 83ms
+ * as a plate arrived (Phase 8). The sharp pass follows once the page is still.
+ */
 function draftScale(): number {
-  return Math.min(dpr(), 1);
+  return Math.min(dpr(), 1) * 0.6;
 }
 
 function readPalette(): void {
@@ -108,19 +142,25 @@ function readPalette(): void {
   });
 }
 
-function compile(type: number, source: string): WebGLShader {
-  const shader = gl!.createShader(type)!;
-  gl!.shaderSource(shader, source);
-  gl!.compileShader(shader);
-  if (!gl!.getShaderParameter(shader, gl!.COMPILE_STATUS)) {
-    const log = gl!.getShaderInfoLog(shader);
-    gl!.deleteShader(shader);
-    throw new Error(`Background shader failed to compile: ${log}`);
-  }
-  return shader;
+/** Hand one pass's shaders to the driver and link, without asking how it went (that would wait). */
+function startPass(define: string): Pass {
+  const program = gl!.createProgram()!;
+  const source = fragSource.replace('#version 300 es', `#version 300 es\n#define ${define}`);
+  const shaders = [
+    [gl!.VERTEX_SHADER, vertSource],
+    [gl!.FRAGMENT_SHADER, source],
+  ].map(([type, text]) => {
+    const shader = gl!.createShader(type as number)!;
+    gl!.shaderSource(shader, text as string);
+    gl!.compileShader(shader);
+    gl!.attachShader(program, shader);
+    return shader;
+  });
+  gl!.linkProgram(program);
+  return { program, shaders, uniforms: new Map(), linked: false };
 }
 
-function setupGL(canvas: HTMLCanvasElement): boolean {
+function startGL(canvas: HTMLCanvasElement): boolean {
   gl = canvas.getContext('webgl2', {
     alpha: true,
     premultipliedAlpha: true,
@@ -130,46 +170,55 @@ function setupGL(canvas: HTMLCanvasElement): boolean {
     preserveDrawingBuffer: false,
   });
   if (!gl) return false;
-  try {
-    program = gl.createProgram()!;
-    gl.attachShader(program, compile(gl.VERTEX_SHADER, vertSource));
-    gl.attachShader(program, compile(gl.FRAGMENT_SHADER, fragSource));
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      throw new Error(`Background shader failed to link: ${gl.getProgramInfoLog(program)}`);
-    }
-  } catch (error) {
-    console.warn(String(error));
-    gl = null;
-    return false;
-  }
-  gl.useProgram(program);
   gl.bindVertexArray(gl.createVertexArray());
-  for (const name of ['uMode', 'uResolution', 'uScale', 'uPalette', 'uPaperTune', 'uRect', 'uState', 'uStyle', 'uTune', 'uStrokeT', 'uExplicit']) {
-    uniforms.set(name, gl.getUniformLocation(program, name));
-  }
+  // The fields first: the title page waits on them.
+  fieldPass = startPass('PASS_FIELD');
+  paperPass = startPass('PASS_PAPER');
   return true;
 }
 
-function u(name: string): WebGLUniformLocation | null {
-  return uniforms.get(name) ?? null;
+/** The driver has finished a pass: check the result, and make it ready to draw with. */
+function finishPass(pass: Pass): boolean {
+  if (!gl) return false;
+  if (!gl.getProgramParameter(pass.program, gl.LINK_STATUS)) {
+    const logs = pass.shaders.map((sh) => gl!.getShaderInfoLog(sh)).filter(Boolean).join(' ');
+    console.warn(`Background shader failed: ${gl.getProgramInfoLog(pass.program)} ${logs}`);
+    return false;
+  }
+  pass.linked = true;
+  for (const name of UNIFORMS) pass.uniforms.set(name, gl.getUniformLocation(pass.program, name));
+  applyTuning(pass);
+  return true;
 }
 
-/** The scratch canvas only ever grows, to the largest thing drawn so far. */
+function use(pass: Pass): void {
+  if (current === pass) return;
+  gl!.useProgram(pass.program);
+  current = pass;
+}
+
+function u(name: string): WebGLUniformLocation | null {
+  return current?.uniforms.get(name) ?? null;
+}
+
+/**
+ * The scratch canvas only ever grows, and with room to spare: reallocating its drawing
+ * buffer takes tens of milliseconds, so it must not happen a few pixels at a time, mid-scroll.
+ */
 function ensureScratch(w: number, h: number): void {
   if (!scratch) return;
-  if (scratch.width < w) scratch.width = w;
-  if (scratch.height < h) scratch.height = h;
+  if (scratch.width < w) scratch.width = Math.ceil(w * 1.25);
+  if (scratch.height < h) scratch.height = Math.ceil(h * 1.25);
 }
 
 /** Bake the paper into a seamless tile and lay it as the page's background. */
 function bakePaper(): void {
-  if (!gl || !scratch) return;
+  if (!gl || !scratch || !paperPass?.linked) return;
+  use(paperPass);
   const scale = dpr();
   const size = Math.round(tileSize * scale);
   ensureScratch(size, size);
   gl.viewport(0, 0, size, size);
-  gl.uniform1i(u('uMode'), 0);
   gl.uniform2f(u('uResolution'), size, size);
   gl.uniform1f(u('uScale'), scale);
   gl.uniform4f(u('uRect'), 0, 0, tileSize, tileSize);
@@ -199,10 +248,10 @@ function drawField(f: FieldRecord, scaleWanted: number): void {
   const w = Math.max(1, Math.floor(f.cssW * scaleWanted));
   const h = Math.max(1, Math.floor(f.cssH * scaleWanted));
   ensureScratch(w, h);
+  use(fieldPass!);
   gl.viewport(0, 0, w, h);
   gl.clearColor(0, 0, 0, 0);
   gl.clear(gl.COLOR_BUFFER_BIT);
-  gl.uniform1i(u('uMode'), 1);
   gl.uniform2f(u('uResolution'), w, h);
   gl.uniform1f(u('uScale'), scaleWanted);
   gl.uniform4f(u('uRect'), bleed, bleed, f.cssW - bleed * 2, f.cssH - bleed * 2);
@@ -216,18 +265,22 @@ function drawField(f: FieldRecord, scaleWanted: number): void {
 }
 
 function frame(time: number): void {
-  if (mode !== 'gl' || !gl) return;
+  if (mode !== 'gl' || !gl || !fieldPass?.linked) return;
   for (const f of fields) {
     if (!f.near) continue;
     if (f.dirty) {
+      // A change arriving hard on the last draft waits a frame; the page scrolls on meanwhile.
+      if (f.moving && time - f.lastDraw < DUR.draftEvery) continue;
+      f.lastDraw = time;
       const scale = f.moving ? draftScale() : dpr();
       drawField(f, scale);
       f.sharp = scale >= dpr();
       f.dirty = false;
       f.moving = false;
       f.lastChange = time;
-    } else if (!f.sharp && time - f.lastChange > DUR.refine) {
-      // Still for a moment: now draw it properly.
+    } else if (!f.sharp && time - f.lastChange > DUR.refine && time - lastScroll > DUR.refineIdle) {
+      // Still for a moment, and the page too: now draw it properly. (Drawn mid-scroll, this
+      // full-resolution pass is the one frame the GPU cannot fit, and a plate stuttered.)
       drawField(f, dpr());
       f.sharp = true;
     }
@@ -239,14 +292,18 @@ function sizeFieldCanvas(f: FieldRecord): void {
   const scale = dpr();
   f.cssW = f.el.clientWidth + bleed * 2;
   f.cssH = f.el.clientHeight + bleed * 2;
+  // Grow the scratch canvas as each field is measured, not on the field's first draw.
+  ensureScratch(Math.round(f.cssW * scale), Math.round(f.cssH * scale));
   const w = f.near ? Math.max(1, Math.round(f.cssW * scale)) : 1;
   const h = f.near ? Math.max(1, Math.round(f.cssH * scale)) : 1;
   if (f.canvas.width !== w || f.canvas.height !== h) {
     f.canvas.width = w;
     f.canvas.height = h;
   }
+  // A draft first, like any change: a field coming into range mid-scroll is refined once the
+  // page is still, not drawn at full resolution while it moves.
   f.dirty = true;
-  f.moving = false;
+  f.moving = true;
 }
 
 function writeCssState(f: FieldRecord): void {
@@ -285,6 +342,7 @@ export function createField(el: HTMLElement, style: Partial<FieldStyle> & { seed
     moving: false,
     sharp: false,
     lastChange: 0,
+    lastDraw: 0,
     invalidate() {
       if (mode === 'css') writeCssState(record);
       record.dirty = true;
@@ -323,16 +381,19 @@ export function initBackground(options: { forceCss?: boolean } = {}): Mode {
   scratch = document.querySelector<HTMLCanvasElement>('canvas.paper');
   // From here the chemistry decides how fields look (the CSS safety net stands down).
   document.documentElement.classList.add('bg-ready');
-  if (!options.forceCss && scratch && setupGL(scratch)) {
+  if (!options.forceCss && scratch && startGL(scratch)) {
     mode = 'gl';
+    // Room at the start for a field the size of the screen: growing it later, as Plate IV
+    // came near, held a scroll for 90ms (Phase 8).
+    ensureScratch(Math.round((window.innerWidth + bleed * 2) * dpr()), Math.round((window.innerHeight + bleed * 2) * dpr()));
   } else {
     mode = 'css';
     document.documentElement.classList.add('no-gl');
     for (const f of fields) attach(f);
+    settle();
     return mode;
   }
 
-  applyTuning();
   observer = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
@@ -356,11 +417,64 @@ export function initBackground(options: { forceCss?: boolean } = {}): Mode {
     event.preventDefault();
     fallBackToCss();
   });
-  bakePaper();
   // A move between screens of different density needs a sharper (or lighter) tile.
   window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`).addEventListener('change', bakePaper, { once: true });
   gsap.ticker.add(frame);
+  window.addEventListener('scroll', () => (lastScroll = gsap.ticker.time), { passive: true });
+  whenCompiled();
   return mode;
+}
+
+/** Wait for the driver without blocking the page, where the browser allows it. */
+function whenCompiled(): void {
+  const parallel = gl?.getExtension('KHR_parallel_shader_compile');
+  const fieldsDone = () => {
+    if (fieldPass && finishPass(fieldPass)) {
+      for (const f of fields) {
+        f.dirty = true;
+        f.moving = false;
+      }
+    } else {
+      fallBackToCss();
+    }
+    settle();
+  };
+  // Without its tile the page is plain paper, which is all it would lose.
+  const paperDone = () => {
+    if (paperPass && finishPass(paperPass)) bakePaper();
+    else paperPass = null;
+  };
+  if (!parallel || !gl) {
+    fieldsDone();
+    if (mode === 'gl') paperDone();
+    return;
+  }
+  const started = performance.now();
+  const compiled = (pass: Pass | null) => !!gl && !!pass && gl.getProgramParameter(pass.program, parallel.COMPLETION_STATUS_KHR);
+  const poll = () => {
+    if (mode !== 'gl' || !gl) {
+      gsap.ticker.remove(poll);
+      return;
+    }
+    if (fieldPass && !fieldPass.linked && compiled(fieldPass)) fieldsDone();
+    if (paperPass && !paperPass.linked && compiled(paperPass)) paperDone();
+    const fieldsWaiting = mode === 'gl' && !!fieldPass && !fieldPass.linked;
+    const paperWaiting = mode === 'gl' && !!paperPass && !paperPass.linked;
+    if (fieldsWaiting && performance.now() - started > DUR.compileWait * 1000) {
+      // A driver this slow would make a poor printing press: plain CSS fields instead.
+      gsap.ticker.remove(poll);
+      fallBackToCss();
+      settle();
+    } else if (!fieldsWaiting && !paperWaiting) {
+      gsap.ticker.remove(poll);
+    }
+  };
+  gsap.ticker.add(poll);
+}
+
+/** Resolves once the fields can be drawn (or have fallen back to CSS). */
+export function backgroundReady(): Promise<void> {
+  return ready;
 }
 
 function fallBackToCss(): void {
@@ -375,8 +489,9 @@ function fallBackToCss(): void {
   }
 }
 
-function applyTuning(): void {
-  if (!gl) return;
+function applyTuning(pass: Pass | null): void {
+  if (!gl || !pass?.linked) return;
+  use(pass);
   gl.uniform3fv(u('uPalette'), palette);
   gl.uniform3f(u('uPaperTune'), tuning.paperFibres, tuning.paperBlotches, tuning.paperGrain);
   gl.uniform4f(u('uTune'), tuning.edgeRoughness, tuning.streaks, tuning.unevenness, tuning.pockets);
@@ -385,7 +500,8 @@ function applyTuning(): void {
 /** Re-read the palette tokens and tuning (used by ?debug). */
 export function refreshBackground(): void {
   readPalette();
-  applyTuning();
+  applyTuning(fieldPass);
+  applyTuning(paperPass);
   bakePaper();
   for (const f of fields) {
     f.dirty = true;

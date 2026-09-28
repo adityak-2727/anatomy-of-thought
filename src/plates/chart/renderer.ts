@@ -3,7 +3,6 @@
 
 import type { View } from '../../lib/projection';
 import type { Polyline } from './geometry';
-import type { Vec3 } from '../../lib/projection';
 
 export interface Look {
   view: View;
@@ -13,8 +12,6 @@ export interface Look {
   own: Float32Array;
   /** 0–1: how far the pen has drawn the constellation lines. */
   draw: number;
-  /** 0–1: the graticule's share of its full (faint) strength. */
-  graticule: number;
   /** The distance at which symbols are drawn at their stated size (the overview's). */
   reference: number;
 }
@@ -23,24 +20,24 @@ export interface ChartData {
   seed: number;
   thresholds: Float32Array;
   lines: Polyline[];
-  graticule: Vec3[][];
 }
 
 export interface ChartRenderer {
   readonly kind: 'gl' | 'svg';
+  /** Resolves when the drawing can be used without stalling the page (its shaders compiled). */
+  readonly ready: Promise<void>;
   render(look: Look): void;
   destroy(): void;
 }
 
-/** The chart's ink, from the tokens: paper-white, and the two faint strengths. */
-export function chartInk(): { paper: [number, number, number]; line: number; graticule: number } {
+/** The chart's ink, from the tokens: paper-white, and the constellation lines' strength. */
+export function chartInk(): { paper: [number, number, number]; line: number } {
   const css = getComputedStyle(document.documentElement);
   const hex = css.getPropertyValue('--paper').trim().replace('#', '');
   const paper = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255) as [number, number, number];
   return {
     paper,
     line: parseFloat(css.getPropertyValue('--o-constellation')) || 0.4,
-    graticule: parseFloat(css.getPropertyValue('--o-graticule')) || 0.22,
   };
 }
 

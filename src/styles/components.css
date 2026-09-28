@@ -65,28 +65,17 @@
   fill: var(--silhouette);
 }
 
-/* A letter label, exposed into the print, with a fine leader to its piece. */
+/* A letter label, exposed into the print just above its piece. (Its leader line went in
+   the Phase 8 restraint pass: a label that sits on its piece needs no line to it.) */
 .letter {
   position: absolute;
-  inset-block-end: calc(100% + 14px);
+  inset-block-end: calc(100% + 6px);
   inset-inline-start: 50%;
   translate: -50% 0;
   font-size: var(--type-field-label);
   line-height: 1;
   font-style: italic;
   color: var(--silhouette);
-}
-
-.leader {
-  position: absolute;
-  inset-block-end: 100%;
-  inset-inline-start: 50%;
-  inline-size: 8px;
-  block-size: 14px;
-  translate: -50% 0;
-  fill: none;
-  stroke: var(--silhouette);
-  stroke-width: var(--hairline);
 }
 
 /* Ticker tape: a narrow paper strip that feeds out from under its piece. */
@@ -399,10 +388,11 @@ html:not(.js) .plate-indicator {
   display: none;
 }
 
-/* On a phone the slip took a third of the width at the foot of the screen and sat over
-   the headings as they passed and over the machine's-view toggles while plates were
-   pinned; there the headings and the figures' numbers say which plate it is. */
-@media (max-width: 767px) {
+/* Only in two columns, where a pinned plate keeps the foot of its left column clear. In
+   one column (a phone, a tablet) the notes and captions run to the left edge and would
+   pass under the slip, and on a phone it took a third of the width; there the headings
+   and the figures' numbers say which plate it is. */
+@media (max-width: 1099px), (max-height: 699px) {
   .plate-indicator {
     display: none;
   }

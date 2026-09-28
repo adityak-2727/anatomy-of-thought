@@ -13,7 +13,7 @@ import { END, REPLY, ANSWER, type Variant } from '../data/specimen';
 import { pieceId } from '../lib/hash';
 import { spokenPiece } from '../data/chart';
 import { DUR, PINS, PLATE6, SEEDS } from '../motion/eases';
-import { COMPACT, REDUCED, WIDE, isPhone } from '../motion/media';
+import { COMPACT, STILL, WIDE, isPhone } from '../motion/media';
 import { scrubFor } from '../motion/scroll';
 import { developOnArrival } from '../motion/verbs';
 import { getState, subscribe } from '../state';
@@ -29,7 +29,6 @@ let teardown: (() => void) | null = null;
 
 export function init(root: HTMLElement): void {
   const frameEl = root.querySelector<HTMLElement>('.plate__frame')!;
-  const pinned = root.querySelector<HTMLElement>('.plate__pinned')!;
   const fieldEl = root.querySelector<HTMLElement>('.stick-field')!;
   const stickEl = fieldEl.querySelector<HTMLElement>('.stick')!;
   const answer = fieldEl.querySelector<HTMLElement>('.stick__answer')!;
@@ -159,7 +158,7 @@ export function init(root: HTMLElement): void {
   const build = () => {
     mm?.revert();
     mm = gsap.matchMedia();
-    mm.add({ wide: WIDE, compact: COMPACT, reduced: REDUCED }, (context) => {
+    mm.add({ wide: WIDE, compact: COMPACT, reduced: STILL }, (context) => {
       const { wide, reduced } = context.conditions as Record<string, boolean>;
       const s = lay();
       stick = s;
@@ -192,7 +191,11 @@ export function init(root: HTMLElement): void {
         gsap.set(l.threads, { strokeDasharray: '0 1', opacity: 1 });
       }
 
-      const pinEl = wide ? frameEl : pinned;
+      // In one column only the field pins; the caption follows it, so the pin fits a
+
+      // phone's screen (Phase 8).
+
+      const pinEl = wide ? frameEl : fieldEl;
       const length = isPhone() ? PINS[6][1] : PINS[6][0];
       const k = length / PINS[6][0];
       const at = (v: number) => v * k;

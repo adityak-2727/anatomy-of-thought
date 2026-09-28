@@ -1,5 +1,134 @@
 # Progress
 
+## Phase 8: Finish and launch (28 September 2026)
+
+### Done
+- **Five new checking scripts**, each with an `npm run` name:
+  - **`sweep`:** the responsive and cross-browser pass. Chromium, Firefox and WebKit at 360 × 740, 390 × 844, 844 × 390 (a phone turned), 768 × 1024, 1440 × 900 and 1920 × 1080, on the production build. At each it visits the title page, the list, every plate at rest and the colophon. It checks that nothing makes the page wider than the screen, that whatever is pinned is whole on screen, and that the plate indicator sits on nothing, and it runs axe. Then it resizes one page from 1920 to 360 and back, and turns a phone on its side and back in Chromium and WebKit.
+  - **`keyboard`:** the keyboard-only pass and the screen-reader pass (below).
+  - **`proof`:** the proofreading pass. It checks quotes, dashes, banned words, American spellings and figure numbers in the page and in every sentence the scripts write. In the browser at six widths, it checks for titles that end on one word and for lines over 62 characters.
+  - **`perf`:** the performance budget, on this machine's own GPU.
+  - **`lighthouse`:** Lighthouse's mobile and desktop audits. The `lighthouse` package was added as a dev dependency, with your approval.
+- **Launch files:**
+  - The Open Graph image (`public/og.png`, the developed title page at 1200 × 630) and a touch icon (`public/apple-touch-icon.png`), both from `npm run og`.
+  - The page's Open Graph, Twitter card, theme-colour and colour-scheme meta.
+  - A `SITE_URL` build variable that makes the preview image and the canonical address absolute.
+  - `DEPLOY.md`, with steps for Vercel and for GitHub Pages (the Actions workflow is written out there, not added to the repository).
+
+### What the passes found, and what changed
+**Responsive and cross-browser** (`npm run sweep`)
+- **Pinned figures taller than the screen.** On a phone turned on its side every pinned figure was taller than the screen, and at 360 × 740 Plate V's was 72px too tall. Worse, a real iPhone shows only about 660–750px of a page between Safari's bars, and Plate V's pinned figure was 812px, Plate IV's strip 796px. Three changes:
+  - A screen under 600px tall now shows the plates developed and still, as reduced motion does.
+  - In one column only the field pins; the caption follows. Plate III pins its stops with the chart.
+  - Plate V on a phone puts the lever beside the reply's empty slot (the slot it fills) and the machine's-view toggle in the corner beside the dial: 812px became 594px. Plate IV's slips on end sit 25px apart instead of 28: 796px became 707px.
+- **Plate IV on laptops.** Its pinned frame was 882–907px tall, so at 1366 × 768, the most common Windows laptop, its bottom 116px were cut off. Now:
+  - The captions and the notes stand side by side under the field.
+  - The row has 132px of headroom above it (its highest thread rises about 125px), and the inset is 200 × 112.
+  - The gaps close up a little on screens under 800px tall.
+
+  It now fits 1366 × 768, 1280 × 800 and larger.
+- **The plate indicator sat on text.** It covered the end of Plate IV's caption on every laptop, and in the one-column layout the notes ran under it. It now shows only in two columns, and Plate IV ends above it.
+- **Turning a phone lost the reader's place.** Turned at Plate III and back, the reader was in Plate II, because pins change length with the screen. The page now notes the reader's place at a resize and returns to it once everything has re-measured. Building this found two faults of its own, both fixed:
+  - Its timers were adopted by GSAP's `matchMedia` contexts and killed with them.
+  - Its final check would have pulled back a reader who had already scrolled on. It now lets go the moment the reader scrolls, touches or presses a key.
+- **WebKit:**
+  - It fetched the main script a second time: Vite listed the entry among a lazy chunk's preloads, though the page's own script tag had already run it. It is now left out.
+  - It also fetches the two preloaded Old Standard faces twice, because it loads same-origin fonts without CORS. The spec-correct preload is right for Chromium and Firefox, and no single link serves both, so this is noted.
+
+**Accessibility** (`npm run keyboard`, the reduced-motion passes of `npm run shots`)
+- **A keyboard could not fly the chart.** All fifteen constellation names were missing from the Tab order, because a name with no room to be lettered was `visibility: hidden`, and before the chart is lettered that is all of them. Unplaced names are now transparent rather than hidden: they keep their place, show themselves while focused, and Enter does what a click does.
+- **Every turn of the temperature was announced twice:** once by the slider's own value ("1.05, warm"), once by the written "1.05", an `<output>` and so a live region. The written value is now hidden from screen readers.
+- The Tab order runs: the skip link, the list, each plate's controls in reading order, the colophon, the index. Every one of its 54 stops is on screen, uncovered and ringed, in both motion modes. The accessibility tree reads as the page does: one h1, a named region per plate with its heading, each figure named by its caption and followed by its content as text, every control named, and three polite live regions.
+
+**Proofreading** (`npm run proof`)
+- No straight quotes, spaced hyphens, exclamation marks, banned words or American spellings, in the page or in the 22 sentences the scripts write. Figures run 1, 2, 3, 4, 4b, 5, 6.
+- **Lines were too long.** The plan's measure of 31em assumed half an em a character; Old Standard sets about 0.43em, so lines ran to 70–87 characters. The measure is now 26em for roman and 25em for italic. The longest line at any width is 61 characters.
+- **"The composing stick" ended on "stick" alone** at 1440px wide. "composing stick" is now kept together.
+
+**Performance** (`npm run perf`, on this machine's own Intel GPU)
+- **A first visit froze for 3.1 seconds.** Asking for the paper shader's compile result at once held the page while Direct3D compiled it. The shader is now built as two passes, one for the paper and one for the fields, compiled side by side in the background. Each is only the half it needs, and together they take about a second, while the page stays live.
+- **The fields had been drawing paper.** The first build of that split named its switch `PAPER`, which the shader already used for the paper colour. So the fields ran the heavy paper branch, and the frame rate fell from 59.6 to 55 fps. The drop in the measurement found it; comparing against a fresh build of Phase 7 pinned it down.
+- **Two stalls mid-scroll.** The scratch canvas grew a few pixels at a time as Plate IV came near, holding a frame for 90ms; it is now sized at start-up and grows with room to spare. The chart's shaders compiled at its first draw; they now compile with `compileAsync` first.
+
+**Lighthouse** (`npm run lighthouse`)
+- SEO was 91 because there was no `robots.txt`; there is now.
+
+**The stutter as a plate arrives** (your report during this phase)
+- **Measured first.** `npm run perf` now counts, for each plate as it arrives, the frames that miss 60 fps. At 1×, Plates III and IV dropped 7 and 2 frames. At 1.25× (a Windows laptop at 125%), Plate III dropped 13. At 2×, every plate dropped 17–39 frames and ran at 44–54 fps, with single frames of up to 233ms.
+- **The cause was the GPU, not the page's code.** A Chrome trace of Plates III and IV arriving showed the page's main thread comfortable, at about 7ms a frame, while the GPU spent 3.3 of 23 seconds in WebGL, in tasks of up to 83ms. The field shader works about fifty noise values a pixel. Plate IV's field, the widest, is some 900,000 pixels, and it was drawn in full every frame while it brushed on and developed. On top of that, the full-resolution pass came 150ms after a field stopped changing, even mid-scroll. And at 2× every field had four times the pixels.
+- **What changed** (the page looks the same):
+  - A changing field is drawn as a draft, at 60% of a CSS pixel and at most thirty times a second.
+  - The sharp pass waits until the page has been still for 0.3s.
+  - Fields and the chart are drawn at no more than 1.5 device pixels to the CSS pixel.
+  - A field coming back into range is drafted first.
+- **After:** plates arrive at 59–60 fps at every density. The only slow frames left are 1–3 on Plate III's first arrival, when its chart is built.
+
+**The full screenshot run**
+- **Opening "List the stars" put Plates IV to VI out of step.** The list adds about 2,000px below the chart, and nothing re-measured the scroll, so every pin below it would have played a list's length early. Axe found it: Plate IV's intro was half-developed while nowhere near the screen. The page now re-measures when the list opens or closes. A new check jumps to Plate IV with the list open: before the fix it landed with the plate still 1,254px below the screen; after it, in the middle of Plate IV, on every pass.
+- **The same fault in two more places, fixed the same way:**
+  - Plate V's variant note appears when big becomes small.
+  - Plate III's Uncharted note appears when the reader's sentence has pieces the chart doesn't know.
+
+  In one column each stands above its plate's field, so each moved the pins from there down.
+- **The harness itself:**
+  - It now records any reload or crash with the checkpoint it happened in.
+  - A checkpoint that fails outright is recorded, and the pass carries on from a fresh page instead of losing the whole run's report.
+  - Twice, a run died at Plate III's flight on the phone, which passes when run alone. The first time, Playwright's click scrolled the name "into view", past the plate's rest and under Plate IV. The check now dispatches the click to the button.
+  - The chart now calls three.js's `compileAsync` only where the browser can compile in the background (the software renderer cannot, and three.js warned).
+
+### The restraint pass: one element removed from each plate
+Each plate was looked at in close-up at twice the resolution first; two of the Phase 0 candidates changed on inspection.
+- **Frontispiece: nothing.** The candidate, a rule under the title, was never built, and everything else on the page is the brief's.
+- **Plate I: the right pin's shaft and its white shadow.** The right pin is now pushed straight in, showing only its head. One shadow on the blue is the detail; a second only repeated it.
+- **Plate II: the leader lines on the letter labels.** Each letter sits directly above its piece, so a line to it said nothing more. The rows moved 8px closer.
+- **Plate III: the graticule.** In the resting view its lines crossed the chart and competed with the constellation lines, which carry meaning. The ruled border with its degree ticks already says "a chart of the sky".
+- **Plate IV: the second ply on strong threads.** Width already carries a thread's weight, as the brief asks. The plan's other thought, the stray fibres, stays: they are the brief's "slightly fuzzy, like laid cotton".
+- **Plate V: the double rule over the card.** The card's column heads are for screen readers only, so the rule headed nothing.
+- **Plate VI: the shoulder line on the sorts.** It was barely visible, and it competed with the nick, the true letterpress cue.
+
+### Verification (at this commit)
+- `npm run build`: zero TypeScript errors. The first-screen JS is 73.9 KB gzipped (budget about 180).
+- `npm test`: 107 of 107 pass.
+- `npm run shots`: the last complete run took 371 screenshots, 167 of 167 behaviour checks passed, and there were no console errors. It had one axe violation, the "List the stars" fault above. That checkpoint was then re-run on all six passes: 0 violations, and every check passed, including the new one. **A full run on this final code was still going when this was committed, at your request;** its result belongs to the next entry.
+- `npm run sweep`: Chromium, Firefox and WebKit at all six sizes, the resize from 1920 to 360 and back, and the turned phones: no problems, apart from WebKit's noted font fetch. **This was before the last performance changes; it is to be run again.**
+- `npm run keyboard`: 16 of 16 checks; 54 Tab stops, every one on screen, uncovered and ringed, in both motion modes.
+- `npm run proof`: nothing found; the longest line at any width is 61 characters.
+- `npm run perf`, on this machine's Intel UHD Graphics:
+  - initial JavaScript 71.5 KB gzipped;
+  - laptop: LCP 104ms, CLS 0, 59.4 fps across the whole atlas, and no long task while scrolling;
+  - phone, with its CPU slowed four times: LCP 900ms, CLS 0, 59.2 fps; two long tasks as Plate III's chart is built.
+
+  Plate arrivals after the stutter fix are as reported above.
+- `npm run lighthouse`: desktop 100 for Performance, Accessibility, Best Practices and SEO. Mobile Performance 92–95 over three runs, and 100 for the other three categories. One earlier run gave mobile Performance 70, its blocking time 1.7s.
+
+### Screenshot critique
+
+**What works**
+1. **Plate IV on a laptop screen.** At 1366 × 768 the whole plate stands on one screen. The captions sit on the field's edge, the note that follows the reading stands beside them like a marginal note, and the plate indicator has clear paper beneath it.
+2. **One atlas in three engines.** Firefox and WebKit draw the same brushed fields (WebGL in all three), the same type and the same layout at every size, down to the pins and tickers.
+3. **The link preview is the title page:** the brushed field, the title and the pinned slip, with the imprint beneath, and no instruction to scroll.
+
+**What looked off (fixed, then re-shot)**
+1. **Plate IV ran off a laptop's screen,** its captions cut at 1366 × 768 and the plate indicator sitting on them at every laptop size. *Fixed:* the captions and notes now sit side by side, the headroom and inset are smaller, and the indicator shows only in two columns.
+2. **Plate V was 812px tall on a phone,** taller than an iPhone's visible screen, with its lever and toggle on rows of their own. *Fixed:* the lever now sits beside the reply's slot, the toggle beside the dial, and only the field pins. It is 594px.
+3. **The Open Graph image said "Scroll to begin."** *Fixed:* the hint is left out of the preview.
+
+### Known issues and watch list
+- **Plate IV at 1100–1279 wide and 700–730 tall** is 4–45px taller than the screen while pinned. The last lines of its captions come in as the pin releases.
+- **On a phone with its CPU slowed four times,** building and first drawing Plate III's chart take about 75ms each, one screen before the plate, as the brief times the chart's import. The same work stays under 50ms on the laptop.
+- **WebKit fetches the two preloaded Old Standard faces twice** (see above).
+- **Not yet checked on real devices:**
+  - iOS Safari, including the loupe's press-and-hold and the toolbar resizing the screen;
+  - a real Android phone;
+  - a second GPU.
+
+  All measurements are from one Intel UHD laptop, with phones emulated.
+- **On a first visit, the paper's texture tile arrives about a second after the first paint;** until then the page is plain paper.
+- **Plate VI's three loop arrowheads gather at the end of the miniature row,** where at small sizes they read like a row of 2s.
+- **Names on Plate III can still cross stars** at the border (from Phase 4).
+- **Still to do for this phase:** the full screenshot run on this code, the three-browser sweep again, and `perf` and `lighthouse` again after the arrival fix.
+
+
 ## Phase 7: The whole (28 September 2026)
 
 ### Done

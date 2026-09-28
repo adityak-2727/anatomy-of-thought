@@ -11,11 +11,11 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { advanceField, backgroundMode, createField } from '../gl/background';
 import { initLoupe } from '../components/loupe';
-import { CHART_CENTRE, CHART_FOV, STARS, STOP_ORDER, STOP_WORDS, overviewFor, poseFor, starFor } from '../data/chart';
+import { CHART_FOV, STARS, STOP_ORDER, STOP_WORDS, overviewFor, poseFor, starFor } from '../data/chart';
 import { CONSTELLATIONS } from '../data/vocab';
 import { PIECES } from '../data/specimen';
 import { DUR, PINS, PIN_DROP, PLATE3, SEEDS } from '../motion/eases';
-import { COMPACT, REDUCED, WIDE, isPhone } from '../motion/media';
+import { COMPACT, STILL, WIDE, isPhone } from '../motion/media';
 import { scrollToY, scrubFor, travelTime } from '../motion/scroll';
 import { flags } from '../flags';
 import { signed } from '../motion/random';
@@ -23,7 +23,7 @@ import { developOnArrival } from '../motion/verbs';
 import { getState, subscribe } from '../state';
 import { along, basis, between, distance, orbit, projector, pxPerUnit, type Pose, type View } from '../lib/projection';
 import { lay, pieceItem, prepare, toFinal } from './dissect';
-import { constellationLines, graticule, specimenStars, thresholds } from './chart/geometry';
+import { constellationLines, specimenStars, thresholds } from './chart/geometry';
 import { createOverlay, type Frame } from './chart/overlay';
 import { createChartMachine } from './chart/machine';
 import { createSvgChart } from './chart/svg-chart';
@@ -32,7 +32,6 @@ import type { ChartData, ChartRenderer } from './chart/renderer';
 gsap.registerPlugin(ScrollTrigger);
 
 const span = (r: readonly [number, number]) => r[1] - r[0];
-const GRATICULE_RADIUS = 175;
 /** The pin's share at which three.js must have arrived, or the SVG chart takes over. */
 const LATE = 0.05;
 
@@ -42,7 +41,8 @@ let teardown: (() => void) | null = null;
 
 export function init(root: HTMLElement): void {
   const frameEl = root.querySelector<HTMLElement>('.plate__frame')!;
-  const pinned = root.querySelector<HTMLElement>('.plate__pinned')!;
+  // In one column the chart and its stops pin; the caption follows them (Phase 8).
+  const pinned = root.querySelector<HTMLElement>('.chart__pin')!;
   const fieldEl = root.querySelector<HTMLElement>('.chart-field')!;
   const host = fieldEl.querySelector<HTMLElement>('.chart')!;
   const stage = fieldEl.querySelector<HTMLElement>('.chart__stage')!;
@@ -75,14 +75,13 @@ export function init(root: HTMLElement): void {
     seed,
     thresholds: thresholds(seed, own),
     lines: constellationLines(seed),
-    graticule: graticule(CHART_CENTRE, GRATICULE_RADIUS),
   };
   const overlay = createOverlay(overlayEl, seed);
   const machine = createChartMachine(machineEl, texts.map((text, i) => ({ text, star: starOf[i] })));
   initLoupe(fieldEl);
 
   // ─── What the chart shows, all in one place ───────────────────────────────
-  const look = { reveal: 0, draw: 0, graticule: 0, own: new Float32Array(STARS.length) };
+  const look = { reveal: 0, draw: 0, own: new Float32Array(STARS.length) };
   const story = { s: 0, rings: 0, border: 0 };
   const handed = pieces.map(() => ({ v: 0 }));
   const lettering = CONSTELLATIONS.map(() => ({ v: 0 }));
@@ -178,7 +177,7 @@ export function init(root: HTMLElement): void {
     starOf.forEach((star, i) => {
       if (star >= 0) look.own[star] = Math.max(look.own[star], handed[i].v);
     });
-    renderer?.render({ view, reveal: look.reveal, own: look.own, draw: look.draw, graticule: look.graticule, reference });
+    renderer?.render({ view, reveal: look.reveal, own: look.own, draw: look.draw, reference });
     const project = projector(view);
     STARS.forEach((s, i) => {
       const p = project(s.p);
@@ -267,10 +266,17 @@ export function init(root: HTMLElement): void {
           useSvg();
           return;
         }
-        settled = true;
-        renderer = gl;
-        root.dataset.chart = gl.kind;
-        dirty = true;
+        // Drawn only once its shaders are compiled, so the first frame does not stall.
+        return gl.ready.then(() => {
+          if (settled) {
+            gl.destroy();
+            return;
+          }
+          settled = true;
+          renderer = gl;
+          root.dataset.chart = gl.kind;
+          dirty = true;
+        });
       })
       .catch(useSvg);
   }
@@ -294,6 +300,7 @@ export function init(root: HTMLElement): void {
   // ─── The reader's own words ────────────────────────────────────────────────
   function applyReader(animate = true): void {
     const { charted, uncharted } = overlay.setReader(getState().readerPieces);
+    const noteBefore = note?.hidden;
     if (note) {
       const was = !note.hidden;
       note.hidden = uncharted.length === 0;
@@ -304,6 +311,8 @@ export function init(root: HTMLElement): void {
       listYours.textContent = charted.length ? `Your pieces on this chart: ${charted.join(', ')}.` : '';
     }
     if (listUncharted) listUncharted.textContent = uncharted.length ? `${uncharted0} Yours here: ${uncharted.join(', ')}.` : uncharted0;
+    // The note standing above the chart, or the words in an open list, move everything below.
+    if (note?.hidden !== noteBefore || root.querySelector<HTMLDetailsElement>('details.star-list')?.open) ScrollTrigger.refresh();
     // Drawn by the scroll if the reader hasn't reached them yet; otherwise drawn now.
     if (animate && story.rings > 0 && !shots) gsap.fromTo(redraw, { v: 0 }, { v: 1, duration: PLATE3.ringDraw, ease: 'hand', onUpdate: invalidate });
     dirty = true;
@@ -393,7 +402,7 @@ export function init(root: HTMLElement): void {
   const build = () => {
     mm?.revert();
     mm = gsap.matchMedia();
-    mm.add({ wide: WIDE, compact: COMPACT, reduced: REDUCED }, (context) => {
+    mm.add({ wide: WIDE, compact: COMPACT, reduced: STILL }, (context) => {
       const { wide, reduced } = context.conditions as Record<string, boolean>;
       const box = host.getBoundingClientRect();
       const band = parseFloat(getComputedStyle(fieldEl).getPropertyValue('--chart-band')) || 0;
@@ -419,7 +428,7 @@ export function init(root: HTMLElement): void {
         proxy.brush = 1;
         proxy.exposure = 1;
         latch();
-        Object.assign(look, { reveal: 1, draw: 1, graticule: 1 });
+        Object.assign(look, { reveal: 1, draw: 1 });
         Object.assign(story, { s: 0, rings: 1, border: 1 });
         for (const h of handed) h.v = 1;
         for (const l of lettering) l.v = 1;
@@ -434,7 +443,7 @@ export function init(root: HTMLElement): void {
       stopsEl.classList.add('is-live');
       gsap.set(captions, { opacity: 0 });
       caption = -1;
-      Object.assign(look, { reveal: 0, draw: 0, graticule: 0 });
+      Object.assign(look, { reveal: 0, draw: 0 });
       Object.assign(story, { s: 0, rings: 0, border: 0 });
       for (const h of handed) h.v = 0;
       for (const l of lettering) l.v = 0;
@@ -519,7 +528,6 @@ export function init(root: HTMLElement): void {
 
       // The chart develops, its threads are drawn at pen speed, its names are lettered.
       hold.fromTo(look, { reveal: 0 }, { reveal: 1, duration: at(span(p.reveal)), ease: 'develop', onUpdate: invalidate, immediateRender: false }, at(p.reveal[0]));
-      hold.fromTo(look, { graticule: 0 }, { graticule: 1, duration: at(span(p.graticule)), ease: 'develop', onUpdate: invalidate, immediateRender: false }, at(p.graticule[0]));
       hold.fromTo(look, { draw: 0 }, { draw: 1, duration: at(span(p.lines)), ease: 'none', onUpdate: invalidate, immediateRender: false }, at(p.lines[0]));
       const names = lettering.length;
       const nameStep = (at(span(p.names)) - at(PLATE3.nameSet)) / (names - 1);
@@ -555,6 +563,13 @@ export function init(root: HTMLElement): void {
   };
   window.addEventListener('resize', onResize);
 
+  // Opening "List the stars" pushes everything after it down the page by the list's whole
+  // length, so every pin and scrubbed beat below is measured again; without this, Plates
+  // IV to VI played their sequences a list's length early (Phase 8).
+  const starList = root.querySelector<HTMLDetailsElement>('details.star-list');
+  const onToggle = () => ScrollTrigger.refresh();
+  starList?.addEventListener('toggle', onToggle);
+
   teardown = () => {
     clearTimeout(grace);
     gsap.ticker.remove(tick);
@@ -562,6 +577,7 @@ export function init(root: HTMLElement): void {
     seen.disconnect();
     unsubscribe();
     window.removeEventListener('resize', onResize);
+    starList?.removeEventListener('toggle', onToggle);
     renderer?.destroy();
     overlay.destroy();
   };

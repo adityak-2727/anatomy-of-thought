@@ -1,6 +1,6 @@
 // What both drawings of the chart share (three.js and the SVG fallback): when each star
 // comes up, the constellation lines as laid threads with the time the pen reaches each
-// point, and a faint graticule. Worked out once, from seeds, so both drawings agree.
+// point. Worked out once, from seeds, so both drawings agree.
 
 import { CONSTELLATIONS } from '../../data/vocab';
 import { LINES, STARS, starFor } from '../../data/chart';
@@ -83,33 +83,6 @@ export function constellationLines(seed: number): Polyline[] {
     });
   }
   return out;
-}
-
-/**
- * A graticule on the far half of a sphere around the chart: parallels and meridians,
- * as an old celestial atlas rules its sky. Faint, and always behind the stars.
- */
-export function graticule(centre: Vec3, radius: number): Vec3[][] {
-  const lines: Vec3[][] = [];
-  const steps = 48;
-  const point = (lat: number, lon: number): Vec3 => [
-    centre[0] + radius * Math.cos(lat) * Math.sin(lon),
-    centre[1] + radius * Math.sin(lat),
-    centre[2] - radius * Math.cos(lat) * Math.cos(lon),
-  ];
-  // Parallels every 20°, across the far hemisphere.
-  for (let lat = -40; lat <= 40; lat += 20) {
-    const pts: Vec3[] = [];
-    for (let i = 0; i <= steps; i++) pts.push(point((lat * Math.PI) / 180, ((-90 + (180 * i) / steps) * Math.PI) / 180));
-    lines.push(pts);
-  }
-  // Meridians every 30°, from pole to pole.
-  for (let lon = -60; lon <= 60; lon += 30) {
-    const pts: Vec3[] = [];
-    for (let i = 0; i <= steps; i++) pts.push(point(((-80 + (160 * i) / steps) * Math.PI) / 180, (lon * Math.PI) / 180));
-    lines.push(pts);
-  }
-  return lines;
 }
 
 /** A small, stable turn for each star's rays, so no two symbols are stamped identically. */

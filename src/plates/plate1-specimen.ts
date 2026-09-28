@@ -7,7 +7,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { advanceField, createField, type FieldHandle } from '../gl/background';
 import { pinSlipEnds, refitSlipEnds } from '../components/piece';
 import { PINS, PIN_DROP, PLATE1, SEEDS } from '../motion/eases';
-import { COMPACT, REDUCED, WIDE, isPhone } from '../motion/media';
+import { COMPACT, STILL, WIDE, isPhone } from '../motion/media';
 import { scrubFor } from '../motion/scroll';
 import { developOnArrival, pressInto } from '../motion/verbs';
 import { initLoupe } from '../components/loupe';
@@ -23,7 +23,6 @@ let resizer: ResizeObserver | null = null;
 
 export function init(root: HTMLElement): void {
   const frame = root.querySelector<HTMLElement>('.plate__frame')!;
-  const pinned = root.querySelector<HTMLElement>('.plate__pinned')!;
   const fieldEl = root.querySelector<HTMLElement>('.plate__field')!;
   const wrap = root.querySelector<HTMLElement>('.specimen-slip')!;
   const slip = wrap.querySelector<HTMLElement>('.slip')!;
@@ -45,7 +44,7 @@ export function init(root: HTMLElement): void {
   const latch = () => advanceField(f, proxy);
 
   mm = gsap.matchMedia();
-  mm.add({ wide: WIDE, compact: COMPACT, reduced: REDUCED }, (context) => {
+  mm.add({ wide: WIDE, compact: COMPACT, reduced: STILL }, (context) => {
     const { wide, reduced } = context.conditions as Record<string, boolean>;
     if (reduced) {
       proxy.brush = 1;
@@ -55,7 +54,9 @@ export function init(root: HTMLElement): void {
     }
 
     // Wide screens pin the whole plate; one-column layouts pin the figure alone.
-    const pinEl = wide ? frame : pinned;
+    // In one column only the field pins; the caption follows it, so the pin fits a
+    // phone's screen (Phase 8).
+    const pinEl = wide ? frame : fieldEl;
     const length = isPhone() ? PINS[1][1] : PINS[1][0];
     const k = length / PINS[1][0];
     const scrub = scrubFor('story');

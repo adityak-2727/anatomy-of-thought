@@ -89,7 +89,6 @@ Semantic aliases, so components never pick raw colours:
 --focus-on-field: var(--sensitiser);
 --o-constellation: 0.4;               /* constellation line opacity */
 --o-ghost: 0.16;                      /* ghost threads after a switch */
---o-graticule: 0.22;                  /* chart graticule */
 ```
 
 Contrast, measured in Phase 0 with the WCAG formula:
@@ -140,7 +139,7 @@ Fluid sizes run from 390px to 1600px wide (values in rem, 1rem = 16px):
 | Small italic | `--type-small` | 16 | `1rem` | 1.4 | Imprint, plate indicator, loupe hint |
 
 Rules:
-- The measure is at most 62 characters (`max-inline-size: 31em` for body text), ragged right.
+- The measure is at most 62 characters, ragged right. *As built (Phase 8):* `--measure: 26em` for roman and `--measure-italic: 25em` for notes and captions. The plan's 31em assumed half an em a character; Old Standard sets about 0.43em, so 31em ran to 70–87 characters. `npm run proof` measures every line at six widths.
 - Titles use `text-wrap: balance`; paragraphs use `pretty`. Widows are also prevented by hand with no-break spaces, because Safari’s support for `pretty` is recent.
 - The title is written “Anatomy of&nbsp;a&nbsp;Thought”, with no-break spaces inside “of a Thought”, so it only ever breaks as “Anatomy / of a Thought”.
 - Curly quotes and apostrophes throughout, including in the specimen (see §10).
@@ -211,6 +210,13 @@ At 1440px the content box is 1267px wide and a column is 83.6px. The 4-column te
 | Folio | `768–1099px`, or any width under 700px tall | Single column with larger type. The text measure stays ≤ 31em, and odd and even plates indent the text block differently, so the book’s alternation survives. The field is full width. Desktop pin lengths. |
 | Desktop | `≥ 1100px` wide and `≥ 700px` tall | Text 4 columns, air 1, field 7. Odd plates put the text on the left, even plates on the right. The whole plate frame pins. From 1100 to 1279px the text takes 5 columns and the air column goes, because 4 columns there would set the intro at about 34 characters. |
 | Wide | `≥ 1600px` | As desktop; the content is capped and centred. |
+
+*As built (Phase 8):*
+- **Still, when there is no room to pin.** A screen under 600px tall (a phone on its side, the smallest phones) shows every plate developed and still, as reduced motion does (`STILL` in `src/motion/media.ts`): a pin there would hide part of its own figure. Lenis and the frontispiece still run.
+- **In one column only the field pins** (with Plate III's stops, and Plate IV's field and notes); the caption follows the pin. The pinned part must fit a phone's visible screen (about 660–750px on an iPhone with Safari's bars): at 390px wide the tallest is now Plate IV's at 707px, then Plate V's at 594px.
+- **Plate IV in two columns** puts the captions (left, on the field's edge) and the notes (right) side by side under the field, and has 132px of headroom above the row and a 200 × 112 inset, so the pinned frame fits 1366 × 768 and taller. On screens under 800px tall its gaps close up a little. Between 1100 and 1279px wide the intro takes the air column, so it sets in three lines.
+- **Keeping the reader's place.** Resizing the window or turning a phone keeps the reader at the same point of the same plate (`keepPlaceOnResize` in `scroll.ts`). The place is noted at the resize, before anything is re-measured, returned to after each re-measure and once more when they have settled, and let go the moment the reader scrolls, touches or presses a key.
+- **Re-measuring when the page grows.** Anything that changes the page's height after load re-measures the scroll: opening or closing “List the stars” (about 2,000px), Plate V's variant note and Plate III's Uncharted note appearing (each stands above its plate's field in one column), and the reader's own sentence. Otherwise every pin below would play early by the height added.
 
 Why Folio exists: at 768×1024 a 4 + 7 split leaves a text column about 200px wide, roughly 18 characters of intro per line, which breaks the brief’s own line-length rules. The loupe uses press-and-hold wherever `pointer: coarse`, whatever the width.
 
@@ -475,8 +481,8 @@ Desktop (odd plate: text left):
 +------------------------------------------------------------------------------+
  The three.js canvas is transparent and sits exactly over the field. Names
  are lettered along arcs in an HTML/SVG overlay, and each name is a real
- button. A faint graticule and a ruled border with degree ticks make it an
- atlas plate, not a starfield.
+ button. A ruled border with degree ticks makes it an atlas plate, not a
+ starfield. (A faint graticule went in the Phase 8 restraint pass.)
  The stop captions replace one another in the note slot. The Uncharted note
  appears under them only when the reader has uncharted pieces.
 ```
@@ -665,7 +671,7 @@ Phone: a single column for both.
 
 ### Fixed furniture
 
-- **Plate indicator:** a small paper slip at the bottom left (inside the margin), 16px italic ink, turned 0.4°. A slip stays legible over paper and over blue, so no colour switching is needed. *As built (Phase 7):* it follows the plate that crosses the middle of the screen (an IntersectionObserver on the line through the middle), crossfades between two faces in 150ms, and is hidden when no plate crosses that line (the frontispiece, the list, the end matter). *Phone (Phase 7):* not shown below 768px. There the slip took a third of the width at the foot of the screen, covering each heading as it came up and the machine's-view toggles on pinned plates; the headings and figure numbers already say where the reader is.
+- **Plate indicator:** a small paper slip at the bottom left (inside the margin), 16px italic ink, turned 0.4°. A slip stays legible over paper and over blue, so no colour switching is needed. *As built (Phase 7):* it follows the plate that crosses the middle of the screen (an IntersectionObserver on the line through the middle), crossfades between two faces in 150ms, and is hidden when no plate crosses that line (the frontispiece, the list, the end matter). *Phone (Phase 7), one column (Phase 8):* shown only in the two-column layout (at least 1100 × 700). On a phone the slip took a third of the width at the foot of the screen, covering each heading and the machine's-view toggles; in the one-column Folio layout the notes passed under it. There the headings and figure numbers already say where the reader is. In two columns, Plate IV's frame now ends above it.
 - **Loupe:** a 168px lens replacing the cursor over `[data-loupe]` figures. The rim is a 1.5px paper line with a crescent of fine engraved hatching inside the upper-left edge.
 
 ---
@@ -1074,11 +1080,10 @@ Measured cost is not yet known on real hardware. The software renderer used for 
 - **Accessibility:** a “List the stars” `<details>` with an `h3` per constellation and its words.
 
 **As built (Phase 4)**
-- Both drawings answer to one description of a frame (`Look`: view, reveal, per-star reveal, pen, graticule), so the plate swaps one for the other without the story noticing. three.js is imported when the plate is a screen away; `?nogl`, a CSS-only background, a refused context, or three.js still missing when the pin passes 5% all give the SVG chart for the rest of the visit.
+- Both drawings answer to one description of a frame (`Look`: view, reveal, per-star reveal, pen), so the plate swaps one for the other without the story noticing. three.js is imported when the plate is a screen away; `?nogl`, a CSS-only background, a refused context, or three.js still missing when the pin passes 5% all give the SVG chart for the rest of the visit.
 - The SVG chart re-projects every star when the camera moves (transforms on `<use>`), rather than tweening a `viewBox`: a `viewBox` zoom would have enlarged the engraved symbols with the camera.
 - Symbols scale with the field's width (at least 62%) so a phone's chart stays figures, not blots; they grow only a little as the camera nears (at most 1.5×).
 - Lines are drawn in one draw call: each vertex carries the time the pen reaches it, and the fragment shader discards what the pen hasn't reached, so a line grows smoothly rather than a segment at a time.
-- The graticule is the far half of a sphere about the chart: parallels every 20° to ±40°, meridians every 30°, at `--o-graticule`.
 - Words set on the chart (stop words, “yours”, the hover word) find the first free place beside their star, keeping clear of names, rings and star symbols.
 - The loupe keeps its star while the star stays within 80% of the lens radius, so its writing holds still as the lens moves; the lens writing uses `--type-lens` sizes (read at 1.4×) so the word, three coordinates and “and thousands more” fit the lens together.
 
@@ -1124,7 +1129,7 @@ Measured cost is not yet known on real hardware. The software renderer used for 
 - If iOS proves unreliable, touch falls back to the toggle, and the hint text follows.
 
 **The loupe for keyboards and screen readers**
-- The “Show the machine’s view” toggle reveals the whole layer (`aria-pressed`, label “Hide the machine’s view” when on).
+- The “Show the machine’s view” toggle reveals the whole layer; its label becomes “Hide the machine’s view” when on (and so it carries no `aria-pressed`).
 - Each figure is followed by a real `<table>` holding the machine’s view, visually hidden but always there for screen readers.
 
 **Plate III’s machine layer** is a small dynamic block: the nearest star’s word, six coordinates in League Gothic, and “and thousands more” in Old Standard italic ink.
@@ -1154,6 +1159,11 @@ Measured cost is not yet known on real hardware. The software renderer used for 
 
   This is recorded here so it never looks like a hidden exemption.
 - **Plate IV’s unread pieces** are drawn faintly in prussian-wash as SVG lettering, which axe does not measure. They are a picture of the sentence not yet read (WCAG’s exception for text that is part of a picture); the sentence itself is always present as the slips and in the table after the figure.
+- *As built (Phase 8):*
+  - **Every constellation's name is in the Tab order.** A name with no room to be lettered is transparent rather than hidden, keeps its place on the chart, and is shown there while it has keyboard focus; Enter does what a click does (to the plate's rest first, then the flight). Before this, a keyboard could not fly the chart at all.
+  - **The dial's written value (“1.00”) is hidden from screen readers.** As an `<output>` it was a live region, so every turn was announced twice; the slider already speaks its value with a word.
+  - **The machine's-view toggles change their label** (“Show…” to “Hide the machine’s view”) and carry no `aria-pressed`, as a button whose name changes should not.
+  - `npm run keyboard` Tabs through the page in both motion modes (each stop on screen, uncovered, ringed), works every control with keys alone, and writes the accessibility tree to `shots/a11y-tree.yml`.
 
 ### 8.10 Performance budget
 
@@ -1182,6 +1192,18 @@ Loaded later:
 - **LCP:** the title’s sensitiser copy paints as soon as the brush reveals it, at about fonts plus 0.4s, and the canvas is not an LCP candidate.
 - **CLS:** held near 0 by the pin skeleton being built at boot, and by the metric-matched font fallbacks.
 - **Scroll:** zero layout reads per frame for fields, the shader samples baked textures, the three.js renderer pauses off screen, and nothing renders at rest.
+
+*As built (Phase 8), measured on this machine's own GPU (Intel UHD Graphics, Direct3D 11 through ANGLE) with `npm run perf`:*
+- **Initial JavaScript:** 71.5 KB gzipped.
+- **Laptop (1440 × 900):** LCP 104ms, CLS 0; the whole atlas scrolled at a brisk pace at 59.4 fps, 12 frames over 25ms, and no long task while scrolling.
+- **Phone (390 × 844, CPU slowed 4×):** LCP 900ms, CLS 0; 59.2 fps. Two long tasks while scrolling, 71 and 76ms: three.js building the chart and drawing it first, one screen before Plate III, as the brief times its import.
+- **Lighthouse (`npm run lighthouse`):** desktop 100 for Performance, Accessibility, Best Practices and SEO; mobile Performance 92–95 over three runs (one earlier run gave 70, its blocking time 1.7s), the other three 100.
+- **What changed to get there:**
+  - **The paper's shader is built twice, one pass for the paper and one for the fields,** and compiled in the background (`KHR_parallel_shader_compile`). The whole shader took Direct3D 3.1s on a first visit, and asking for the result at once froze the page for all of it. The two halves now compile side by side in about a second while the page stays live; the title page waits for them and for the fonts together, and a compile slower than 6s falls back to CSS fields.
+  - **The chart's shaders are compiled with three.js's `compileAsync`** before it is first drawn.
+  - **The scratch canvas is sized for a screen-sized field at start-up and grows with 25% to spare:** reallocating it mid-scroll, as Plate IV came near, held a frame for 90ms.
+  - **Fields are drafted while they change, and made sharp only when the page is still.** A draft is drawn at 60% of a CSS pixel, at most thirty times a second; the sharp pass waits until the page has been still for 0.3s; fields and the chart are drawn at no more than 1.5 device pixels to the CSS pixel. Drawn in full every frame, Plate IV's field held the GPU for up to 83ms, and every plate stuttered as it arrived on a 2× screen (44–54 fps). They now arrive at 59–60 fps at 1×, 1.25× and 2×.
+- **WebKit fetches the two preloaded Old Standard faces a second time.** WebKit loads same-origin fonts without CORS, so the spec-correct `crossorigin` preload (which Chromium and Firefox need, or they fetch twice) is not matched. No single link serves both; this one is right for most readers.
 
 ### 8.11 QA harness (`scripts/shots.mjs`)
 
@@ -1269,7 +1291,7 @@ Every line of copy in the brief was checked against BRIEF §8’s list of safe c
 
 | Risk | Likelihood | Mitigation | Fallback |
 |---|---|---|---|
-| Background shader too heavy on integrated GPUs or phones | Medium | Fields redraw only when their state changes (never for scrolling); the paper pass is cheap; DPR caps; zero layout reads | Render scale 0.75, then the CSS fallback automatically (to build in Phase 8 if real devices need it) |
+| Background shader too heavy on integrated GPUs or phones | Medium | Fields redraw only when their state changes (never for scrolling); the paper pass is cheap; DPR caps; zero layout reads | *Phase 8:* measured on an Intel UHD laptop at 59 fps, so no render-scale step was built. The real cost was the shader's compile (3.1s on Direct3D); it is now split and compiled in the background, and a compile slower than 6s falls back to CSS. |
 | Fields trailing their text on native scroll | Was certain with one fixed canvas | Each field draws into its own canvas inside the field (§8.4) | — |
 | Two WebGL contexts at once (background and Plate III) | Low–medium | The background is idle while Plate III is pinned, because nothing on it changes | SVG chart |
 | Lenis and pinning jitter, especially in Safari | Medium | ScrollTrigger’s default fixed pinning on the window scroller, `anticipatePin: 1`, testing in WebKit through Playwright | Disable Lenis in Safari only |
@@ -1319,10 +1341,22 @@ Candidates for the “remove one element per plate” pass (Phase 8), noted now 
 | Frontispiece | The rule under the title |
 | Plate I | The second pin’s shadow |
 | Plate II | The leader lines on the letter labels |
-| Plate III | The graticule |
+| Plate III | The graticule *(removed)* |
 | Plate IV | The second ply |
 | Plate V | The column heads on the card |
 | Plate VI | The shoulder line on the sorts |
+
+*As built (Phase 8), the restraint pass:* each plate lost one element. Each was looked at in close-up first; two candidates changed on inspection.
+
+| Page | Removed | Why |
+|---|---|---|
+| Frontispiece | Nothing | The rule under the title was never built; everything on the page is the brief's. |
+| Plate I | The right pin's shaft and shadow; it is pushed straight in | One white shadow on the blue is the detail; a second only repeated it. |
+| Plate II | The leader lines on the letter labels | Each letter sits on its piece; a line to it said nothing more. The label room above a row fell from 34px to 26px. |
+| Plate III | The graticule | In the resting view its lines crossed the chart and competed with the constellation lines, which carry meaning. The ruled border and its degree ticks already say "chart of the sky". |
+| Plate IV | The second ply on strong threads | Width already carries weight (BRIEF §6). The stray fibres were the plan's other thought, but they are the brief's "slightly fuzzy", so they stay. |
+| Plate V | The double rule over the card | Its column heads are for screen readers only, so the rule headed nothing; the card's edge bounds the table. |
+| Plate VI | The shoulder line on the sorts | Barely visible, and it competed with the nick, the true letterpress cue. |
 
 ---
 

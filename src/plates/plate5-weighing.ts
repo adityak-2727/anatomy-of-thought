@@ -11,7 +11,7 @@ import { leverMark, pinMark, svgEl, tallyPaths } from '../components/marks';
 import { SCORES, type Variant } from '../data/specimen';
 import { percent, sample, softmax } from '../lib/softmax';
 import { PINS, PLATE5, SEEDS, pen } from '../motion/eases';
-import { COMPACT, REDUCED, WIDE, isPhone } from '../motion/media';
+import { COMPACT, STILL, WIDE, isPhone } from '../motion/media';
 import { mulberry32 } from '../motion/random';
 import { scrubFor } from '../motion/scroll';
 import { developOnArrival, setPress } from '../motion/verbs';
@@ -31,7 +31,6 @@ let teardown: (() => void) | null = null;
 
 export function init(root: HTMLElement): void {
   const frameEl = root.querySelector<HTMLElement>('.plate__frame')!;
-  const pinned = root.querySelector<HTMLElement>('.plate__pinned')!;
   const fieldEl = root.querySelector<HTMLElement>('.weigh-field')!;
   const reply = fieldEl.querySelector<HTMLElement>('.weigh-reply__set')!;
   const rows = [...fieldEl.querySelectorAll<HTMLTableRowElement>('.weigh-row')];
@@ -151,7 +150,11 @@ export function init(root: HTMLElement): void {
         tr.children[1].textContent = c.score.toFixed(1);
       });
     }
-    if (variantNote) variantNote.hidden = variant !== 'small';
+    if (variantNote && variantNote.hidden !== (variant !== 'small')) {
+      variantNote.hidden = variant !== 'small';
+      // In one column the note stands above the field, so the pins from here down move with it.
+      ScrollTrigger.refresh();
+    }
   }
 
   // ─── Drawing a piece ──────────────────────────────────────────────────────
@@ -210,7 +213,7 @@ export function init(root: HTMLElement): void {
   const build = () => {
     mm?.revert();
     mm = gsap.matchMedia();
-    mm.add({ wide: WIDE, compact: COMPACT, reduced: REDUCED }, (context) => {
+    mm.add({ wide: WIDE, compact: COMPACT, reduced: STILL }, (context) => {
       const { wide, reduced } = context.conditions as Record<string, boolean>;
       setRows();
       tallies.forEach((_, i) => writeTally(i, false));
@@ -230,7 +233,9 @@ export function init(root: HTMLElement): void {
 
       for (const g of grown) g.v = 0;
       renderBars();
-      const pinEl = wide ? frameEl : pinned;
+      // In one column only the field pins; the caption follows it, so the pin fits a
+      // phone's screen (Phase 8).
+      const pinEl = wide ? frameEl : fieldEl;
       const length = isPhone() ? PINS[5][1] : PINS[5][0];
       const k = length / PINS[5][0];
       const at = (v: number) => v * k;

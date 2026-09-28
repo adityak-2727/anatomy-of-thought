@@ -3,7 +3,7 @@
 import { pieceId } from '../lib/hash';
 import { signed } from '../motion/random';
 import { createTicker } from './ticker';
-import { leaderPath, pinMark, slipClip, svgEl } from './marks';
+import { pinMark, slipClip } from './marks';
 
 const MAX_TURN = 0.8; // degrees: pinned labels may turn up to ±0.8° (BRIEF §4)
 // The pin goes through the slip's corner, clear of the first letter.
@@ -24,7 +24,6 @@ export interface Piece {
   id: number;
   seed: number;
   letter?: HTMLElement;
-  leader?: SVGSVGElement;
   ticker?: HTMLElement;
   pin?: SVGSVGElement;
 }
@@ -53,11 +52,8 @@ export function createPiece(options: PieceOptions): Piece {
     letter.className = 'letter';
     letter.textContent = options.letter;
     letter.setAttribute('aria-hidden', 'true');
-    const leader = svgEl('svg', { class: 'leader', viewBox: '0 0 8 14', 'aria-hidden': 'true', focusable: 'false' });
-    svgEl('path', { d: leaderPath(4, 0.5, 4, 13.5, seed) }, leader);
-    root.append(leader, letter);
+    root.append(letter);
     piece.letter = letter;
-    piece.leader = leader;
   }
 
   if (options.ticker) {
@@ -69,8 +65,9 @@ export function createPiece(options: PieceOptions): Piece {
 }
 
 /**
- * Pin a large slip at both ends, as the specimen is pinned: the pins sit inside its
- * top corners and their shafts point up and out, leaving white shadows on the blue.
+ * Pin a large slip at both ends, as the specimen is pinned: the pins sit inside its top
+ * corners. The left pin's shaft points up and out, leaving a white shadow on the blue; the
+ * right pin is pushed straight in.
  */
 // Inside the slip's top corners, in its margin, clear of the first and last letters.
 const END_INSET = { x: 12, y: 11 };
@@ -80,7 +77,9 @@ export function pinSlipEnds(wrap: HTMLElement, slip: HTMLElement, seed: number):
   const w = slip.offsetWidth;
   const h = slip.offsetHeight;
   const left = pinMark(seed + 1, { x: 0, y: 0, w, h }, -150);
-  const right = pinMark(seed + 2, { x: 0, y: 0, w, h }, -30);
+  // The right pin is pushed straight in: one white shadow on the blue is the detail, and a
+  // second only repeated it (the Phase 8 restraint pass).
+  const right = pinMark(seed + 2, { x: 0, y: 0, w, h }, -30, false);
   wrap.append(left, right);
   refitSlipEnds(slip, [left, right]);
   return [left, right];

@@ -66,12 +66,14 @@ export function deckleClip(seed: number): string {
 /**
  * A dressmaker's pin, in elevation: a round head and a fine shaft laid at an angle.
  * Where it lies on the slip it is drawn in ink; where it lies on the blue it is a white shadow.
+ * A pin pushed straight in (`laid` false) shows only its head.
  * The svg is positioned by the caller; the head sits at (0, 0).
  */
 export function pinMark(
   seed: number,
   slipBox: { x: number; y: number; w: number; h: number },
   direction = -150, // degrees; the shaft points up and out, away from the slip
+  laid = true,
 ): SVGSVGElement {
   const r = rngFor(seed, 'pin');
   const angle = direction - 12 + r() * 24;
@@ -86,11 +88,11 @@ export function pinMark(
   svgEl('rect', { x: slipBox.x, y: slipBox.y, width: slipBox.w, height: slipBox.h }, clip);
   const shaft = `M0,0 L${x2.toFixed(2)},${y2.toFixed(2)}`;
   // The shadow on the field.
-  svgEl('path', { d: shaft, class: 'pin__shaft pin__shaft--field' }, svg);
+  if (laid) svgEl('path', { d: shaft, class: 'pin__shaft pin__shaft--field' }, svg);
   svgEl('circle', { cx: 0, cy: 0, r: 3.6, class: 'pin__head pin__head--field' }, svg);
   // The pin itself where it lies over the slip.
   const onSlip = svgEl('g', { 'clip-path': `url(#${id})` }, svg);
-  svgEl('path', { d: shaft, class: 'pin__shaft' }, onSlip);
+  if (laid) svgEl('path', { d: shaft, class: 'pin__shaft' }, onSlip);
   svgEl('circle', { cx: 0, cy: 0, r: 3.6, class: 'pin__head' }, onSlip);
   svgEl('circle', { cx: -1.1, cy: -1.1, r: 1, class: 'pin__glint' }, onSlip);
   return svg;
@@ -169,14 +171,6 @@ export function threadFibres(from: Point, to: Point, seed: number, count = 2, ou
     paths.push(polyline(pts));
   }
   return paths;
-}
-
-/** A leader line: a short hairline from a label to the thing it names, drawn by hand. */
-export function leaderPath(x1: number, y1: number, x2: number, y2: number, seed: number): string {
-  const r = rngFor(seed, 'leader');
-  const mx = (x1 + x2) / 2 + (r() - 0.5) * 1.2;
-  const my = (y1 + y2) / 2 + (r() - 0.5) * 1.2;
-  return `M${x1.toFixed(2)},${y1.toFixed(2)} Q${mx.toFixed(2)},${my.toFixed(2)} ${x2.toFixed(2)},${y2.toFixed(2)}`;
 }
 
 /** The mark for a leading space: an open box on the baseline, as ␣ is written. */
@@ -287,16 +281,16 @@ export function tallyPaths(count: number, seed: number, height = 14, step = 5): 
 }
 
 /**
- * A metal sort in elevation: its body, the shoulder near the top, a nick on its front,
- * and the piece in ink on its face. A piece that carries a leading space has a blank
- * shoulder at its left, as the cut on Plate II left the space with the piece.
+ * A metal sort in elevation: its body, a nick on its front, and the piece in ink on its
+ * face. A piece that carries a leading space has a blank at its left, as the cut on
+ * Plate II left the space with the piece. (The shoulder line near the top went in the
+ * Phase 8 restraint pass.)
  */
 export function sortMark(text: string, width: number, height: number, spaced: boolean, seed: number): SVGGElement {
   const r = rngFor(seed, 'sort');
   const g = svgEl('g', { class: 'sort' });
   const lean = (r() - 0.5) * 0.6;
   svgEl('path', { d: `M0,0 L${width},${lean.toFixed(2)} L${width},${height} L0,${height} Z`, class: 'sort__body' }, g);
-  svgEl('path', { d: `M1.5,${(height * 0.22).toFixed(1)} L${width - 1.5},${(height * 0.22 + lean).toFixed(1)}`, class: 'sort__shoulder' }, g);
   svgEl('path', { d: `M1.5,${(height * 0.8).toFixed(1)} L${width - 1.5},${(height * 0.8).toFixed(1)}`, class: 'sort__nick' }, g);
   const blank = spaced ? Math.min(12, width * 0.25) : 0;
   if (blank) svgEl('path', { d: `M${blank.toFixed(1)},${(height * 0.22).toFixed(1)} L${blank.toFixed(1)},${(height * 0.8).toFixed(1)}`, class: 'sort__blank' }, g);

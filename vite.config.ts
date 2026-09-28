@@ -37,11 +37,28 @@ function preloadFonts(): Plugin {
   };
 }
 
+// Link previews need the Open Graph image and the page's address as absolute URLs, which
+// only the deployment knows: `SITE_URL=https://example.org/atlas/ npm run build`. Without
+// it the build keeps relative paths, which is right for everything but the previews.
+function siteUrl(): Plugin {
+  const site = process.env.SITE_URL?.replace(/\/?$/, '/');
+  return {
+    name: 'atlas:site-url',
+    transformIndexHtml(html) {
+      if (!site) return html.replace(/\s*<link rel="canonical"[^>]*>|\s*<meta property="og:url"[^>]*>/g, '');
+      return html
+        .replaceAll('content="./og.png"', `content="${site}og.png"`)
+        .replaceAll('href="%SITE_URL%"', `href="${site}"`)
+        .replaceAll('content="%SITE_URL%"', `content="${site}"`);
+    },
+  };
+}
+
 export default defineConfig({
   // Relative base so the same build works at a domain root (Vercel)
   // and under a project path (GitHub Pages).
   base: './',
-  plugins: [preloadFonts()],
+  plugins: [preloadFonts(), siteUrl()],
   // Pre-bundle every dependency up front, and transform the entry files as the server
   // starts, so a first visit in development doesn't wait on discovery (or reload for it).
   optimizeDeps: {
@@ -70,6 +87,11 @@ export default defineConfig({
   },
   build: {
     target: 'es2022',
+    // A plate's chunk lists the entry among the modules to preload, but the page's own
+    // script tag has already loaded and run it; WebKit flags the second request as unused.
+    modulePreload: {
+      resolveDependencies: (_file, deps) => deps.filter((dep) => !/(^|\/)index-[^/]+\.js$/.test(dep)),
+    },
     // Fonts must stay separate files so they can be preloaded and cached.
     assetsInlineLimit: 0,
     // three.js (Plate III) is one large chunk, loaded only near its plate and outside the

@@ -13,7 +13,7 @@ import { strongest, weights, type View } from '../data/attention';
 import { spokenPiece } from '../data/chart';
 import { LETTERS, PIECES, type Variant } from '../data/specimen';
 import { DUR, PINS, PLATE4, SEEDS } from '../motion/eases';
-import { COMPACT, REDUCED, WIDE, isPhone } from '../motion/media';
+import { COMPACT, STILL, WIDE, isPhone } from '../motion/media';
 import { scrubFor } from '../motion/scroll';
 import { developOnArrival, setPress } from '../motion/verbs';
 import { flags } from '../flags';
@@ -314,7 +314,7 @@ export function init(root: HTMLElement): void {
   const build = () => {
     mm?.revert();
     mm = gsap.matchMedia();
-    mm.add({ wide: WIDE, compact: COMPACT, reduced: REDUCED }, (context) => {
+    mm.add({ wide: WIDE, compact: COMPACT, reduced: STILL }, (context) => {
       const { wide, reduced } = context.conditions as Record<string, boolean>;
       lay();
       applyVariant(variant, false);

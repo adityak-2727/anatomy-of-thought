@@ -247,7 +247,7 @@ html:not(.js) .contents__leader {
   font-size: var(--type-body);
   line-height: var(--lh-body);
   font-style: italic;
-  max-inline-size: var(--measure);
+  max-inline-size: var(--measure-italic);
 }
 
 .plate__field {
@@ -260,7 +260,7 @@ html:not(.js) .contents__leader {
   font-size: var(--type-caption);
   line-height: var(--lh-caption);
   font-style: italic;
-  max-inline-size: 36em;
+  max-inline-size: var(--measure-italic);
 }
 
 /* Plate I: the specimen slip, set large and pinned at both ends. */
@@ -532,15 +532,10 @@ html:not(.js) .reader-bench {
 }
 
 /* The SVG chart, drawn when WebGL is not to hand: the same symbols in the same ink. */
-.chart-svg__graticule path,
 .chart-svg__lines path {
   fill: none;
   stroke: var(--silhouette);
   stroke-width: var(--hairline);
-}
-
-.chart-svg__graticule path {
-  stroke-opacity: var(--o-graticule);
 }
 
 .chart-svg__lines path {
@@ -594,19 +589,32 @@ html:not(.js) .reader-bench {
   font-size: var(--type-field-label);
 }
 
+/* A name is lettered only where it has room; one without room is transparent but still in
+   the Tab order, and focused from the keyboard it is shown where it would sit (Phase 8). */
 .chart-name {
   position: absolute;
   inset-block-start: 0;
   inset-inline-start: 0;
   padding: 0;
   color: inherit;
-  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.chart-name.is-placed,
+.chart-name:focus-visible {
+  opacity: 1;
   pointer-events: auto;
 }
 
 .chart-name__art {
   display: block;
   overflow: visible;
+  opacity: var(--lettered, 0);
+}
+
+.chart-name:focus-visible .chart-name__art {
+  opacity: 1;
 }
 
 .chart-name__text {
@@ -697,7 +705,7 @@ html:not(.js) .reader-bench {
    turn; in the sequence they share one place and replace one another. */
 .chart-stops {
   margin-block-start: var(--s-6);
-  max-inline-size: 36em;
+  max-inline-size: var(--measure-italic);
   font-size: var(--type-body);
   line-height: var(--lh-body);
   font-style: italic;
@@ -850,6 +858,33 @@ html:not(.js) .chart-field {
   .plate.plate--wide .plate__figure {
     grid-column: 1 / -1;
     grid-row: 2;
+  }
+}
+
+/* 1100–1279px: the intro takes the air column too, so it sets in three lines, not four. */
+@media (min-width: 1100px) and (max-width: 1279px) and (min-height: 700px) {
+  .plate.plate--wide .plate__text {
+    grid-column: 1 / span 7;
+  }
+}
+
+/* A short laptop screen: the gaps close up a little, so the whole plate stays on screen
+   while it is pinned (Phase 8). */
+@media (min-width: 1100px) and (min-height: 700px) and (max-height: 799px) {
+  .plate.plate--wide .plate__frame {
+    row-gap: var(--s-5);
+  }
+
+  .plate.plate--wide .plate__title {
+    margin-block-end: var(--s-5);
+  }
+
+  .plate--wide .threads-field {
+    padding-block-start: var(--s-4);
+  }
+
+  .plate--wide .plate__pinned {
+    row-gap: var(--s-4);
   }
 }
 
@@ -1027,24 +1062,35 @@ html:not(.js) .chart-field {
 }
 
 /* On end: the row down the left, threads bowing right, Fig. 4b in the top corner. */
+/* On end, the row and its notes must fit a phone's screen while they are pinned, so the
+   slips stack close (their text keeps its 18px) and the bands above and below are slim. */
 .threads-field.is-vertical {
-  padding-block-end: calc(var(--toggle-room) + var(--s-6));
+  padding-block: var(--s-4) calc(var(--toggle-room) + var(--s-4));
+}
+
+.threads-field.is-vertical .threads__row .slip {
+  padding-block: 0.06em 0.1em;
 }
 
 .threads-field.is-vertical .inset {
-  inset-block-start: var(--s-5);
+  inset-block-start: var(--s-4);
   inset-block-end: auto;
 }
 
 .threads-field.is-vertical .loupe-toggle {
   inset-inline-start: auto;
   inset-inline-end: var(--s-5);
+  inset-block-end: var(--s-4);
+}
+
+.threads-field.is-vertical + .thread-notes {
+  margin-block-start: var(--s-4);
 }
 
 /* The notes take one place and replace one another in the sequence; otherwise all three are read. */
 .thread-notes {
   margin-block-start: var(--s-5);
-  max-inline-size: 40em;
+  max-inline-size: var(--measure-italic);
 }
 
 .thread-notes .plate__note:first-child {
@@ -1068,7 +1114,7 @@ html:not(.js) .chart-field {
 
 .threads__caption {
   display: block;
-  max-inline-size: 36em;
+  max-inline-size: var(--measure-italic);
 }
 
 /* The machine's view of the threads: outlines, plain lines, weights. */
@@ -1157,7 +1203,6 @@ html:not(.js) .chart-field {
   /* The names and the tally keep their widths; the bars take the rest. */
   table-layout: fixed;
   border-collapse: collapse;
-  border-block-start: 3px double var(--ink);
 }
 
 .weigh-row {
@@ -1402,7 +1447,6 @@ html:not(.js) .weigh-reply__slot {
   stroke-width: var(--hairline);
 }
 
-.sort__shoulder,
 .sort__nick,
 .sort__blank {
   fill: none;
@@ -1597,37 +1641,80 @@ html:not(.js) .stick__answer {
   }
 }
 
+/* Under the field, the captions keep to its left edge and the notes, which follow the
+   reading, stand beside them. One above the other, they made the pinned frame taller than
+   a laptop's screen (Phase 8). */
 @media (min-width: 1100px) and (min-height: 700px) {
-  .threads__captions {
-    grid-template-columns: 1fr 1fr;
+  .plate--wide .plate__pinned {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "field field"
+      "captions notes";
+    gap: var(--s-5) var(--gutter);
+    align-items: start;
+  }
+
+  .plate--wide .threads__pin {
+    display: contents;
+  }
+
+  .plate--wide .threads-field {
+    grid-area: field;
+  }
+
+  .plate--wide .thread-notes {
+    grid-area: notes;
+    margin: 0;
+  }
+
+  .plate--wide .threads__captions {
+    grid-area: captions;
+    margin: 0;
   }
 }
 
-/* On a phone the card takes the width, and the dial and lever sit side by side beneath it. */
+/* On a phone the card takes the width. The lever sits beside the reply's empty slot, which
+   is what it fills; the dial and what was drawn share the row under the card, and the
+   machine's-view toggle takes the corner beside the dial. So the field fits a phone's
+   screen while it is pinned (Phase 8). */
 @media (max-width: 767px) {
   .weigh-field {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      "reply"
-      "card"
-      "instruments";
-    padding-inline: var(--s-4);
+      "reply lever"
+      "card card"
+      "dial drawn";
+    gap: var(--s-4);
+    padding: var(--s-5) var(--s-4);
   }
 
   .weigh-card {
     padding-inline: var(--s-3);
   }
 
-  /* The dial on the left; the lever, and what it drew, stacked beside it. */
   .weigh-instruments {
-    grid-template-columns: auto 1fr;
-    justify-items: start;
-    align-items: center;
-    column-gap: var(--s-5);
+    display: contents;
   }
 
-  .weigh-instruments .dial {
-    grid-row: 1 / span 2;
+  .weigh-field .dial {
+    grid-area: dial;
+    justify-self: start;
+  }
+
+  .weigh-field .lever {
+    grid-area: lever;
+    align-self: center;
+  }
+
+  .weigh-field .drawn {
+    grid-area: drawn;
+    align-self: start;
+    justify-self: end;
+  }
+
+  .weigh-name {
+    padding-block: var(--s-1);
   }
 
   .weigh-col--name {

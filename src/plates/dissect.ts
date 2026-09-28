@@ -8,7 +8,7 @@
 
 import { gsap } from 'gsap';
 import { pieceId } from '../lib/hash';
-import { leaderPath, pinMark, slipClip, spaceMark, svgEl } from '../components/marks';
+import { pinMark, slipClip, spaceMark, svgEl } from '../components/marks';
 import { createTicker } from '../components/ticker';
 import { PIN_DROP, PLATE2 } from '../motion/eases';
 import { signed } from '../motion/random';
@@ -23,7 +23,6 @@ export interface CutPiece {
   id: number;
   seed: number;
   letter: HTMLElement | null;
-  leader: SVGSVGElement | null;
   ticker: HTMLElement;
   pin: SVGSVGElement;
   w: number;
@@ -106,18 +105,15 @@ export function prepare(list: HTMLElement, seed: number, letters?: readonly stri
     pin.style.left = `${PIN_INSET}px`;
     pin.style.top = `${PIN_INSET}px`;
     let letter: HTMLElement | null = null;
-    let leader: SVGSVGElement | null = null;
     if (letters?.[i]) {
       letter = document.createElement('span');
       letter.className = 'letter';
       letter.setAttribute('aria-hidden', 'true');
       letter.textContent = letters[i];
-      leader = svgEl('svg', { class: 'leader', viewBox: '0 0 8 14', 'aria-hidden': 'true', focusable: 'false' });
-      svgEl('path', { d: leaderPath(4, 0.5, 4, 13.5, s) }, leader);
-      el.append(leader, letter);
+      el.append(letter);
     }
     el.append(ticker, pin);
-    return { el, slip, text, id, seed: s, letter, leader, ticker, pin, w: 0, h: 0, a: { x: 0, y: 0 }, b: { x: 0, y: 0 }, part: 0, jolt: 0, turn: 0 };
+    return { el, slip, text, id, seed: s, letter, ticker, pin, w: 0, h: 0, a: { x: 0, y: 0 }, b: { x: 0, y: 0 }, part: 0, jolt: 0, turn: 0 };
   });
 }
 
@@ -262,7 +258,7 @@ export function toStrip(d: Laid): void {
     gsap.set(p.slip, { clipPath: 'none' });
     gsap.set(p.pin, { opacity: 0, scale: PIN_DROP, y: 0 });
     gsap.set(p.ticker.firstElementChild, { yPercent: -102, y: 0 });
-    if (p.letter) gsap.set([p.letter, p.leader], { opacity: 0 });
+    if (p.letter) gsap.set(p.letter, { opacity: 0 });
   }
   for (const c of d.cuts) gsap.set(c, { attr: { y2: Number(c.getAttribute('y1')) }, opacity: 1 });
   gsap.set(d.offcuts, { opacity: 1, y: 0 });
@@ -275,7 +271,7 @@ export function toFinal(d: Laid): void {
     gsap.set(p.slip, { clipPath: clipOf(p) });
     gsap.set(p.pin, { opacity: 1, scale: 1, y: 0 });
     gsap.set(p.ticker.firstElementChild, { yPercent: 0, y: 0 });
-    if (p.letter) gsap.set([p.letter, p.leader], { opacity: 1 });
+    if (p.letter) gsap.set(p.letter, { opacity: 1 });
   }
   gsap.set(d.cuts, { opacity: 0 });
   gsap.set(d.offcuts, { opacity: 0 });
@@ -336,8 +332,8 @@ export function addFixing(
   d.pieces.forEach((p, i) => {
     const t = at + Math.max(0, i * step + signed(p.seed, 'fix') * step * 0.25);
     pressInto(tl, p.pin, { scale: PIN_DROP, opacity: 0 }, { scale: 1, opacity: 1 }, t, durations.pin);
-    if (p.letter && p.leader) {
-      tl.fromTo([p.letter, p.leader], { opacity: 0 }, { opacity: 1, duration: durations.letter, ease: 'press', immediateRender: false }, t + durations.pin * 0.5);
+    if (p.letter) {
+      tl.fromTo(p.letter, { opacity: 0 }, { opacity: 1, duration: durations.letter, ease: 'press', immediateRender: false }, t + durations.pin * 0.5);
     }
     const strip = p.ticker.firstElementChild!;
     tl.fromTo(strip, { yPercent: -102 }, { yPercent: 0, duration: durations.ticker, ease: 'press', immediateRender: false }, t + durations.pin * 0.8);
