@@ -289,7 +289,7 @@ The atlas explains how large language models work in general: text is split into
 
 ## Credits
 
-Designed, written and built by **Aditya**.
+Designed and built by **Aditya**.
 
 - Type: **Old Standard TT** by Alexey Kryukov, and **League Gothic** by The League of Moveable Type, both under the SIL Open Font License.
 - After **Anna Atkins**, *Photographs of British Algae: Cyanotype Impressions* (1843), and the natural-history plates and celestial atlases of the nineteenth century.
